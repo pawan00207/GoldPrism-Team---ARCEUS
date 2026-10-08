@@ -1,0 +1,1 @@
+// Bhavcopy schema mappings
