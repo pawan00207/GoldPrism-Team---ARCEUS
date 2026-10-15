@@ -1,0 +1,1 @@
+export const CARRY_SENSITIVITY_STEP = 0.005;
