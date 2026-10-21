@@ -1,0 +1,1 @@
+export const BADGE_STATES = ['VERIFIED', 'FAULT_DETECTED'];
