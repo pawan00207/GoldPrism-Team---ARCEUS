@@ -2,8 +2,8 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
-import { Activity, Github, Moon, Sun, Scale, Layers, Trophy } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { Activity, Github, Moon, Sun, Menu, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { TICKER_ITEMS } from '@/lib/mock-data'
@@ -22,9 +22,9 @@ export function TickerTape() {
   return (
     <div className="border-y border-border bg-muted/30 overflow-hidden">
       <div className="flex items-center">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold shrink-0">
-          <Activity className="w-3 h-3" />
-          COMMODITY &amp; GLOBAL DESK
+        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold shrink-0 relative overflow-hidden">
+          <Activity className="w-3 h-3 animate-pulse" />
+          <span>COMMODITY &amp; GLOBAL DESK</span>
         </div>
         <div className="overflow-hidden flex-1">
           <div className="flex ticker-track whitespace-nowrap">
@@ -61,6 +61,7 @@ export function TickerTape() {
 export function Navbar() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
+  const [mobileOpen, setMobileOpen] = React.useState(false)
   React.useEffect(() => setMounted(true), [])
 
   const goldLinks = [
@@ -75,6 +76,7 @@ export function Navbar() {
   ]
 
   return (
+    <>
     <motion.header
       initial={{ y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
@@ -129,7 +131,7 @@ export function Navbar() {
               )}
             </Button>
           )}
-          <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs">
+          <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs hidden sm:flex">
             <a
               href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
               target="_blank"
@@ -139,14 +141,63 @@ export function Navbar() {
               <span className="hidden sm:inline">GitHub</span>
             </a>
           </Button>
-          <Button asChild size="sm" className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-sm">
+          <Button asChild size="sm" className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-sm hidden sm:flex">
             <a href="#judge-demo">
               <Activity className="w-3.5 h-3.5" />
               Judge Demo
             </a>
           </Button>
+          {/* Mobile hamburger */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 xl:hidden"
+            aria-label="Toggle menu"
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+          </Button>
         </div>
       </div>
     </motion.header>
+
+    {/* Mobile dropdown menu */}
+    <AnimatePresence>
+      {mobileOpen && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.18 }}
+          className="xl:hidden fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
+        >
+          <nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
+            {goldLinks.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setMobileOpen(false)}
+                className="px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors font-medium"
+              >
+                {l.label}
+              </a>
+            ))}
+            <div className="flex gap-2 pt-2 border-t border-border mt-1">
+              <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs flex-1">
+                <a href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS" target="_blank" rel="noreferrer">
+                  <Github className="w-3.5 h-3.5" /> GitHub
+                </a>
+              </Button>
+              <Button asChild size="sm" className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-black font-semibold flex-1" onClick={() => setMobileOpen(false)}>
+                <a href="#judge-demo">
+                  <Activity className="w-3.5 h-3.5" /> Judge Demo
+                </a>
+              </Button>
+            </div>
+          </nav>
+        </motion.div>
+      )}
+    </AnimatePresence>
+    </>
   )
 }

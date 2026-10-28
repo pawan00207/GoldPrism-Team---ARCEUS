@@ -68,19 +68,31 @@ export default function Home() {
             PRESERVED WORKSPACE CAPABILITIES: GLOBAL MARKETS & TOOLS
             100% Preserved & Enhanced with GoldPrism Context
             ========================================================= */}
-        <div className="py-12 bg-muted/10 border-y border-border/80">
-          <div className="container mx-auto px-4 max-w-7xl text-center">
-            <Badge variant="outline" className="mb-2 gap-1.5 border-border text-muted-foreground">
-              <Globe className="w-3.5 h-3.5 text-amber-400" /> Preserved Multi-Asset Research Engine
+        {/* Visual divider: amber accent line */}
+        <div className="section-divider mx-8" />
+        <div className="py-14 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-amber-500/3 via-transparent to-transparent pointer-events-none" />
+          <div className="container mx-auto px-4 max-w-7xl text-center relative z-10">
+            <Badge variant="outline" className="mb-3 gap-1.5 border-amber-500/30 text-amber-400 bg-amber-500/5">
+              <Globe className="w-3.5 h-3.5" /> Preserved Multi-Asset Research Engine
             </Badge>
             <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight">
               Global Markets, Factor Zoo &amp; Multi-Agent Swarm
             </h2>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-1">
-              All original equity, crypto, macro, and quantitative tools remain fully operational alongside the GoldPrism terminal.
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto mt-2">
+              All original equity, crypto, macro, and quantitative research tools remain fully operational alongside the GoldPrism terminal.
             </p>
+            <div className="flex flex-wrap items-center justify-center gap-2 mt-4 text-xs text-muted-foreground">
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">📊 Market Dashboard</span>
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">🤖 AI Agent</span>
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">⚗️ Alpha Zoo · 456 Factors</span>
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">📈 Paper Trading</span>
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">🌐 Multi-Agent Swarm</span>
+              <span className="px-2.5 py-1 rounded-full bg-muted/60 border border-border/60">🏗️ Strategy Builder</span>
+            </div>
           </div>
         </div>
+        <div className="section-divider mx-8" />
 
         {/* Preserved Global Dashboard */}
         <Dashboard />

@@ -27,6 +27,19 @@ import {
   SEEDED_ERROR_BHAVCOPY_CSV,
 } from '@/lib/goldprism/fixtures'
 
+// Client-only timestamp to avoid SSR hydration mismatch
+function AuditTimestamp({ ts }: { ts: string }) {
+  const [label, setLabel] = React.useState('')
+  React.useEffect(() => {
+    setLabel(new Date(ts).toLocaleTimeString())
+  }, [ts])
+  return (
+    <div className="text-[11px] text-muted-foreground mt-2">
+      {label ? `Audited at ${label}` : 'Auditing…'}
+    </div>
+  )
+}
+
 export function DataHealthSection({
   onDatasetChange,
 }: {
@@ -217,9 +230,7 @@ export function DataHealthSection({
             <Badge variant="outline" className="border-amber-500/40 text-amber-300 font-mono text-[11px]">
               {ingestionResult.dataMode}
             </Badge>
-            <div className="text-[11px] text-muted-foreground mt-2">
-              Audited at {new Date(ingestionResult.retrievalTimestamp).toLocaleTimeString()}
-            </div>
+            <AuditTimestamp ts={ingestionResult.retrievalTimestamp} />
           </Card>
         </div>
 

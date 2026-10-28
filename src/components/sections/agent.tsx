@@ -16,9 +16,10 @@ interface Message {
 }
 
 const SUGGESTED_PROMPTS = [
+  'Explain the X-Ray waterfall for MCX GOLDM vs GOLDGUINEA spread',
+  'What is expiry carry and how does GoldPrism flag it?',
   'Analyze NVDA — should I trim my position?',
   'Design a momentum strategy for large-cap tech',
-  'Explain the disposition effect and how to fix it',
   'What alpha factors work best in high-vol regimes?',
   'Stress-test my portfolio for a 2008-style scenario',
 ]
@@ -28,7 +29,7 @@ export function Agent() {
     {
       role: 'assistant',
       content:
-        "Hi! I'm **VibeAgent**, your AI trading research assistant. Ask me about market analysis, strategy design, alpha factors, or portfolio risk. Try one of the prompts below to get started.",
+        "Hi! I'm **GoldPrism Agent**, your AI research assistant for MCX gold derivatives. Ask me about spread decomposition, X-Ray waterfall analysis, best-vehicle selection, data trust flags, or general market strategy. Try one of the prompts below to get started.",
       ts: Date.now(),
     },
   ])
@@ -90,7 +91,9 @@ export function Agent() {
   }
 
   return (
-    <section id="agent" className="py-16 md:py-24 scroll-mt-16 bg-muted/20 border-y border-border">
+    <section id="agent" className="relative isolate py-20 md:py-28 scroll-mt-20 bg-muted/20 border-y border-border overflow-hidden">
+      {/* Subtle amber accent top bar */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
       <div className="container mx-auto px-4 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -99,15 +102,15 @@ export function Agent() {
           className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8"
         >
           <div>
-            <Badge variant="outline" className="mb-2 gap-1">
-              <Bot className="w-3 h-3" /> AI Agent
+            <Badge variant="outline" className="mb-2 gap-1 border-amber-500/40 text-amber-500">
+              <Bot className="w-3 h-3" /> GoldPrism AI Agent
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Chat with VibeAgent
+              Chat with <span className="text-amber-400">GoldPrism</span> Agent
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              An autonomous ReAct-style agent with 68 tools — market data,
-              factor research, backtesting, and portfolio analytics.
+              An autonomous ReAct-style agent with 68 tools — MCX gold X-Ray analysis,
+              spread decomposition, factor research, backtesting, and portfolio analytics.
             </p>
           </div>
           <Button
@@ -126,16 +129,16 @@ export function Agent() {
             <CardHeader className="pb-3 shrink-0">
               <CardTitle className="flex items-center gap-2 text-base">
                 <div className="relative shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-primary" />
+                  <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-amber-500" />
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card animate-pulse" />
                 </div>
                 <div className="min-w-0">
-                  <div>VibeAgent</div>
+                  <div>GoldPrism Agent</div>
                   <div className="text-xs font-normal text-muted-foreground flex items-center gap-1 truncate">
                     <Sparkles className="w-3 h-3 shrink-0" />
-                    <span className="truncate">Online · 68 tools · 456 alphas</span>
+                    <span className="truncate">Online · 68 tools · MCX Gold Research</span>
                   </div>
                 </div>
               </CardTitle>
@@ -241,9 +244,9 @@ export function Agent() {
                   key={p}
                   onClick={() => send(p)}
                   disabled={loading}
-                  className="w-full text-left text-sm p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-muted/40 transition-colors disabled:opacity-50"
+                  className="w-full text-left text-sm p-3 rounded-lg border border-border hover:border-amber-500/40 hover:bg-amber-500/5 transition-all duration-200 disabled:opacity-50"
                 >
-                  <Sparkles className="w-3 h-3 inline-block mr-1.5 text-primary align-text-bottom" />
+                  <Sparkles className="w-3 h-3 inline-block mr-1.5 text-amber-500 align-text-bottom" />
                   {p}
                 </button>
               ))}

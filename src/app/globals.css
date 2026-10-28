@@ -202,4 +202,90 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
+
+  /* ── Trading-app utility classes ── */
+
+  /* Subtle scanline overlay for terminals */
+  .scanlines {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0px,
+      transparent 3px,
+      rgba(0,0,0,0.03) 3px,
+      rgba(0,0,0,0.03) 4px
+    );
+  }
+
+  /* Glow helpers for gold accent */
+  .glow-gold {
+    box-shadow: 0 0 24px -6px oklch(0.78 0.15 85 / 0.45);
+  }
+  .glow-gold-sm {
+    box-shadow: 0 0 12px -4px oklch(0.78 0.15 85 / 0.35);
+  }
+
+  /* Number flash animation (positive) */
+  .flash-green {
+    animation: flash-green 0.6s ease-out;
+  }
+  @keyframes flash-green {
+    0% { background-color: oklch(0.70 0.18 158 / 0.25); }
+    100% { background-color: transparent; }
+  }
+
+  /* Number flash animation (negative) */
+  .flash-red {
+    animation: flash-red 0.6s ease-out;
+  }
+  @keyframes flash-red {
+    0% { background-color: oklch(0.70 0.22 16 / 0.25); }
+    100% { background-color: transparent; }
+  }
+
+  /* Shimmer loading skeleton */
+  .shimmer {
+    background: linear-gradient(
+      90deg,
+      var(--muted) 0%,
+      oklch(from var(--muted) l c h / 0.6) 50%,
+      var(--muted) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Section accent divider line */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, oklch(0.78 0.15 85 / 0.3), transparent);
+  }
+
+  /* Data terminal monospace table cells */
+  .font-terminal {
+    font-family: var(--font-geist-mono), 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+
+  /* Verdict badge ring pulse */
+  .verdict-pulse {
+    animation: verdict-ring 2s ease-in-out infinite;
+  }
+  @keyframes verdict-ring {
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.15 85 / 0.5); }
+    50% { box-shadow: 0 0 0 6px oklch(0.78 0.15 85 / 0); }
+  }
+
+  /* Card hover lift */
+  .card-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px -6px oklch(0 0 0 / 0.15);
+  }
 }

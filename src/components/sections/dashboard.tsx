@@ -92,7 +92,7 @@ export function Dashboard() {
   const candleData = React.useMemo(() => genCandles(42, 40, 100), [])
 
   return (
-    <section id="dashboard" className="py-16 md:py-24 scroll-mt-16">
+    <section id="dashboard" className="py-16 md:py-24 scroll-mt-20">
       <div className="container mx-auto px-4 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
