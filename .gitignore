@@ -1,0 +1,63 @@
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# editor
+.vscode/
+.idea/
+
+# z-ai sdk config (contains API key)
+.z-ai-config
+
+# logs
+dev.log
+server.log
+*.log
+
+# zscripts internal
+.zscripts/
+
+# upload / db artifacts
+/upload/
+/prisma/*.db
+/prisma/*.db-journal
+
+# internal skills/tooling (not part of the project)
+/skills/
+/scripts/
+/examples/
+/mini-services/
+/Caddyfile
