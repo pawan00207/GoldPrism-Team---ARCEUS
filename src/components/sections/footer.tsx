@@ -26,7 +26,7 @@ export function Footer() {
             </p>
             <div className="flex items-center gap-3">
               <a
-                href="https://github.com/pawan00207/GoldPrism"
+                href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
                 target="_blank"
                 rel="noreferrer"
                 className="text-muted-foreground hover:text-foreground transition-colors"

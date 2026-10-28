@@ -131,7 +131,7 @@ export function Navbar() {
           )}
           <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs">
             <a
-              href="https://github.com/pawan00207/GoldPrism"
+              href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
               target="_blank"
               rel="noreferrer"
             >

@@ -114,8 +114,8 @@ In strict accordance with the non-destructive transformation rule, **all origina
 ### Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/pawan00207/GoldPrism.git
-cd GoldPrism
+git clone https://github.com/pawan00207/GoldPrism-Team---ARCEUS.git
+cd GoldPrism-Team---ARCEUS
 
 # Install dependencies
 npm install
@@ -136,7 +136,7 @@ python -m pytest test_goldprism.py -v
 ```
 
 ### Vercel Deployment Instructions
-1. Push to your GitHub repository: `https://github.com/pawan00207/GoldPrism`.
+1. Push to your GitHub repository: `https://github.com/pawan00207/GoldPrism-Team---ARCEUS`.
 2. Import project into [Vercel](https://vercel.com).
 3. **Zero Required Secrets Mode**: GoldPrism is completely self-contained. It renders all research modules, charts, backtests, and judge demos without any external API keys!
 4. *(Optional)* To enable live cloud LLM reasoning with Z.ai GLM, set in **Project Settings $\rightarrow$ Environment Variables**:
