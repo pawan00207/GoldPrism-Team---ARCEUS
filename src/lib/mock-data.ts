@@ -363,6 +363,21 @@ export const SWARM_PRESETS: SwarmPreset[] = [
       { id: 'w4', name: 'Chief Risk Officer', role: 'Final mandate', status: 'done', dependencies: ['w3'], output: 'Approved. Trim NVDA from 5.2% to 4.5%. Add put hedge.' },
     ],
   },
+  {
+    id: 'goldprism-quant-desk',
+    name: 'GoldPrism Quant Research Desk',
+    description: 'Team ARCEUS 7-stage auditable commodity pipeline: data quality, contract normalization, spread decomposition, transaction costs, backtest validation, risk review, and final verdict.',
+    category: 'Commodity Derivatives',
+    workers: [
+      { id: 'gp1', name: 'Data Quality Analyst', role: 'Bhavcopy ingestion & integrity gates', status: 'done', dependencies: [], output: 'Verified MCX Bhavcopy. Date match passed. OHLC ranges valid. 0 duplicates, 1 thin-volume settle flagged.' },
+      { id: 'gp2', name: 'Contract Normalization Analyst', role: 'Standardizes GOLDM/GOLDTEN/GOLDGUINEA/GOLDPETAL to 999 ₹/g', status: 'done', dependencies: ['gp1'], output: 'GOLDM 995-purity adjusted to 999 equivalent. Purity ratios and quote unit basis verified. Zero normalization leakage.' },
+      { id: 'gp3', name: 'Spread Decomposition Analyst', role: 'Splits raw spread into basis, carry, artifact & residual', status: 'done', dependencies: ['gp2'], output: 'Raw spread: 100.0 bps. Structural basis: -48.0 bps. Expiry carry: -28.0 bps. Settlement artifact: -20.0 bps. Gross residual: +4.0 bps. Reconciles < 0.01 INR/g.' },
+      { id: 'gp4', name: 'Transaction-Cost Analyst', role: 'Models brokerage, CTT (0.01% sell-side), SEBI, GST, stamp & slippage', status: 'done', dependencies: ['gp2'], output: 'Paired-trade round-trip hurdle: 5.2 bps. Brokerage ₹60/lot + CTT + GST + 2 bps slippage per leg.' },
+      { id: 'gp5', name: 'Backtest & Validation Analyst', role: 'Walk-forward t+1 fills, sealed holdout, Block Bootstrap & MDE', status: 'done', dependencies: ['gp3', 'gp4'], output: 'Walk-forward Sharpe 1.18, net hit-rate 56.3%. MDE 3.4 bps. Bootstrapped 95% CI strictly positive.' },
+      { id: 'gp6', name: 'Independent Risk Reviewer', role: 'Calendar gates, delivery margin check, liquidity stress test', status: 'done', dependencies: ['gp5'], output: 'Delivery period gate verified: exit 5 days prior to tender window. Maximum exposure capped at 500g equivalent.' },
+      { id: 'gp7', name: 'Final Verdict Authority', role: 'Issues disciplined decision: TRADABLE / WATCH / NO EDGE / BLOCKED', status: 'done', dependencies: ['gp6'], output: 'Verdict: WATCH (Residual +4.0 bps is below 5.2 bps cost hurdle). Disciplined inaction: NO TRADE. Capital preserved.' },
+    ],
+  },
 ]
 
 // ----- Shadow Account Behavior Profile -----

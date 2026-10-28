@@ -1,11 +1,24 @@
 {
-  "name": "vibetrading",
+  "name": "goldprism",
   "version": "1.0.0",
+  "description": "GoldPrism — Prism That Explains Scattered Gold. Quantitative Commodity Derivatives Research Platform for MCX Gold Spreads by Team ARCEUS (Hack in Hills '26 Track 03).",
+  "author": "Pawan Singh <https://github.com/pawan00207> and Team ARCEUS",
+  "contributors": [
+    "Pawan Singh (Data & Backend Engineering)",
+    "Manik Khurana (Product Lead · Quant Analytics)",
+    "Vikas Shukla (Frontend UX & Demo)"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/pawan00207/GoldPrism.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start",
+    "test": "npx tsx tests/goldprism.test.ts",
+    "test:python": "cd research && python -m pytest test_goldprism.py -v",
     "lint": "eslint .",
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
@@ -88,6 +101,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }

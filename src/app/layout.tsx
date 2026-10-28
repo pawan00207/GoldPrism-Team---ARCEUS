@@ -15,34 +15,37 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VibeTrading — AI-Powered Trading Research Workspace",
+  title: "GoldPrism — Prism That Explains Scattered Gold | Team ARCEUS",
   description:
-    "An open-source AI-powered trading research workspace. Chat with an autonomous agent, explore 456+ alpha factors, run paper trades, analyze your broker journal, and orchestrate multi-agent swarms — all in your browser.",
+    "Quantitative Commodity Derivatives Intelligence platform for MCX Gold Spreads by Team ARCEUS (Hack in Hills '26 Track 03). Separate real economic value from expiry carry, settlement artifacts and transaction costs.",
   keywords: [
-    "AI trading",
-    "LLM agent",
-    "quantitative finance",
-    "alpha factors",
-    "paper trading",
-    "Next.js",
-    "Vibe-Trading",
-    "trading research",
+    "GoldPrism",
+    "MCX Gold",
+    "Commodity Derivatives",
+    "Quantitative Finance",
+    "Spread Decomposition",
+    "X-Ray Waterfall",
+    "Pawan Singh",
+    "Team ARCEUS",
+    "Hack in Hills 26",
+    "Alpha Zoo",
+    "Paper Trading",
   ],
-  authors: [{ name: "KeshavCracks" }],
+  authors: [{ name: "Pawan Singh", url: "https://github.com/pawan00207" }],
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "VibeTrading — AI-Powered Trading Research Workspace",
+    title: "GoldPrism — Prism That Explains Scattered Gold | Team ARCEUS",
     description:
-      "Chat with an autonomous agent, explore 456+ alpha factors, run paper trades, and orchestrate multi-agent swarms.",
+      "The only tool that tells you when NOT to trade, and proves it. Auditable MCX gold calendar spread research terminal.",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "VibeTrading — AI-Powered Trading Research Workspace",
+    title: "GoldPrism — Prism That Explains Scattered Gold",
     description:
-      "Chat with an autonomous agent, explore 456+ alpha factors, run paper trades, and orchestrate multi-agent swarms.",
+      "Separate real economic value from expiry carry, settlement artifacts and transaction costs — then make a disciplined decision.",
   },
 };
 

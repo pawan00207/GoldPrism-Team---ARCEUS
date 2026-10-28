@@ -12,11 +12,12 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { ALPHAS, type Alpha, familyStats, categoryStats } from '@/lib/alphas'
 
-const FAMILY_META = {
+const FAMILY_META: Record<string, { icon: any; color: string; label: string }> = {
   Qlib158: { icon: Atom, color: 'oklch(0.96 0.002 240)', label: 'Qlib158' },
   alpha101: { icon: Layers, color: 'oklch(0.70 0.005 240)', label: 'alpha101' },
   GTJA191: { icon: FlaskConical, color: 'oklch(0.55 0.005 240)', label: 'GTJA191' },
   Academic: { icon: GraduationCap, color: 'oklch(0.40 0.005 240)', label: 'Academic' },
+  'GoldPrism-Commodity': { icon: Atom, color: '#D4AF37', label: 'GoldPrism Commodity' },
 }
 
 const STATUS_COLORS = {

@@ -6,8 +6,8 @@
 export interface Alpha {
   id: string
   name: string
-  family: 'Qlib158' | 'alpha101' | 'GTJA191' | 'Academic'
-  category: 'Momentum' | 'Reversal' | 'Volume' | 'Volatility' | 'Value' | 'Growth' | 'Profitability' | 'Liquidity' | 'Sentiment' | 'Technical'
+  family: 'Qlib158' | 'alpha101' | 'GTJA191' | 'Academic' | 'GoldPrism-Commodity'
+  category: 'Momentum' | 'Reversal' | 'Volume' | 'Volatility' | 'Value' | 'Growth' | 'Profitability' | 'Liquidity' | 'Sentiment' | 'Technical' | 'Commodity Spread'
   formula: string
   description: string
   ic: number // Information Coefficient
@@ -94,11 +94,16 @@ export const ALPHAS: Alpha[] = [
   { id: 'x002', name: 'Insider Buy Ratio', family: 'Academic', category: 'Sentiment', formula: 'insider_buys / insider_trades_30d', description: '30-day insider buy ratio.', ic: 0.044, ir: 0.96, turnover: 0.42, sharpe: 1.24, maxDrawdown: -7.2, status: 'experimental', tags: ['insider', 'sentiment'] },
   { id: 'x003', name: 'Options Skew', family: 'Qlib158', category: 'Volatility', formula: 'iv_25delta_put - iv_25delta_call', description: '25-delta put-minus-call IV skew.', ic: 0.041, ir: 0.89, turnover: 0.58, sharpe: 1.18, maxDrawdown: -7.0, status: 'experimental', tags: ['options', 'volatility'] },
   { id: 'x004', name: 'Flow Reversal', family: 'alpha101', category: 'Volume', formula: '-1 * rank(correlation(money_flow, returns, 5))', description: '5-day money-flow reversal.', ic: 0.043, ir: 0.93, turnover: 0.71, sharpe: 1.20, maxDrawdown: -7.1, status: 'experimental', tags: ['flow', 'reversal'] },
+  // ----- GoldPrism Commodity Derivatives Factors -----
+  { id: 'gp001', name: 'MCX Purity Spread', family: 'GoldPrism-Commodity', category: 'Commodity Spread', formula: '(GOLDTEN/10) - (GOLDM/10)*(999/995)', description: 'Normalized fine-gold price differential between 999-fine and 995-purity contracts.', ic: 0.078, ir: 1.54, turnover: 0.22, sharpe: 1.82, maxDrawdown: -3.8, status: 'live', tags: ['mcx', 'spread', 'gold', 'arbitrage'] },
+  { id: 'gp002', name: 'MCX Expiry Carry', family: 'GoldPrism-Commodity', category: 'Commodity Spread', formula: 'P_avg * r_repo * (T_far - T_near) / 365', description: 'Theoretical interest and storage carry between near and next calendar expiries.', ic: 0.082, ir: 1.62, turnover: 0.15, sharpe: 2.04, maxDrawdown: -2.9, status: 'live', tags: ['mcx', 'carry', 'cost-of-carry'] },
+  { id: 'gp003', name: 'MCX X-Ray Residual', family: 'GoldPrism-Commodity', category: 'Commodity Spread', formula: 'Spread_raw - Basis - Carry - SettleArtifact', description: 'Decomposed true economic spread residual after purging calendar artifacts and purity biases.', ic: 0.089, ir: 1.74, turnover: 0.31, sharpe: 2.18, maxDrawdown: -4.1, status: 'live', tags: ['xray', 'residual', 'edge'] },
+  { id: 'gp004', name: 'MCX Net Edge Hurdle', family: 'GoldPrism-Commodity', category: 'Commodity Spread', formula: 'Residual_gross - Paired_roundtrip_costs', description: 'Net actionable trading edge strictly exceeding broker commission, CTT, GST, and slippage.', ic: 0.091, ir: 1.82, turnover: 0.25, sharpe: 2.31, maxDrawdown: -3.2, status: 'live', tags: ['net-edge', 'hurdle', 'cost-model'] },
 ]
 
 // Helper: family summary stats
 export function familyStats() {
-  const families = ['Qlib158', 'alpha101', 'GTJA191', 'Academic'] as const
+  const families = ['Qlib158', 'alpha101', 'GTJA191', 'Academic', 'GoldPrism-Commodity'] as const
   return families.map(fam => {
     const items = ALPHAS.filter(a => a.family === fam)
     return {
@@ -113,7 +118,7 @@ export function familyStats() {
 
 // Helper: category distribution
 export function categoryStats() {
-  const cats = ['Momentum', 'Reversal', 'Volume', 'Volatility', 'Value', 'Growth', 'Profitability', 'Liquidity', 'Sentiment', 'Technical'] as const
+  const cats = ['Momentum', 'Reversal', 'Volume', 'Volatility', 'Value', 'Growth', 'Profitability', 'Liquidity', 'Sentiment', 'Technical', 'Commodity Spread'] as const
   return cats.map(cat => ({
     category: cat,
     count: ALPHAS.filter(a => a.category === cat).length,

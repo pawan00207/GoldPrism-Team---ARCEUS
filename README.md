@@ -1,337 +1,152 @@
-# VibeTrading — AI-Powered Trading Research Workspace
+# GoldPrism — Prism That Explains Scattered Gold
 
 <div align="center">
 
 ![Next.js](https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript_5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_4-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white)
+![Python](https://img.shields.io/badge/Python_Research-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Vercel](https://img.shields.io/badge/Vercel_Ready-000000?style=for-the-badge&logo=vercel&logoColor=white)
-![License](https://img.shields.io/badge/License-MIT-000000?style=for-the-badge)
+![License](https://img.shields.io/badge/License-MIT-gold?style=for-the-badge)
 
-**An open-source AI-powered trading research workspace that lives in your browser.**
-Chat with an autonomous agent, explore 456+ alpha factors, run paper trades, dissect your broker journal, and orchestrate multi-agent swarms — all from a single, fast, interactive web app.
+**Hack in Hills '26 — Track 03: Commodity Derivatives Intelligence**  
+**Team ARCEUS**
 
-[Features](#-features) · [Screenshots](#-screenshots) · [Quick Start](#-quick-start) · [Deploy on Vercel](#-deploy-on-vercel) · [Architecture](#-architecture) · [Inspiration](#-inspiration)
+> *"Separate real economic value from expiry carry, settlement artifacts and transaction costs — then make a disciplined decision."*  
+> **Core Positioning:** **“The only tool that tells you when NOT to trade, and proves it.”**
+
+[5-Minute Judge Demo](#-5-minute-judge-demo) · [The X-Ray Waterfall](#-the-x-ray-waterfall) · [MCX Contract Family](#-mcx-gold-contract-family) · [Best Vehicle](#-best-vehicle-selection) · [Preserved Workspace](#-preserved-workspace-capabilities) · [Team ARCEUS](#-team-arceus) · [Deployment](#-quick-start--deployment)
 
 </div>
 
 ---
 
-## Overview
+## 🌟 Executive Summary
 
-VibeTrading is a portfolio-grade re-imagining of [HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading) — the popular Python+React research workspace — rebuilt end-to-end as a Next.js 16 web app designed to deploy on the Vercel free tier in a single click.
+Raw spreads between MCX Gold contracts are noisy and misleading. Retail and institutional traders frequently mistake structural contract differences, delivery carry, and thin settlement prices for actionable arbitrage, only to bleed capital through transaction costs.
 
-Where the original is a heavy, Dockerized, multi-process Python stack (FastAPI + LangChain + React 19), this project distills the same UX into a serverless TypeScript app: an LLM-powered agent in a chat panel, an interactive market dashboard, an Alpha Zoo browser, a paper-trading simulator, a behavioral Shadow Account analyzer, a multi-agent swarm visualizer, and a visual strategy builder that compiles a backtest on the fly.
+**GoldPrism** is an institutional-grade commodity derivatives research terminal designed by **Team ARCEUS** for **Hack in Hills '26**. It implements an auditable 5-step pipeline that purges structural noise and judges only the true residual, net of all statutory and broker fees.
 
-The goal: a polished, interactive, deploy-anywhere showcase that demonstrates full-stack AI product thinking, not just a chatbot.
+---
 
-## Screenshots
+## 👥 Team ARCEUS & Leadership
 
-### Hero & Live Ticker
-![Hero](./public/screenshots/hero.png)
+| Member | Role | Key Responsibilities |
+|---|---|---|
+| **Pawan Singh** <br>*(Lead Builder)* | **Data & Backend Engineering** <br>Full-Stack Developer & AI Builder <br>B.Tech CSE, Delhi Technical Campus (DTC), GGSIPU (2028, CGPA 9+) <br>[GitHub](https://github.com/pawan00207) · [LinkedIn](https://linkedin.com/in/pawan-singh-555423322/) | Bhavcopy ingestion & schema validators, DuckDB/Parquet store, contract calendar, complete Next.js transformation, test suite & zero-lookahead pipeline. |
+| **Manik Khurana** | **Product Lead · Quant Analytics** | Spread decomposition, signal model, walk-forward backtesting, transaction-cost modeling, Block Bootstrap, MDE and verdict logic. |
+| **Vikas Shukla** | **Frontend, UX & Demo** | Terminal wireframes, X-Ray waterfall visual hierarchy, best-vehicle ranking alerts, presentation deck & judge demo script. |
 
-### Market Dashboard
-![Dashboard](./public/screenshots/dashboard.png)
+### Other Notable Projects by Pawan Singh:
+- **MediVerse.AI**: AI clinical decision support and patient triage system.
+- **Swasth-Saathi**: Multilingual preventative healthcare intelligence platform.
+- **TrafficGuard Pro**: Computer vision traffic density analysis and emergency routing.
+- **ResQMap**: Real-time disaster relief routing and resource management.
 
-### AI Agent Chat
-![Agent](./public/screenshots/agent.png)
+---
 
-### Alpha Zoo — 456 Factors
-![Alpha Zoo](./public/screenshots/alpha-zoo.png)
+## 🔬 The 5 Sources of Noise in MCX Gold Spreads
 
-### Paper Trading Arena
-![Paper Trading](./public/screenshots/paper-trading.png)
+1. **Purity Differences**: `GOLDM` is 995 fine (22k equivalent); `GOLDTEN`, `GOLDGUINEA`, and `GOLDPETAL` are 999 fine (24k).
+2. **Contract Size Granularity**: Lot sizes range from 1g (`GOLDPETAL`) to 100g (`GOLDM`), quoted per 1g, 8g, or 10g.
+3. **Expiry Windows & Carry**: `GOLDM` expires early (3rd–5th of delivery month); the other three expire month-end (27th–31st), creating asymmetric cost-of-carry.
+4. **Settlement Artifacts**: Official MCX daily settlement prices in thin contracts are not guaranteed fills.
+5. **Transaction Costs**: Brokerage (₹30/lot/side), CTT (0.01% on sell side), GST (18%), exchange turnover fees (0.0026%), stamp duty (0.002% buy side), and execution slippage.
 
-### Shadow Account — Behavioral Bias Analyzer
-![Shadow Account](./public/screenshots/shadow-account.png)
+---
 
-### Multi-Agent Swarm Visualizer
-![Swarm](./public/screenshots/swarm.png)
+## 📐 MCX Gold Contract Family & Specification Master
 
-### Strategy Builder & Backtester
-![Strategy Builder](./public/screenshots/strategy-builder.png)
+| Contract | Trading Unit | Quoted Per | Purity | Expiry Window | Status | Verification Note |
+|---|---|---|---|---|---|---|
+| **GOLDM** | 100 g | 10 g | 995 fine | 3rd–5th | `VERIFIED` | 100g unit; quoted per 10g; early-month expiry |
+| **GOLDTEN** | 10 g | 10 g | 999 fine | 27th–31st | `VERIFIED` | 10g unit; quoted per 10g; month-end expiry |
+| **GOLDGUINEA** | 8 g | 8 g | 999 fine | 27th–31st | `VERIFIED` | **Discrepancy Resolved**: Earlier test used 996. Official MCX circular confirms 999 fine. |
+| **GOLDPETAL** | 1 g | 1 g | 999 fine | 27th–31st | `VERIFIED` | 1g unit; quoted per 1g; retail micro-hedging |
 
-## Features
+### Fine-Gold Purity Normalization Formula:
+$$\text{Price}_{999} = \left(\frac{\text{Quoted Price}}{\text{Quote Unit (g)}}\right) \times \left(\frac{\text{Purity}}{999.0}\right)$$
 
-### Real-time Market Dashboard
-Live ticker tape of 17 instruments across US / HK / CN equities, crypto, and ETFs. Sector heatmap, indexes (S&P, NASDAQ, Hang Seng, Shanghai, VIX), portfolio holdings with intraday P&L, sentiment-tagged news feed, and animated risk gauges (Sharpe, Sortino, beta, alpha, max drawdown, win rate, profit factor).
+---
 
-### AI Trading Agent (VibeAgent)
-A ReAct-style autonomous agent with a custom system prompt that grounds it in your portfolio context. Powered by `z-ai-web-dev-sdk` (Z.ai GLM). Ask it to analyze a stock, design a strategy, explain an alpha factor, or stress-test your portfolio. Suggested prompts get you started in one click.
+## 🔍 The X-Ray Waterfall
 
-### Alpha Zoo — 456 factors
-Browse a curated library of cross-sectional alphas from four academic / industry families:
-- **Qlib158** (154 factors) — Microsoft Research's flagship factor set
-- **WorldQuant alpha101** (101 factors) — Kakushadze (2015)
-- **GTJA191** (191 factors) — Guotai Junan
-- **Academic** (10 factors) — Fama-French 5, Carhart MOM, Jegadeesh reversal, George-Hwang 52W-H, Amihud illiquidity, Harvey-Siddique coskewness
+GoldPrism splits every spread into five components and evaluates the net edge:
+$$\text{Raw Spread} = \text{Structural Basis} + \text{Expiry Carry} + \text{Settlement Artifact} + \text{Gross Residual}$$
+$$\text{Net Edge} = \text{Gross Residual} - \text{Paired Round-Trip Transaction Costs}$$
 
-Every factor shows its formula, IC, IR, Sharpe, turnover, max drawdown, status (live / alive-reversed / dead / experimental), and tags. Filter by family or category, search by name / formula / tag, and click any factor to see full details. A bar chart visualizes the category distribution.
+Mathematical reconciliation is verified at runtime:
+$$|\text{Reconciliation Sum} - \text{Raw Spread}| < 0.01\text{ ₹/g}$$
 
-### Paper Trading Arena
-Start with $100K virtual capital. Place market or limit orders against live prices on the watchlist. See fills flow into your order history, watch your account equity curve grow (or shrink), and learn the mechanics without risking real money.
+### The 4 Disciplined Verdicts:
+- **`TRADABLE`**: Residual is statistically meaningful ($\text{Net Edge} > 5.0\text{ bps}$ hurdle) with verified clean data.
+- **`WATCH`**: Residual is thin ($0 < \text{Net Edge} \le 5.0\text{ bps}$). Proceed with extreme caution.
+- **`NO EDGE`**: Residual is noise ($\text{Net Edge} \le 0$). **No trade. Capital preserved.**
+- **`BLOCKED`**: Data failed integrity gates (date mismatch, stale settle, or unverified spec).
 
-### Shadow Account (Behavioral Bias Analyzer)
-Upload your broker trade journal as CSV (or use the bundled sample). The agent:
-1. Computes a behavior profile (holding period, win rate, P&L ratio, max drawdown, disposition effect, overtrading, momentum chasing, anchoring)
-2. Detects concrete biases with evidence and actionable fixes
-3. Extracts evidence-based entry / exit / risk / filter rules
-4. Delivers a coaching recommendation
+---
 
-Required CSV columns: `date, symbol, side, qty, price, pnl, holdingDays`.
+## ⚡ 5-Minute Judge Demo
 
-### Multi-Agent Swarm Visualizer
-Run one of 5 preset trading teams as a directed acyclic graph:
-- **Investment Committee** — bull analyst, bear analyst, risk reviewer, PM
-- **Quant Strategy Desk** — factor researcher, signal engineer, backtester, validator
-- **Crypto Trading Desk** — on-chain analyst, sentiment scraper, market maker, execution trader
-- **Global Macro Desk** — rates, FX, commodities, macro PM
-- **Risk Committee** — VaR analyst, stress tester, hedger, CRO
+Follow the interactive 4-step wizard directly in the application:
+1. **Step 1: Caught Fault** — Ingests a seeded corrupted Bhavcopy. Immediately catches date mismatches and settlement outliers, triggering `Status: Failed: run blocked`.
+2. **Step 2: X-Ray Waterfall** — Decomposes `GOLDTEN` vs `GOLDM` cleanly, reconciling all basis and carry components within 0.0001 ₹/g.
+3. **Step 3: Inaction Verdict** — Demonstrates a pair with +4.0 bps gross residual eaten by 5.2 bps transaction costs $\rightarrow$ **`NO EDGE`**. Proves when NOT to trade!
+4. **Step 4: Best Vehicle** — Selects 50g physical gold exposure. Shows why `GOLDTEN` (5 lots = 50g, 0% mismatch) wins over `GOLDM` (100% mismatch penalty).
 
-Watch each worker node transition through `waiting → running → done` (or `failed / blocked / retrying`) with simulated execution timing. Click any node to inspect its role and output. Edges visualize dependencies in the DAG.
+---
 
-### Visual Strategy Builder
-Compose a strategy from a library of 15 building blocks across 5 categories (entry, exit, risk, filter, position sizing). Set your universe and initial capital, then click **Run Backtest** — the agent returns a structured JSON report with:
-- 12-month equity curve
-- 11 performance metrics (Sharpe, Sortino, max DD, win rate, profit factor, beta, alpha, volatility, turnover, total return, annual return)
-- Sample trade list
-- Observations and a recommendation
+## 🛡️ Preserved Workspace Capabilities
 
-### Polished UX
-- **Dark mode by default** with light mode toggle — monochrome / true-black aesthetic
-- **Framer Motion** entrance animations, floating sparkline cards, animated counters
-- **Responsive** — works on mobile, tablet, desktop
-- **Sticky footer** that respects viewport height
-- **Custom scrollbars**, grid background, gradient glows
-- **Accessibility** — semantic HTML, ARIA labels, keyboard-navigable
+In strict accordance with the non-destructive transformation rule, **all original VibeTrading features remain 100% operational**:
+- **Global Markets Dashboard**: Real-time ticker tape, sector heatmap, portfolio holdings, risk gauges, news sentiment.
+- **AI Research Agent**: ReAct-style chat enhanced with GoldPrism commodity intelligence.
+- **Alpha Zoo**: All 456 original factors (Qlib158, alpha101, GTJA191, Academic) **plus** dedicated MCX Gold Spread factors (`GP_PURITY_SPREAD`, `GP_EXPIRY_CARRY`, `GP_GROSS_RESIDUAL`, `GP_NET_EDGE`).
+- **Paper Trading Arena**: Virtual capital simulation with market & limit orders.
+- **Shadow Account**: Broker trade journal CSV analyzer with behavioral bias extraction.
+- **Multi-Agent Swarm**: All 5 original presets **plus** preset 6: `GoldPrism Quant Research Desk`.
+- **Strategy Builder & Backtester**: All 15 strategy blocks + walk-forward validation.
 
-## Tech Stack
+---
 
-| Layer | Choice |
-|---|---|
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript 5 |
-| Styling | Tailwind CSS 4 + shadcn/ui (New York) |
-| Charts | Recharts |
-| Animation | Framer Motion |
-| Icons | Lucide React |
-| AI / LLM | `z-ai-web-dev-sdk` (Z.ai GLM) |
-| Theme | next-themes |
-| State | React hooks (no global store needed) |
-| Deployment | Vercel (free tier) |
+## 🚀 Quick Start & Deployment
 
-## Architecture
-
-```
-src/
-├── app/
-│   ├── api/
-│   │   ├── agent/route.ts          # POST  /api/agent         → chat with VibeAgent
-│   │   ├── backtest/route.ts       # POST  /api/backtest      → run a 12-mo backtest
-│   │   └── analyze-trades/route.ts # POST  /api/analyze-trades → shadow-account analysis
-│   ├── globals.css                  # Tailwind theme tokens, custom utilities
-│   ├── layout.tsx                   # Root layout with ThemeProvider + Toaster
-│   └── page.tsx                     # Composed single-page app
-├── components/
-│   ├── ui/                          # shadcn/ui primitives
-│   ├── navbar.tsx                   # Sticky nav + live ticker tape
-│   ├── sparkline.tsx                # SVG sparkline + AnimatedNumber + FadeIn
-│   ├── theme-provider.tsx
-│   └── sections/
-│       ├── hero.tsx
-│       ├── dashboard.tsx
-│       ├── agent.tsx
-│       ├── alpha-zoo.tsx
-│       ├── paper-trading.tsx
-│       ├── shadow-account.tsx
-│       ├── swarm.tsx
-│       ├── strategy-builder.tsx
-│       ├── features.tsx
-│       └── footer.tsx
-└── lib/
-    ├── mock-data.ts                 # Watchlist, portfolio, news, swarm presets, trades
-    ├── alphas.ts                    # 456 alpha factor definitions (sample of 60 shown)
-    ├── zai.ts                       # ZAI client factory (env-var aware)
-    └── utils.ts                     # cn() helper
-```
-
-### Why serverless-friendly
-
-The three AI endpoints (`/api/agent`, `/api/backtest`, `/api/analyze-trades`) are stateless Next.js Route Handlers with `runtime = "nodejs"` and `maxDuration = 60`. They use `getZai()` — a small factory in `src/lib/zai.ts` — which:
-
-1. Reads `ZAI_API_KEY` and `ZAI_BASE_URL` from environment variables
-2. If present, writes a temporary `.z-ai-config` file the SDK can locate (Vercel's filesystem is read-only except `/tmp` and `process.cwd()` during the request)
-3. Falls back to any pre-existing `.z-ai-config` (local dev) or `/etc/.z-ai-config` (sandbox)
-
-This means the same code works in local dev, on a VM, and on Vercel — only the env vars differ.
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js 18.18+ (or Bun)
-- A [Z.ai](https://z.ai) account and API key
-
-### 1. Clone
-
+### Local Development
 ```bash
-git clone https://github.com/KeshavCracks/VibeTrading.git
-cd VibeTrading
-```
+# Clone the repository
+git clone https://github.com/pawan00207/GoldPrism.git
+cd GoldPrism
 
-### 2. Install dependencies
-
-```bash
+# Install dependencies
 npm install
-# or: bun install / pnpm install / yarn install
-```
 
-### 3. Set environment variables
+# Run TypeScript acceptance tests
+npm test
 
-```bash
-cp .env.example .env.local
-```
-
-Edit `.env.local`:
-
-```
-ZAI_API_KEY=your_real_zai_api_key
-ZAI_BASE_URL=https://api.z.ai/api/paas/v4
-```
-
-### 4. Run the dev server
-
-```bash
+# Run Next.js live server
 npm run dev
+# Open http://localhost:3000
 ```
 
-Open http://localhost:3000. You should see the hero, ticker tape, and dashboard. Try the AI agent, paper trading, swarm visualizer, and strategy builder.
-
-### 5. Lint (optional)
-
+### Python Research Pipeline (Standalone)
 ```bash
-npm run lint
+cd research
+pip install polars duckdb pyarrow statsmodels streamlit pytest
+python -m pytest test_goldprism.py -v
 ```
 
-## Deploy on Vercel
-
-The project is configured for zero-config Vercel deployments on the free tier.
-
-### Option A — One-click via Vercel dashboard
-
-1. Push this repo to your GitHub (see [Publish to GitHub](#publish-to-github) below).
-2. Go to [vercel.com/new](https://vercel.com/new) and import the repo.
-3. Vercel auto-detects Next.js — leave the build settings as defaults.
-4. In **Project Settings → Environment Variables**, add:
-   - `ZAI_API_KEY` = your Z.ai API key
-   - `ZAI_BASE_URL` = `https://api.z.ai/api/paas/v4`
-5. Click **Deploy**. Your app is live in ~60 seconds at `https://<your-project>.vercel.app`.
-
-### Option B — Via Vercel CLI
-
-```bash
-npm i -g vercel
-vercel              # follow the prompts
-vercel env add ZAI_API_KEY
-vercel env add ZAI_BASE_URL
-vercel --prod       # deploy to production
-```
-
-### Free-tier notes
-
-- The Vercel Hobby plan gives 100 GB-hours of serverless function execution per month — plenty for a portfolio project.
-- The `/api/*` routes use `maxDuration = 60` (the Hobby-plan ceiling). If you upgrade to Pro, you can bump this to 300s.
-- Cold starts on the AI routes are typically ~1s; warm responses are <10s for the agent and <20s for backtest / shadow-account analysis.
-- No database is required — all data is mocked in-memory, so you don't need Vercel Postgres or KV.
-
-## Publish to GitHub
-
-The repository is already initialized for you. To publish your own copy:
-
-```bash
-# 1. Create an empty repo on GitHub first (no README, no .gitignore)
-#    e.g. https://github.com/new → name: VibeTrading
-
-# 2. From the project root:
-git remote set-url origin https://github.com/<your-username>/VibeTrading.git
-git push -u origin main
-```
-
-Then connect Vercel to that repo so every `git push` triggers a deploy.
-
-## Project Structure
-
-The app is a single-page experience with anchor-scrollable sections, so users can navigate via the top nav or just scroll. Each section is a self-contained React component under `src/components/sections/`, which makes it easy to:
-
-- Reorder sections by editing `src/app/page.tsx`
-- Add a new section by dropping a file in `src/components/sections/` and importing it
-- Modify mock data in one place (`src/lib/mock-data.ts`, `src/lib/alphas.ts`)
-
-## Customization
-
-### Swap mock data for real APIs
-
-The dashboard and watchlist currently use deterministic mock data (see `genSparkline`, `genCandles` in `src/lib/mock-data.ts`). To go live:
-
-1. Sign up for a market-data provider (Alpha Vantage, Polygon.io, Finnhub, yfinance proxy, etc.)
-2. Create a new route handler at `src/app/api/quotes/route.ts` that fetches and caches quotes
-3. Replace the static imports in `dashboard.tsx` and `paper-trading.tsx` with `useEffect` + `fetch('/api/quotes')`
-
-### Add more alpha factors
-
-Edit `src/lib/alphas.ts`. Each factor is a plain object — add as many as you want and the UI, filter, and detail panel adapt automatically.
-
-### Add swarm presets
-
-Edit `SWARM_PRESETS` in `src/lib/mock-data.ts`. Each preset is a DAG of workers with `id`, `name`, `role`, `dependencies` (array of worker IDs), and optional `output`.
-
-### Customize the agent prompt
-
-Edit `SYSTEM_PROMPT` in `src/app/api/agent/route.ts`. The agent is grounded in your portfolio context, which you can replace with real data.
-
-### Customize the color scheme
-
-All theme tokens live in `src/app/globals.css` under `:root` (light) and `.dark` (dark). The current default is a true-black monochrome aesthetic — change the `--primary`, `--accent`, and `--chart-*` OKLCH values to suit your brand.
-
-## Inspiration
-
-This project is heavily inspired by [HKUDS/Vibe-Trading](https://github.com/HKUDS/Vibe-Trading) — an open-source Python + React workspace from the Hong Kong University Data Science lab. The original is a powerful, Dockerized, multi-process system built around LangChain/LangGraph with ~68 tools, 18 market-data sources, and 10 broker connectors.
-
-VibeTrading is a **re-imagination**, not a port. It keeps the same product DNA — agent + alpha zoo + swarm + shadow account — but rebuilds it as a fast, interactive, serverless Next.js app that anyone can deploy on Vercel's free tier in a single click. Where the original targets quant researchers who want a Python CLI, this version targets a broader audience who wants to explore AI-assisted trading in the browser.
-
-All market data in this project is synthetic / illustrative. **Nothing here is financial advice.**
-
-## Roadmap
-
-- [ ] Real market-data integration (Alpha Vantage / Polygon.io)
-- [ ] Persistent paper-trading account via Vercel KV
-- [ ] WebSocket live-streaming for the ticker tape
-- [ ] Drag-and-drop block reordering in the strategy builder
-- [ ] Export strategy as executable Python (Qlib / Backtrader)
-- [ ] Compare alphas side-by-side in a scatter plot (IC vs IR)
-- [ ] Mobile bottom-sheet navigation
-- [ ] PWA + push notifications for scheduled research briefs
-
-## License
-
-MIT © 2026 KeshavCracks. See [LICENSE](./LICENSE).
-
-## Acknowledgments
-
-- [HKUDS / Vibe-Trading](https://github.com/HKUDS/Vibe-Trading) — the original inspiration
-- [Z.ai](https://z.ai) — GLM model + `z-ai-web-dev-sdk`
-- [shadcn/ui](https://ui.shadcn.com/) — component library
-- [Recharts](https://recharts.org/) — charting
-- [Framer Motion](https://www.framer.com/motion/) — animation
-- [Lucide](https://lucide.dev/) — icons
+### Vercel Deployment Instructions
+1. Push to your GitHub repository: `https://github.com/pawan00207/GoldPrism`.
+2. Import project into [Vercel](https://vercel.com).
+3. **Zero Required Secrets Mode**: GoldPrism is completely self-contained. It renders all research modules, charts, backtests, and judge demos without any external API keys!
+4. *(Optional)* To enable live cloud LLM reasoning with Z.ai GLM, set in **Project Settings $\rightarrow$ Environment Variables**:
+   - `ZAI_API_KEY`: `your_key_here`
+   - `ZAI_BASE_URL`: `https://api.z.ai/api/paas/v4`
+5. Click **Deploy**.
 
 ---
 
-<div align="center">
+## 📜 License & Attribution
 
-**If this project helped you, give it a ⭐ on GitHub — it really does help.**
-
-Built with care as a portfolio piece · MIT License · 2026
-
-</div>
+- **GoldPrism Extensions & Architecture**: MIT License © 2026 Pawan Singh & Team ARCEUS (Hack in Hills '26).
+- **Preserved Workspace Foundation**: MIT License © 2026 KeshavCracks / HKUDS.
