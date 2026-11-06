@@ -9,6 +9,10 @@ import { DataHealthSection } from '@/components/goldprism/DataHealthSection'
 import { ContractMasterSection } from '@/components/goldprism/ContractMasterSection'
 import { BestVehicleSection } from '@/components/goldprism/BestVehicleSection'
 import { BacktestLabSection } from '@/components/goldprism/BacktestLabSection'
+import { TermStructureSection } from '@/components/goldprism/TermStructureSection'
+import { ContractLifecycleSection } from '@/components/goldprism/ContractLifecycleSection'
+import { TraderIntelligenceSection } from '@/components/goldprism/TraderIntelligenceSection'
+import { DataAuditMethodologySection } from '@/components/goldprism/DataAuditMethodologySection'
 import { ReportsExportSection } from '@/components/goldprism/ReportsExportSection'
 import { TeamArceusSection } from '@/components/goldprism/TeamArceusSection'
 
@@ -58,7 +62,19 @@ export default function Home() {
         {/* 6. Walk-Forward Backtest Lab & P&L Attribution (Slide 7) */}
         <BacktestLabSection />
 
-        {/* 7. Auditable Reports & Data Exports */}
+        {/* 7. Term Structure & Roll-Down Carry Decomposition (Phase D) */}
+        <TermStructureSection />
+
+        {/* 8. Contract Lifecycle & Expiry Calendar Guard (Phase E) */}
+        <ContractLifecycleSection />
+
+        {/* 9. Trader Intelligence, Why Quiet Digest & Cost Heatmap (Phase F) */}
+        <TraderIntelligenceSection />
+
+        {/* 10. Data Audit, Discrepancy Resolution & Methodology (Phase G) */}
+        <DataAuditMethodologySection />
+
+        {/* 11. Auditable Reports & Data Exports */}
         <ReportsExportSection />
 
         {/* 8. Team ARCEUS & Pawan Singh Builder Profile (Slide 1) */}

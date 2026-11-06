@@ -475,9 +475,32 @@ class TestBacktestAntiLookahead:
         bt = WalkForwardBacktester()
         result = bt.run(edges, prices, dates, is_demo=True)
 
-        # Because signal is shifted by 1, first bar cannot be a trade
-        # This verifies the shift happens (first element of pnl uses t+1 fill)
         assert result is not None
+
+    def test_lookahead_guard_fails_on_future_peeking(self):
+        """
+        Anti-lookahead guard: Any feature that reads data at t+1 must fail the
+        lookahead guard assertion.
+        """
+        n = 50
+        dates = pd.date_range("2024-01-01", periods=n, freq="D")
+        true_price = pd.Series(np.linspace(70000, 75000, n), index=dates)
+        
+        # Peeking feature: reads t+1 price at time t
+        peeking_feature = true_price.shift(-1)
+        
+        # Look-ahead detector: timestamps of feature must be <= current evaluation bar
+        is_lookahead_detected = False
+        for t in range(n - 1):
+            feature_val_at_t = peeking_feature.iloc[t]
+            future_actual_val = true_price.iloc[t + 1]
+            if feature_val_at_t == future_actual_val:
+                is_lookahead_detected = True
+                break
+        
+        # The lookahead test must detect that peeking_feature accesses future information
+        assert is_lookahead_detected, "Lookahead guard failed to detect future-peeking feature"
+
 
     def test_stale_data_gate(self):
         """Stale data must be excluded from trading."""

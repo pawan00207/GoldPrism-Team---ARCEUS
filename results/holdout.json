@@ -1,0 +1,15 @@
+{
+  "config_hash": "9c8103c61b2b2137",
+  "holdout_start_date": "2025-02-21",
+  "holdout_end_date": "2025-06-04",
+  "holdout_bars": 73,
+  "holdout_sealed_before_tuning": true,
+  "contamination_status": "UNCONTAMINATED",
+  "evaluations_count": 1,
+  "results": {
+    "net_pnl_inr": -7278.13,
+    "net_sharpe": -4.27,
+    "consistent_with_insample": true,
+    "goldten_cross_spread_evaluation": "Included in holdout (Jan 2025 onwards listing)"
+  }
+}

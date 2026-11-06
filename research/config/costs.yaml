@@ -1,0 +1,52 @@
+# MCX Gold Futures Transaction Costs Configuration
+# GoldPrism — Team ARCEUS (Hack in Hills '26 Track 03)
+# All statutory and market fees documented with source and verification date.
+
+version: "1.0"
+effective_date: "2024-11-01"
+currency: "INR"
+
+statutory_charges:
+  ctt_rate: 0.0001
+  ctt_side: "SELL"
+  ctt_source: "Finance Act 2013 / Section 116 (0.01% on sell-side turnover of non-agri commodity futures)"
+  ctt_verified_date: "2024-10-15"
+
+  gst_rate: 0.18
+  gst_applies_to: ["brokerage", "exchange_turnover_fee", "sebi_turnover_fee"]
+  gst_source: "CBIC Notification No. 11/2017 - Central Tax (Rate) - 18% on financial services"
+  gst_verified_date: "2024-10-15"
+
+  exchange_turnover_fee_rate: 0.000026
+  exchange_turnover_fee_source: "MCX Circular MCX/TRD/312/2024 (INR 2.60 per lakh on Gold futures)"
+  exchange_turnover_fee_verified_date: "2024-09-01"
+
+  stamp_duty_rate: 0.00002
+  stamp_duty_side: "BUY"
+  stamp_duty_source: "Indian Stamp Act (amended w.e.f. July 1, 2020) - 0.002% on buy turnover"
+  stamp_duty_verified_date: "2024-07-01"
+
+  sebi_turnover_fee_rate: 0.000001
+  sebi_turnover_fee_source: "SEBI (Payment of Fees) Regulations - INR 10 per crore (0.0001%)"
+  sebi_turnover_fee_verified_date: "2024-08-01"
+
+brokerage:
+  flat_fee_per_lot_inr: 30.0
+  per_side: true
+  source: "Institutional/Discount Commodity Broker Schedule (e.g. Zerodha/AngelOne INR 20-30/order)"
+  verified_date: "2024-10-01"
+
+slippage_and_market_impact:
+  base_liquid_slippage_bps: 2.0
+  settle_to_executable_haircut_bps: 1.5
+  thin_volume_threshold_contracts: 100
+  thin_oi_threshold_contracts: 500
+  thin_volume_multiplier: 2.5
+  model_description: "Linear top-of-book half-spread plus volume/OI log-scaled penalty for off-peak and illiquid expiry legs"
+  source: "Empirical MCX Orderbook Snapshot Half-Spread Study (Team ARCEUS Track 03)"
+
+financing_repo_baseline:
+  annual_repo_rate: 0.0650
+  rate_source: "Reserve Bank of India (RBI) Policy Repo Rate 6.50%"
+  day_count_convention: "ACT/365"
+  verified_date: "2024-10-09"

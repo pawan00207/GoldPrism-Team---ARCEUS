@@ -1,0 +1,8 @@
+{
+  "name": "GoldPrism — MCX Spread Decomposition Terminal",
+  "description": "Quantitative Commodity Derivatives Intelligence platform for MCX Gold Spreads by Team ARCEUS. Separate real economic value from expiry carry, settlement artifacts and transaction costs.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

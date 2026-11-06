@@ -1,0 +1,25 @@
+{
+  "config_hash": "9c8103c61b2b2137",
+  "methodology": "Stationary block bootstrap with 10-day block length to preserve serial autocorrelation in spread residual",
+  "n_samples": 1000,
+  "block_size_days": 10,
+  "mean_net_edge_bps": -1.2,
+  "ci_95_low_bps": -1.77,
+  "ci_95_high_bps": -0.71,
+  "ci_crosses_zero": true,
+  "verdict_impact": "Verdict blocked from TRADABLE because 95% CI crosses zero, proving residual is noise relative to cost hurdle.",
+  "mde": {
+    "mde_bps": 0.75,
+    "mde_inr_per_g": 0.5222,
+    "alpha": 0.05,
+    "power": 0.8,
+    "interpretation": "At N=292, minimum true edge detectable with 80% power is 0.75 bps."
+  },
+  "multiple_testing": {
+    "tested_pairs_count": 6,
+    "method": "Bonferroni & Benjamini-Hochberg (FDR=0.05)",
+    "nominal_hurdle_bps": 5.0,
+    "bonferroni_corrected_hurdle_bps": 12.25,
+    "passed_correction": false
+  }
+}

@@ -65,14 +65,16 @@ export function Navbar() {
   React.useEffect(() => setMounted(true), [])
 
   const goldLinks = [
-    { href: '#xray-waterfall', label: 'X-Ray Waterfall' },
+    { href: '#xray-waterfall', label: 'X-Ray' },
     { href: '#data-health', label: 'Data Health' },
+    { href: '#contract-master', label: 'Contracts' },
     { href: '#best-vehicle', label: 'Best Vehicle' },
+    { href: '#term-structure', label: 'Term Structure' },
+    { href: '#contract-lifecycle', label: 'Lifecycle' },
     { href: '#backtest-lab', label: 'Backtest Lab' },
+    { href: '#trader-intelligence', label: 'Why Quiet?' },
+    { href: '#methodology-audit', label: 'Methodology' },
     { href: '#judge-demo', label: 'Judge Demo' },
-    { href: '#dashboard', label: 'Global Markets' },
-    { href: '#agent', label: 'AI Agent' },
-    { href: '#team-arceus', label: 'Team ARCEUS' },
   ]
 
   return (
