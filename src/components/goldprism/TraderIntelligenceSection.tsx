@@ -96,7 +96,7 @@ export function TraderIntelligenceSection() {
           </div>
 
           {/* Reproducibility Verification Button */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <Button
               onClick={handleVerifyReproducibility}
               disabled={reproStatus === 'VERIFYING'}
@@ -113,7 +113,7 @@ export function TraderIntelligenceSection() {
               </Badge>
             )}
             {reproStatus === 'IDLE' && (
-              <Badge variant="outline" className="text-muted-foreground font-mono text-xs">
+              <Badge variant="outline" className="whitespace-normal break-all text-muted-foreground font-mono text-xs">
                 Stored Hash: 9c8103c61b2b2137
               </Badge>
             )}

@@ -17,7 +17,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   parseAndValidateBhavcopyCsv,
   IngestionResult,
@@ -237,7 +236,7 @@ export function DataHealthSection({
         {/* Detailed Table: Validated vs Rejected */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Validated Records */}
-          <Card className="border-border/80 bg-card/60">
+          <Card className="min-w-0 border-border/80 bg-card/60">
             <CardHeader className="py-3 px-4 border-b border-border/60 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-emerald-400" />
@@ -246,55 +245,57 @@ export function DataHealthSection({
               <span className="text-xs text-muted-foreground font-mono">₹/g (999 Fine)</span>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-64">
+              <div className="h-64 overflow-auto">
                 {ingestionResult.validatedRecords.length === 0 ? (
                   <div className="p-6 text-center text-sm text-muted-foreground">
                     No validated records in current dataset.
                   </div>
                 ) : (
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-border/40 text-muted-foreground bg-muted/20">
-                        <th className="py-2 px-3 text-left">Symbol</th>
-                        <th className="py-2 px-3 text-left">Expiry</th>
-                        <th className="py-2 px-3 text-right">Quoted Settle</th>
-                        <th className="py-2 px-3 text-right">Norm Settle (₹/g)</th>
-                        <th className="py-2 px-3 text-right">Volume</th>
-                        <th className="py-2 px-3 text-center">Trust</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ingestionResult.validatedRecords.map((r, i) => (
-                        <tr key={i} className="border-b border-border/20 hover:bg-muted/30">
-                          <td className="py-2 px-3 font-semibold text-foreground">{r.symbol}</td>
-                          <td className="py-2 px-3 font-mono text-muted-foreground">{r.expiryDate}</td>
-                          <td className="py-2 px-3 text-right font-mono tabular-nums">₹{r.settlePrice.toFixed(2)}</td>
-                          <td className="py-2 px-3 text-right font-mono tabular-nums text-amber-300 font-semibold">
-                            ₹{r.normalizedSettlePerG.toFixed(2)}
-                          </td>
-                          <td className="py-2 px-3 text-right font-mono tabular-nums text-muted-foreground">{r.volume}</td>
-                          <td className="py-2 px-3 text-center">
-                            {r.trustStatus === 'VERIFIED' ? (
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-mono">
-                                OK
-                              </span>
-                            ) : (
-                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 font-mono">
-                                THIN
-                              </span>
-                            )}
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-[560px] text-xs">
+                      <thead>
+                        <tr className="border-b border-border/40 text-muted-foreground bg-muted/20">
+                          <th className="py-2 px-3 text-left">Symbol</th>
+                          <th className="py-2 px-3 text-left">Expiry</th>
+                          <th className="py-2 px-3 text-right">Quoted Settle</th>
+                          <th className="py-2 px-3 text-right">Norm Settle (₹/g)</th>
+                          <th className="py-2 px-3 text-right">Volume</th>
+                          <th className="py-2 px-3 text-center">Trust</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {ingestionResult.validatedRecords.map((r, i) => (
+                          <tr key={i} className="border-b border-border/20 hover:bg-muted/30">
+                            <td className="py-2 px-3 font-semibold text-foreground">{r.symbol}</td>
+                            <td className="py-2 px-3 font-mono text-muted-foreground">{r.expiryDate}</td>
+                            <td className="py-2 px-3 text-right font-mono tabular-nums">₹{r.settlePrice.toFixed(2)}</td>
+                            <td className="py-2 px-3 text-right font-mono tabular-nums text-amber-300 font-semibold">
+                              ₹{r.normalizedSettlePerG.toFixed(2)}
+                            </td>
+                            <td className="py-2 px-3 text-right font-mono tabular-nums text-muted-foreground">{r.volume}</td>
+                            <td className="py-2 px-3 text-center">
+                              {r.trustStatus === 'VERIFIED' ? (
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-mono">
+                                  OK
+                                </span>
+                              ) : (
+                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 font-mono">
+                                  THIN
+                                </span>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 )}
-              </ScrollArea>
+              </div>
             </CardContent>
           </Card>
 
           {/* Rejected Rows Audit */}
-          <Card className="border-border/80 bg-card/60">
+          <Card className="min-w-0 border-border/80 bg-card/60">
             <CardHeader className="py-3 px-4 border-b border-border/60 flex flex-row items-center justify-between">
               <CardTitle className="text-sm font-bold flex items-center gap-2">
                 <ShieldAlert className="w-4 h-4 text-rose-400" />
@@ -303,7 +304,7 @@ export function DataHealthSection({
               <span className="text-xs text-rose-400 font-mono">Execution Blocked</span>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-64">
+              <div className="h-64 overflow-auto">
                 {ingestionResult.rejectedRows.length === 0 ? (
                   <div className="p-6 text-center text-sm text-emerald-400 flex flex-col items-center justify-center gap-2">
                     <CheckCircle2 className="w-6 h-6" />
@@ -329,7 +330,7 @@ export function DataHealthSection({
                     ))}
                   </div>
                 )}
-              </ScrollArea>
+              </div>
             </CardContent>
           </Card>
         </div>

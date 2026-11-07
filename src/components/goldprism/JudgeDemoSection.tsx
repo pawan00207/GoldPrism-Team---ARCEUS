@@ -39,7 +39,7 @@ export function JudgeDemoSection() {
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex flex-wrap items-center gap-2 mb-2">
               <Badge className="bg-amber-500 text-black font-bold gap-1 text-xs">
                 <Sparkles className="w-3.5 h-3.5" /> 5-Minute Judge Demo
               </Badge>
@@ -137,8 +137,8 @@ export function JudgeDemoSection() {
         <Card className="p-6 border-border/80 bg-card/60">
           {demoState.currentStep === 1 && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border/40">
-                <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border/40">
+                <div className="flex flex-wrap items-center gap-2">
                   <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/40 text-xs font-mono">
                     CAUGHT ERROR (SEEDED)
                   </Badge>
@@ -146,7 +146,7 @@ export function JudgeDemoSection() {
                     Integrity Gates Reject Corrupted Records
                   </span>
                 </div>
-                <Badge variant="outline" className="text-rose-400 border-rose-500/30 text-xs font-mono">
+                <Badge variant="outline" className="whitespace-normal break-words text-rose-400 border-rose-500/30 text-xs font-mono">
                   Status: Failed: run blocked
                 </Badge>
               </div>

@@ -231,7 +231,7 @@ export function XRayWaterfallSection() {
                 : 'bg-rose-500/10 border-rose-500/40 text-rose-400'
             }`}
           >
-            <div className="flex items-start gap-3">
+            <div className="flex min-w-0 items-start gap-3">
               <div className="p-2 rounded-lg bg-black/40 shrink-0 mt-0.5">
                 {result.verdict === 'TRADABLE' ? (
                   <CheckCircle2 className="w-6 h-6 text-emerald-400" />
@@ -243,12 +243,12 @@ export function XRayWaterfallSection() {
                   <ShieldAlert className="w-6 h-6 text-rose-400" />
                 )}
               </div>
-              <div>
+              <div className="min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xl font-black tracking-wide font-mono uppercase">
                     {result.verdict}
                   </span>
-                  <span className="text-xs text-muted-foreground font-mono">
+                  <span className="break-all text-xs text-muted-foreground font-mono">
                     [{result.reasonCodes.join(', ')}]
                   </span>
                 </div>
