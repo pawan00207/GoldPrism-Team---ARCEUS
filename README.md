@@ -15,9 +15,9 @@
 > *"Separate real economic value from expiry carry, settlement artifacts and transaction costs — then make a disciplined decision."*  
 > **Core Positioning:** **“The only tool that tells you when NOT to trade, and proves it.”**
 
-**Architecture in One Line:** The user-facing application is Next.js 16 + React 19; the quantitative research engine is standalone Python in `/research`.
+**Architecture in One Line:** The user-facing application is Next.js 16 + React 19 with a TypeScript quantitative engine; a separate Python research pipeline lives in `/research`.
 
-[5-Minute Judge Demo](#-5-minute-judge-demo-100-goldprism) · [The X-Ray Waterfall](#-the-x-ray-waterfall) · [MCX Contract Family](#-mcx-gold-contract-family--specification-master) · [Best Vehicle](#-best-vehicle-selection) · [Methodology & Audit](METHODOLOGY.md) · [Honest Results](#-honest-backtest-results-pipeline-derived) · [Team ARCEUS](#-team-arceus--roles) · [5-Minute Quick Start](#-5-minute-quick-start)
+[Architecture Wireframe](#-architecture-wireframe) · [Project Overview](docs/PROJECT_OVERVIEW.md) · [Change Metrics](docs/CHANGE_METRICS.md) · [5-Minute Judge Demo](#-5-minute-judge-demo-100-goldprism) · [The X-Ray Waterfall](#-the-x-ray-waterfall) · [MCX Contract Family](#-mcx-gold-contract-family--specification-master) · [Best Vehicle](#-best-vehicle-selection) · [Methodology & Audit](METHODOLOGY.md) · [Honest Results](#-honest-backtest-results-pipeline-derived) · [Team ARCEUS](#-team-arceus--roles) · [5-Minute Quick Start](#-5-minute-quick-start)
 
 </div>
 
@@ -28,6 +28,41 @@
 Raw spreads between MCX Gold contracts are noisy and misleading. Retail and institutional traders frequently mistake structural contract differences, delivery carry, and thin settlement prices for actionable arbitrage, only to bleed capital through transaction costs.
 
 **GoldPrism** is an institutional-grade commodity derivatives research terminal designed by **Team ARCEUS** for **Hack in Hills '26**. It implements an auditable 7-step pipeline that purges structural noise and evaluates only the true residual, net of all statutory fees and market impact.
+
+---
+
+## 🏗️ Architecture Wireframe
+
+```mermaid
+flowchart TB
+    User[Researcher / Judge] --> Browser[Browser]
+    Browser --> App[Next.js App Router<br/>src/app/page.tsx]
+
+    App --> GPUI[GoldPrism UI<br/>contracts · data health · X-Ray<br/>vehicle · backtest · reports]
+    App --> Workspace[Preserved workspace<br/>dashboard · agent · factors<br/>paper trading · strategy tools]
+
+    GPUI --> Engine[TypeScript research engine<br/>src/lib/goldprism<br/>normalization · integrity gates<br/>costs · waterfall · verdicts]
+    Workspace --> Routes[Next.js route handlers<br/>/api/agent<br/>/api/backtest<br/>/api/analyze-trades]
+    Routes --> AI{Z.AI key configured?}
+    AI -->|Yes| ZAI[Z.AI service]
+    AI -->|No| Demo[Deterministic demo responses]
+    Routes -. "not used by current app flows" .-> Prisma[Prisma schema and client utility<br/>persistence not wired]
+
+    CSV[Bhavcopy CSV / sample data] --> Python[Separate Python research pipeline<br/>research/]
+    Python --> Analysis[Validation · contract master<br/>waterfall · walk-forward backtest]
+    Analysis --> Artifacts[Versioned outputs<br/>results/ · manifests]
+    Artifacts -. "Manual / future integration;<br/>not currently wired to the web app" .-> GPUI
+```
+
+**Runtime boundary:** The web UI uses the TypeScript engine. The Python pipeline
+is a separate research workflow and produces files in `results/`; it is not
+currently invoked by the web app. The API routes use deterministic demo
+responses when Z.AI credentials are not configured. There is no live MCX feed,
+broker order routing, or connected user-data persistence in the current app.
+
+For the problem statement, delivered features, limitations, and proposed next
+steps, see [Project Overview](docs/PROJECT_OVERVIEW.md). For repository size
+and Git change counts, see [Change Metrics](docs/CHANGE_METRICS.md).
 
 ---
 
