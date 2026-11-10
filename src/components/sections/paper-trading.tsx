@@ -115,7 +115,7 @@ export function PaperTrading() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <CircleDollarSign className="w-4 h-4 text-emerald-500" />
+              <CircleDollarSign className="w-4 h-4 gp-pos" />
               <span className="text-xs text-muted-foreground">Cash</span>
             </div>
             <div className="text-xl font-bold tabular-nums">
@@ -124,19 +124,19 @@ export function PaperTrading() {
           </Card>
           <Card className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+              <ArrowUpRight className="w-4 h-4 gp-pos" />
               <span className="text-xs text-muted-foreground">Day P&L</span>
             </div>
-            <div className="text-xl font-bold tabular-nums text-emerald-500">
+            <div className="text-xl font-bold tabular-nums gp-pos">
               +$2,847.55
             </div>
           </Card>
           <Card className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <ArrowUpRight className="w-4 h-4 text-emerald-500" />
+              <ArrowUpRight className="w-4 h-4 gp-pos" />
               <span className="text-xs text-muted-foreground">Total Return</span>
             </div>
-            <div className="text-xl font-bold tabular-nums text-emerald-500">
+            <div className="text-xl font-bold tabular-nums gp-pos">
               +52.35%
             </div>
           </Card>
@@ -154,7 +154,7 @@ export function PaperTrading() {
                 <select
                   value={symbol}
                   onChange={(e) => setSymbol(e.target.value)}
-                  className="mt-1 w-full h-9 rounded-md border border-input bg-background px-3 text-sm"
+                  className="gp-field gp-select mt-1"
                 >
                   {WATCHLIST.map((w) => (
                     <option key={w.symbol} value={w.symbol}>
@@ -220,7 +220,7 @@ export function PaperTrading() {
                 </div>
               )}
 
-              <div className="p-3 rounded-md bg-muted/40 text-xs space-y-1">
+              <div className="p-3 rounded-[2px] bg-muted/40 text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Current Price</span>
                   <span className="font-mono">${asset.price.toFixed(2)}</span>
@@ -246,9 +246,9 @@ export function PaperTrading() {
                   initial={{ opacity: 0, y: -8 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
-                    'p-2.5 rounded-md text-xs',
-                    msg.type === 'success' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-                    msg.type === 'error' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
+                    'p-2.5 rounded-[2px] text-xs',
+                    msg.type === 'success' && 'gp-tint-pos gp-pos',
+                    msg.type === 'error' && 'gp-tint-neg gp-neg',
                     msg.type === 'info' && 'bg-muted text-muted-foreground'
                   )}
                 >
@@ -268,7 +268,7 @@ export function PaperTrading() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="max-h-72">
+                <ScrollArea className="h-72">
                   <table className="w-full text-sm">
                     <thead className="text-xs text-muted-foreground sticky top-0 bg-card">
                       <tr>
@@ -287,7 +287,7 @@ export function PaperTrading() {
                           <td className="py-2 text-xs text-muted-foreground tabular-nums">{o.time}</td>
                           <td className="py-2 font-semibold">{o.symbol}</td>
                           <td className="py-2">
-                            <span className={cn('text-xs font-medium', o.side === 'buy' ? 'text-emerald-500' : 'text-rose-500')}>
+                            <span className={cn('text-xs font-medium', o.side === 'buy' ? 'gp-pos' : 'gp-neg')}>
                               {o.side.toUpperCase()}
                             </span>
                           </td>
@@ -299,9 +299,9 @@ export function PaperTrading() {
                               variant="secondary"
                               className={cn(
                                 'text-[10px] capitalize',
-                                o.status === 'filled' && 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
-                                o.status === 'pending' && 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
-                                o.status === 'cancelled' && 'bg-rose-500/10 text-rose-600 dark:text-rose-400'
+                                o.status === 'filled' && 'gp-tint-pos gp-pos',
+                                o.status === 'pending' && 'gp-tint-warn gp-warn',
+                                o.status === 'cancelled' && 'gp-tint-neg gp-neg'
                               )}
                             >
                               {o.status}
@@ -322,20 +322,14 @@ export function PaperTrading() {
               <CardContent>
                 <ResponsiveContainer width="100%" height={220}>
                   <AreaChart data={history} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="grad-equity" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="var(--foreground)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
                     <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
-                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
+                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 2, fontSize: 12 }}
                       formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
                     />
-                    <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={2} fill="url(#grad-equity)" />
+                    <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={2} fill="var(--gp-slag-300)" fillOpacity={0.22} />
                   </AreaChart>
                 </ResponsiveContainer>
               </CardContent>

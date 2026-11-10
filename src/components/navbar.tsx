@@ -2,55 +2,35 @@
 
 import * as React from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Activity, Github, Moon, Sun, Menu, X } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { Github, Menu, Moon, Sun, X } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { TICKER_ITEMS } from '@/lib/mock-data'
+import { BrandMark } from '@/components/goldprism/brand'
 import { cn } from '@/lib/utils'
 
 export function TickerTape() {
-  const mcxGoldItems = [
-    { sym: 'MCX:GOLDM', price: 73510.0, chg: 0.42 },
-    { sym: 'MCX:GOLDTEN', price: 74080.0, chg: 0.38 },
-    { sym: 'MCX:GOLDGUINEA', price: 59250.0, chg: 0.35 },
-    { sym: 'MCX:GOLDPETAL', price: 7410.0, chg: 0.41 },
-  ]
-  const allItems = [...mcxGoldItems, ...TICKER_ITEMS]
-  const items = [...allItems, ...allItems]
-
   return (
-    <div className="border-y border-border bg-muted/30 overflow-hidden">
-      <div className="flex items-center">
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-black text-xs font-bold shrink-0 relative overflow-hidden">
-          <Activity className="w-3 h-3 animate-pulse" />
-          <span>COMMODITY &amp; GLOBAL DESK</span>
+    <div className="border-b border-border bg-card">
+      <div className="mx-auto flex max-w-[1200px] items-stretch px-4">
+        <div className="gp-hatch flex shrink-0 items-center border-x border-border px-3 py-2">
+          <span className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-foreground">
+            Fixture data
+          </span>
         </div>
-        <div className="overflow-hidden flex-1">
-          <div className="flex ticker-track whitespace-nowrap">
-            {items.map((it, i) => {
-              const isMcx = it.sym.startsWith('MCX:')
-              return (
-                <div key={i} className="flex items-center gap-2 px-4 py-1.5 text-xs">
-                  <span className={cn('font-semibold', isMcx ? 'text-amber-400 font-bold' : '')}>
-                    {it.sym}
-                  </span>
-                  <span className="tabular-nums text-muted-foreground font-mono">
-                    {isMcx ? '₹' : ''}
-                    {it.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                  </span>
-                  <span
-                    className={cn(
-                      'tabular-nums font-medium font-mono',
-                      it.chg >= 0 ? 'text-emerald-500' : 'text-rose-500'
-                    )}
-                  >
-                    {it.chg >= 0 ? '+' : ''}{it.chg.toFixed(2)}%
-                  </span>
-                  <span className="text-muted-foreground/40">|</span>
-                </div>
-              )
-            })}
+        <div className="flex flex-1 items-center overflow-hidden">
+          <div className="flex items-center gap-6 whitespace-nowrap px-4 py-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <span>
+              Trading date <strong className="font-medium text-foreground">20 Mar 2026</strong>
+            </span>
+            <span className="text-border" aria-hidden="true">|</span>
+            <span>
+              Mode <strong className="font-medium text-foreground">Historical fixture</strong>
+            </span>
+            <span className="text-border" aria-hidden="true">|</span>
+            <span>
+              Quotations <strong className="font-medium text-foreground">Not live</strong>
+            </span>
           </div>
         </div>
       </div>
@@ -62,144 +42,134 @@ export function Navbar() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = React.useState(false)
   const [mobileOpen, setMobileOpen] = React.useState(false)
+  const pathname = usePathname()
   React.useEffect(() => setMounted(true), [])
 
   const goldLinks = [
-    { href: '#xray-waterfall', label: 'X-Ray' },
-    { href: '#data-health', label: 'Data Health' },
-    { href: '#contract-master', label: 'Contracts' },
-    { href: '#best-vehicle', label: 'Best Vehicle' },
-    { href: '#term-structure', label: 'Term Structure' },
-    { href: '#contract-lifecycle', label: 'Lifecycle' },
-    { href: '#backtest-lab', label: 'Backtest Lab' },
-    { href: '#trader-intelligence', label: 'Why Quiet?' },
-    { href: '#methodology-audit', label: 'Methodology' },
-    { href: '#judge-demo', label: 'Judge Demo' },
+    { href: '/xray', label: 'X-Ray' },
+    { href: '/research', label: 'Research' },
+    { href: '/methodology', label: 'Methodology' },
+    { href: '/workspace', label: 'Workspace' },
   ]
+
+  const isActive = (href: string) =>
+    pathname === href || (href !== '/' && pathname?.startsWith(href))
 
   return (
     <>
-    <motion.header
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4 }}
-      className="sticky top-0 z-50 w-full border-b border-border/80 bg-background/90 backdrop-blur-md"
-    >
-      <div className="flex h-14 items-center px-4 gap-4 max-w-7xl mx-auto">
-        <Link href="#" className="flex items-center gap-2 font-bold shrink-0">
-          <div className="relative">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-black font-black text-sm shadow-md shadow-amber-500/20">
-              ▲
+      <header className="sticky top-0 z-50 w-full border-b border-border bg-background">
+        <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-4 px-4">
+          <Link href="/" className="flex shrink-0 items-center gap-2.5" aria-label="GoldPrism home">
+            <BrandMark className="h-8 w-8" />
+            <div className="flex flex-col">
+              <span className="font-serif text-lg font-medium leading-none tracking-tight">
+                Gold<span className="gp-gold-text">Prism</span>
+              </span>
+              <span className="mt-1 font-mono text-[9px] uppercase leading-none tracking-[0.16em] text-muted-foreground">
+                MCX research terminal
+              </span>
             </div>
-            <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-          </div>
-          <div className="flex flex-col">
-            <span className="text-base tracking-tight font-black leading-none text-foreground">
-              Gold<span className="text-amber-400">Prism</span>
-            </span>
-            <span className="text-[10px] text-muted-foreground font-mono tracking-widest uppercase">
-              By Team ARCEUS
-            </span>
-          </div>
-        </Link>
+          </Link>
 
-        <nav className="hidden xl:flex items-center gap-1 text-xs font-medium">
-          {goldLinks.map((l) => (
-            <a
-              key={l.href}
-              href={l.href}
-              className="px-2.5 py-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-            >
-              {l.label}
-            </a>
-          ))}
-        </nav>
+          <nav className="ml-4 hidden items-center gap-0.5 xl:flex" aria-label="GoldPrism sections">
+            {goldLinks.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                aria-current={isActive(l.href) ? 'page' : undefined}
+                className={cn(
+                  'relative border-b-2 px-3 py-5 font-mono text-[10px] uppercase tracking-[0.12em] transition-colors',
+                  isActive(l.href)
+                    ? 'border-[var(--gp-gold-500)] text-foreground'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
+                )}
+              >
+                {l.label}
+              </Link>
+            ))}
+          </nav>
 
-        <div className="flex-1" />
+          <div className="flex-1" />
 
-        <div className="flex items-center gap-2">
-          {mounted && (
+          <div className="flex items-center gap-1">
+            {mounted && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="h-10 w-10"
+                aria-label={theme === 'dark' ? 'Switch to paper theme' : 'Switch to crucible theme'}
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4" />
+                ) : (
+                  <Moon className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+            <Button asChild variant="ghost" size="icon" className="h-10 w-10">
+              <a
+                href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
+                target="_blank"
+                rel="noreferrer"
+                aria-label="GoldPrism on GitHub"
+              >
+                <Github className="h-4 w-4" />
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="sm" className="ml-1 hidden sm:flex">
+              <Link href="/xray">Open X-Ray</Link>
+            </Button>
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="h-8 w-8"
-              aria-label="Toggle theme"
+              className="h-10 w-10 xl:hidden"
+              aria-label="Toggle menu"
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((v) => !v)}
             >
-              {theme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Moon className="w-4 h-4" />
-              )}
+              {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
-          )}
-          <Button asChild variant="ghost" size="sm" className="gap-1.5 text-xs hidden sm:flex">
-            <a
-              href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
-              target="_blank"
-              rel="noreferrer"
-            >
-              <Github className="w-4 h-4" />
-              <span className="hidden sm:inline">GitHub</span>
-            </a>
-          </Button>
-          <Button asChild size="sm" className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-black font-semibold shadow-sm hidden sm:flex">
-            <a href="#judge-demo">
-              <Activity className="w-3.5 h-3.5" />
-              Judge Demo
-            </a>
-          </Button>
-          {/* Mobile hamburger */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 xl:hidden"
-            aria-label="Toggle menu"
-            onClick={() => setMobileOpen((v) => !v)}
-          >
-            {mobileOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-          </Button>
+          </div>
         </div>
-      </div>
-    </motion.header>
+      </header>
 
-    {/* Mobile dropdown menu */}
-    <AnimatePresence>
       {mobileOpen && (
-        <motion.div
-          initial={{ opacity: 0, y: -8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.18 }}
-          className="xl:hidden fixed top-14 left-0 right-0 z-40 bg-background/95 backdrop-blur-md border-b border-border shadow-lg"
-        >
-          <nav className="max-w-7xl mx-auto px-4 py-3 flex flex-col gap-1">
+        <div className="fixed left-0 right-0 top-16 z-40 border-b border-border bg-background shadow-[0_6px_0_color-mix(in_srgb,var(--gp-slag-900)_18%,transparent)] xl:hidden">
+          <nav className="mx-auto flex max-w-[1200px] flex-col px-4 py-2" aria-label="Mobile menu">
             {goldLinks.map((l) => (
-              <a
+              <Link
                 key={l.href}
                 href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="px-3 py-2.5 rounded-md text-sm text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors font-medium"
+                aria-current={isActive(l.href) ? 'page' : undefined}
+                className={cn(
+                  'border-b border-border py-3.5 font-mono text-[11px] uppercase tracking-[0.12em]',
+                  isActive(l.href)
+                    ? 'gp-tick pl-3 text-foreground'
+                    : 'text-muted-foreground hover:text-foreground'
+                )}
               >
                 {l.label}
-              </a>
+              </Link>
             ))}
-            <div className="flex gap-2 pt-2 border-t border-border mt-1">
-              <Button asChild variant="outline" size="sm" className="gap-1.5 text-xs flex-1">
-                <a href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS" target="_blank" rel="noreferrer">
-                  <Github className="w-3.5 h-3.5" /> GitHub
+            <div className="flex gap-2 py-3">
+              <Button asChild variant="outline" size="sm" className="flex-1">
+                <a
+                  href="https://github.com/pawan00207/GoldPrism-Team---ARCEUS"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <Github className="h-3.5 w-3.5" /> GitHub
                 </a>
               </Button>
-              <Button asChild size="sm" className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-black font-semibold flex-1" onClick={() => setMobileOpen(false)}>
-                <a href="#judge-demo">
-                  <Activity className="w-3.5 h-3.5" /> Judge Demo
-                </a>
+              <Button asChild size="sm" className="flex-1" onClick={() => setMobileOpen(false)}>
+                <Link href="/xray">Open X-Ray</Link>
               </Button>
             </div>
           </nav>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
     </>
   )
 }

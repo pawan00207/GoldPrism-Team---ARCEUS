@@ -6,8 +6,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-plex-sans);
+  --font-serif: var(--font-plex-serif);
+  --font-mono: var(--font-plex-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -37,50 +38,17 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 2px;
 }
 
 /* ============================================================
-   LIGHT THEME — clean white / near-black, monochrome accents
+   GOLDPRISM BRAND TOKENS — Brand Kit GP-02 · GP-09 · GP-14
+   A prism splits one beam. An assay tells you what is pure.
    ============================================================ */
 :root {
-<<<<<<< Updated upstream
-  --radius: 0.75rem;
-  --background: oklch(0.99 0.001 240);
-  --foreground: oklch(0.18 0.005 240);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.18 0.005 240);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.18 0.005 240);
-  --primary: oklch(0.22 0.005 240);
-  --primary-foreground: oklch(0.99 0 0);
-  --secondary: oklch(0.96 0.003 240);
-  --secondary-foreground: oklch(0.22 0.005 240);
-  --muted: oklch(0.96 0.003 240);
-  --muted-foreground: oklch(0.50 0.005 240);
-  --accent: oklch(0.93 0.003 240);
-  --accent-foreground: oklch(0.18 0.005 240);
-  --destructive: oklch(0.62 0.24 16);
-  --border: oklch(0.91 0.003 240);
-  --input: oklch(0.92 0.003 240);
-  --ring: oklch(0.30 0.005 240);
-  --chart-1: oklch(0.30 0.005 240);
-  --chart-2: oklch(0.55 0.005 240);
-  --chart-3: oklch(0.70 0.005 240);
-  --chart-4: oklch(0.62 0.24 16);
-  --chart-5: oklch(0.40 0.005 240);
-  --sidebar: oklch(0.98 0.002 240);
-  --sidebar-foreground: oklch(0.18 0.005 240);
-  --sidebar-primary: oklch(0.22 0.005 240);
-  --sidebar-primary-foreground: oklch(0.99 0 0);
-  --sidebar-accent: oklch(0.95 0.003 240);
-  --sidebar-accent-foreground: oklch(0.22 0.005 240);
-  --sidebar-border: oklch(0.91 0.003 240);
-  --sidebar-ring: oklch(0.30 0.005 240);
-=======
   --radius: 2px;
 
   /* Golden ratio — split once, never a third time */
@@ -237,68 +205,107 @@
   --sidebar-accent-foreground: var(--gp-slag-900);
   --sidebar-border: var(--gp-rule);
   --sidebar-ring: var(--gp-gold-text);
->>>>>>> Stashed changes
 }
 
-/* ============================================================
-   DARK THEME — true dark black with subtle warm-white accents
-   ============================================================ */
+/* Dark ground — Crucible. Paper on crucible, ≈15:1. */
 .dark {
-  --background: oklch(0.10 0.002 240);
-  --foreground: oklch(0.96 0.002 240);
-  --card: oklch(0.14 0.002 240);
-  --card-foreground: oklch(0.96 0.002 240);
-  --popover: oklch(0.13 0.002 240);
-  --popover-foreground: oklch(0.96 0.002 240);
-  --primary: oklch(0.98 0.002 240);
-  --primary-foreground: oklch(0.10 0.002 240);
-  --secondary: oklch(0.20 0.002 240);
-  --secondary-foreground: oklch(0.96 0.002 240);
-  --muted: oklch(0.18 0.002 240);
-  --muted-foreground: oklch(0.62 0.005 240);
-  --accent: oklch(0.22 0.002 240);
-  --accent-foreground: oklch(0.96 0.002 240);
-  --destructive: oklch(0.65 0.22 16);
-  --border: oklch(1 0 0 / 8%);
-  --input: oklch(1 0 0 / 10%);
-  --ring: oklch(0.85 0.002 240);
-  --chart-1: oklch(0.96 0.002 240);
-  --chart-2: oklch(0.70 0.005 240);
-  --chart-3: oklch(0.50 0.005 240);
-  --chart-4: oklch(0.65 0.22 16);
-  --chart-5: oklch(0.35 0.005 240);
-  --sidebar: oklch(0.12 0.002 240);
-  --sidebar-foreground: oklch(0.96 0.002 240);
-  --sidebar-primary: oklch(0.98 0.002 240);
-  --sidebar-primary-foreground: oklch(0.10 0.002 240);
-  --sidebar-accent: oklch(0.20 0.002 240);
-  --sidebar-accent-foreground: oklch(0.96 0.002 240);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.85 0.002 240);
+  --gp-ink: var(--gp-paper);
+  --gp-muted-ink: var(--gp-slag-300);
+  --gp-meta-ink: var(--gp-slag-300);
+  --gp-surface: color-mix(in srgb, var(--gp-crucible) 88%, var(--gp-paper));
+  --gp-hairline: color-mix(in srgb, var(--gp-paper) 20%, transparent);
+  --gp-gold-ink: var(--gp-gold);
+  --gp-tradable-ink: var(--gp-tradable-d);
+  --gp-watch-ink: var(--gp-watch-d);
+  --gp-blocked-ink: var(--gp-blocked-d);
+  --gp-gold-deep: var(--gp-gold);
+  --gp-hard-shadow: 6px 6px 0 #000000;
+  --gp-hard-shadow-press: 4px 4px 0 #000000;
+
+  --background: var(--gp-crucible);
+  --foreground: var(--gp-paper);
+  --card: var(--gp-surface);
+  --card-foreground: var(--gp-paper);
+  --popover: var(--gp-surface);
+  --popover-foreground: var(--gp-paper);
+  --primary: var(--gp-paper);
+  --primary-foreground: var(--gp-crucible);
+  --secondary: var(--gp-slag-700);
+  --secondary-foreground: var(--gp-paper);
+  --muted: color-mix(in srgb, var(--gp-crucible) 82%, var(--gp-paper));
+  --muted-foreground: var(--gp-slag-300);
+  --accent: var(--gp-gold-800);
+  --accent-foreground: var(--gp-paper);
+  --destructive: var(--gp-blocked-d);
+  --border: var(--gp-hairline);
+  --input: var(--gp-hairline);
+  --ring: var(--gp-gold);
+  --chart-1: var(--gp-gold);
+  --chart-2: var(--gp-paper);
+  --chart-3: var(--gp-slag-300);
+  --chart-4: var(--gp-blocked-d);
+  --chart-5: var(--gp-tradable-d);
+  --sidebar: var(--gp-surface);
+  --sidebar-foreground: var(--gp-paper);
+  --sidebar-primary: var(--gp-paper);
+  --sidebar-primary-foreground: var(--gp-crucible);
+  --sidebar-accent: var(--gp-slag-700);
+  --sidebar-accent-foreground: var(--gp-paper);
+  --sidebar-border: var(--gp-hairline);
+  --sidebar-ring: var(--gp-gold);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  /* Native controls follow the ground: light on paper, dark in the crucible. */
+  :root {
+    color-scheme: light;
+  }
+  .dark {
+    color-scheme: dark;
+  }
+  select option {
+    background-color: var(--card);
+    color: var(--foreground);
+  }
+  select option:checked {
+    background-color: var(--gp-gold-200);
+    color: var(--gp-slag-900);
+  }
   body {
     @apply bg-background text-foreground;
-<<<<<<< Updated upstream
-=======
     /* next/font writes --font-plex-* on this element, so the brand stacks
        must be declared here rather than on :root. */
     --gp-ledger: var(--font-plex-serif, "IBM Plex Serif"), var(--gp-ledger-fallback);
     --gp-clerk: var(--font-plex-sans, "IBM Plex Sans"), var(--gp-clerk-fallback);
     --gp-instrument: var(--font-plex-mono, "IBM Plex Mono"), var(--gp-instrument-fallback);
     font-family: var(--gp-clerk);
->>>>>>> Stashed changes
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--gp-ledger);
+    font-weight: 500;
+  }
+  ::selection {
+    background: var(--gp-gold-200);
+    color: var(--gp-slag-900);
+  }
+  :focus-visible {
+    outline: 2px solid var(--gp-ink);
+    outline-offset: 2px;
   }
 }
 
 @layer utilities {
-<<<<<<< Updated upstream
-=======
   /* ---------- Layout · golden ratio, split once ---------- */
   .gp-section {
     background: var(--background);
@@ -825,7 +832,6 @@
   }
 
   /* ---------- Scrollbars ---------- */
->>>>>>> Stashed changes
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
@@ -839,34 +845,19 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: var(--muted-foreground);
-    border-radius: 3px;
-    opacity: 0.5;
-  }
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: var(--foreground);
+    border-radius: 0;
   }
 
+  /* ---------- Legacy workspace helpers ---------- */
   .grid-bg {
     background-image:
       linear-gradient(to right, var(--border) 1px, transparent 1px),
       linear-gradient(to bottom, var(--border) 1px, transparent 1px);
     background-size: 32px 32px;
   }
-
-  .glow-emerald {
-    box-shadow: 0 0 40px -10px oklch(0.7 0.18 158 / 0.4);
-  }
-  .glow-rose {
-    box-shadow: 0 0 40px -10px oklch(0.7 0.22 16 / 0.5);
-  }
-  .glow-white {
-    box-shadow: 0 0 60px -15px oklch(0.95 0 0 / 0.15);
-  }
-
   .text-balance {
     text-wrap: balance;
   }
-
   .animate-pulse-slow {
     animation: pulse-slow 3s ease-in-out infinite;
   }
@@ -874,7 +865,6 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
-
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -882,16 +872,6 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
   }
-
-  .animate-gradient {
-    background-size: 200% 200%;
-    animation: gradient-shift 8s ease infinite;
-  }
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-  }
-
   .ticker-track {
     animation: ticker-scroll 60s linear infinite;
   }
@@ -899,90 +879,73 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
-
-  /* ── Trading-app utility classes ── */
-
-  /* Subtle scanline overlay for terminals */
   .scanlines {
     background-image: repeating-linear-gradient(
       to bottom,
       transparent 0px,
       transparent 3px,
-      rgba(0,0,0,0.03) 3px,
-      rgba(0,0,0,0.03) 4px
+      rgba(0, 0, 0, 0.03) 3px,
+      rgba(0, 0, 0, 0.03) 4px
     );
   }
-
-  /* Glow helpers for gold accent */
-  .glow-gold {
-    box-shadow: 0 0 24px -6px oklch(0.78 0.15 85 / 0.45);
-  }
-  .glow-gold-sm {
-    box-shadow: 0 0 12px -4px oklch(0.78 0.15 85 / 0.35);
-  }
-
-  /* Number flash animation (positive) */
   .flash-green {
     animation: flash-green 0.6s ease-out;
   }
   @keyframes flash-green {
-    0% { background-color: oklch(0.70 0.18 158 / 0.25); }
+    0% { background-color: color-mix(in srgb, var(--gp-tradable) 25%, transparent); }
     100% { background-color: transparent; }
   }
-
-  /* Number flash animation (negative) */
   .flash-red {
     animation: flash-red 0.6s ease-out;
   }
   @keyframes flash-red {
-    0% { background-color: oklch(0.70 0.22 16 / 0.25); }
+    0% { background-color: color-mix(in srgb, var(--gp-blocked) 25%, transparent); }
     100% { background-color: transparent; }
   }
-
-  /* Shimmer loading skeleton */
   .shimmer {
-    background: linear-gradient(
-      90deg,
-      var(--muted) 0%,
-      oklch(from var(--muted) l c h / 0.6) 50%,
-      var(--muted) 100%
+    background: var(--muted);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0,
+      transparent 4px,
+      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 4px,
+      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 5px
     );
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
+    background-size: 14px 14px;
+    animation: gp-hatch-shimmer 1.6s linear infinite;
   }
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  /* Section accent divider line */
   .section-divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, oklch(0.78 0.15 85 / 0.3), transparent);
+    background: var(--border);
   }
-
-  /* Data terminal monospace table cells */
   .font-terminal {
-    font-family: var(--font-geist-mono), 'Courier New', monospace;
+    font-family: var(--gp-instrument);
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
   }
-
-  /* Verdict badge ring pulse */
   .verdict-pulse {
     animation: verdict-ring 2s ease-in-out infinite;
   }
   @keyframes verdict-ring {
-    0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.15 85 / 0.5); }
-    50% { box-shadow: 0 0 0 6px oklch(0.78 0.15 85 / 0); }
+    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gp-gold-500) 50%, transparent); }
+    50% { box-shadow: 0 0 0 6px transparent; }
   }
-
-  /* Card hover lift */
   .card-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-lift:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 24px -6px oklch(0 0 0 / 0.15);
+    box-shadow: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
   }
 }

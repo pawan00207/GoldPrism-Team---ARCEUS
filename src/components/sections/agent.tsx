@@ -92,8 +92,8 @@ export function Agent() {
 
   return (
     <section id="agent" className="relative isolate py-20 md:py-28 scroll-mt-20 bg-muted/20 border-y border-border overflow-hidden">
-      {/* Subtle amber accent top bar */}
-      <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+      {/* Register rule — gold appears once, as a mark, not a wash. */}
+      <div className="gp-spectral absolute inset-x-0 top-0" />
       <div className="container mx-auto px-4 max-w-7xl">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -102,11 +102,11 @@ export function Agent() {
           className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-8"
         >
           <div>
-            <Badge variant="outline" className="mb-2 gap-1 border-amber-500/40 text-amber-500">
+            <Badge variant="outline" className="mb-2 gap-1 border-[color-mix(in_srgb,var(--gp-watch-ink)_40%,transparent)] gp-warn">
               <Bot className="w-3 h-3" /> GoldPrism AI Agent
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Chat with <span className="text-amber-400">GoldPrism</span> Agent
+              Chat with <span className="gp-gold-text">GoldPrism</span> Agent
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
               An autonomous ReAct-style agent with 68 tools — MCX gold X-Ray analysis,
@@ -129,10 +129,10 @@ export function Agent() {
             <CardHeader className="pb-3 shrink-0">
               <CardTitle className="flex items-center gap-2 text-base">
                 <div className="relative shrink-0">
-                  <div className="w-8 h-8 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-amber-500" />
+                  <div className="w-8 h-8 rounded-[2px] bg-[color-mix(in_srgb,var(--gp-gold-500)_10%,transparent)] border border-[color-mix(in_srgb,var(--gp-gold-500)_30%,transparent)] flex items-center justify-center">
+                    <Bot className="w-4 h-4 gp-gold-text" />
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-500 border-2 border-card animate-pulse" />
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-[1px] bg-[var(--gp-tradable-ink)] border-2 border-card animate-pulse" />
                 </div>
                 <div className="min-w-0">
                   <div>GoldPrism Agent</div>
@@ -164,7 +164,7 @@ export function Agent() {
                       >
                         <div
                           className={cn(
-                            'w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5',
+                            'w-8 h-8 rounded-[2px] flex items-center justify-center shrink-0 mt-0.5',
                             m.role === 'user'
                               ? 'bg-foreground text-background'
                               : 'bg-primary/10'
@@ -179,7 +179,7 @@ export function Agent() {
                         <div
                           className={cn(
                             'px-3.5 py-2.5 text-sm leading-relaxed min-w-0',
-                            'rounded-2xl max-w-[calc(100%-2.75rem)]',
+                            'rounded-[2px] max-w-[calc(100%-2.75rem)]',
                             'break-words [overflow-wrap:anywhere]',
                             m.role === 'user'
                               ? 'bg-foreground text-background rounded-tr-sm'
@@ -193,10 +193,10 @@ export function Agent() {
                   </AnimatePresence>
                   {loading && (
                     <div className="flex gap-2.5">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
+                      <div className="w-8 h-8 rounded-[2px] bg-primary/10 flex items-center justify-center shrink-0 mt-0.5">
                         <Bot className="w-4 h-4 text-primary" />
                       </div>
-                      <div className="bg-muted rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground">
+                      <div className="bg-muted rounded-[2px] px-4 py-3 flex items-center gap-2 text-sm text-muted-foreground">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
                         Agent is reasoning…
                       </div>
@@ -244,9 +244,9 @@ export function Agent() {
                   key={p}
                   onClick={() => send(p)}
                   disabled={loading}
-                  className="w-full text-left text-sm p-3 rounded-lg border border-border hover:border-amber-500/40 hover:bg-amber-500/5 transition-all duration-200 disabled:opacity-50"
+                  className="w-full text-left text-sm p-3 rounded-[2px] border border-border hover:border-[color-mix(in_srgb,var(--gp-gold-500)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--gp-gold-500)_5%,transparent)] transition-all duration-200 disabled:opacity-50"
                 >
-                  <Sparkles className="w-3 h-3 inline-block mr-1.5 text-amber-500 align-text-bottom" />
+                  <Sparkles className="w-3 h-3 inline-block mr-1.5 gp-warn align-text-bottom" />
                   {p}
                 </button>
               ))}

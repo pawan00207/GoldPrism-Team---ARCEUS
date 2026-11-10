@@ -1,29 +1,53 @@
 'use client'
 
 import * as React from 'react'
-import {
-  Activity,
-  AlertCircle,
-  ArrowRight,
-  CheckCircle2,
-  Clock,
-  Layers,
-  Scale,
-  ShieldAlert,
-  ShieldCheck,
-  TrendingDown,
-  XCircle,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import {
   computeXRayWaterfall,
+  DEFAULT_COST_HURDLE_BPS,
   XRayWaterfallResult,
-  XRayVerdict,
 } from '@/lib/goldprism/xray'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
+import {
+  DataTag,
+  Hallmark,
+  SectionHead,
+  SpectralRule,
+  VerdictTag,
+  normalizeVerdict,
+} from '@/components/goldprism/brand'
+import { WaterfallChart, type WaterfallBar } from '@/components/goldprism/waterfall'
+import { bps, inr, inrPerG, signed } from '@/lib/goldprism/format'
+import { cn } from '@/lib/utils'
+
+const CONTRACTS: Array<{ code: SupportedContractCode; label: string }> = [
+  { code: 'GOLDM', label: 'GOLDM · 100g' },
+  { code: 'GOLDTEN', label: 'GOLDTEN · 10g' },
+  { code: 'GOLDGUINEA', label: 'GOLDGUINEA · 8g' },
+  { code: 'GOLDPETAL', label: 'GOLDPETAL · 1g' },
+]
+
+const MONTHS = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+]
+
+/** Deterministic ISO date rendering, so SSR and client agree. */
+function certificateDate(iso: string): string {
+  const [year, month, day] = iso.split('-')
+  if (!year || !month || !day) return iso
+  return `${day} ${MONTHS[Number(month) - 1] ?? month} ${year}`
+}
+
+/** One ledger line: label, signed bps, then ₹/g. */
+function workLine(
+  marker: string,
+  label: string,
+  valueBps: number,
+  valueInrPerG: number
+): string {
+  return `${marker} ${label.padEnd(14)}${signed(valueBps).padStart(8)} bps   ${inrPerG(valueInrPerG)}`
+}
 
 export function XRayWaterfallSection() {
   const [contractA, setContractA] = React.useState<SupportedContractCode>('GOLDTEN')
@@ -51,31 +75,124 @@ export function XRayWaterfallSection() {
     })
   }, [contractA, priceA, expiryA, contractB, priceB, expiryB, carryRate, settlementArtifact])
 
-  const waterfallBars = [
-    { label: 'Raw Gap', valueBps: result.rawSpreadBps, valueInr: result.rawSpreadInrPerG, type: 'raw', color: 'bg-blue-500' },
-    { label: 'Structural Basis', valueBps: -Math.abs(result.structuralBasisBps), valueInr: -Math.abs(result.structuralBasisInrPerG), type: 'deduction', color: 'bg-amber-500' },
-    { label: 'Expiry Carry', valueBps: -Math.abs(result.expiryCarryBps), valueInr: -Math.abs(result.expiryCarryInrPerG), type: 'deduction', color: 'bg-amber-600' },
-    { label: 'Settlement Artifact', valueBps: -Math.abs(result.settlementArtifactBps), valueInr: -Math.abs(result.settlementArtifactInrPerG), type: 'deduction', color: 'bg-amber-700' },
-    { label: 'Gross Residual', valueBps: result.grossResidualBps, valueInr: result.grossResidualInrPerG, type: 'residual', color: result.grossResidualBps >= 0 ? 'bg-cyan-500' : 'bg-rose-500' },
-    { label: 'Transaction Costs', valueBps: -Math.abs(result.transactionCostsBps), valueInr: -Math.abs(result.transactionCostsInrPerG), type: 'cost', color: 'bg-rose-600' },
-    { label: 'Net Edge', valueBps: result.netEdgeBps, valueInr: result.netEdgeInrPerG, type: 'net', color: result.netEdgeBps > 0 ? 'bg-emerald-500' : 'bg-zinc-600' },
+  /*
+   * Deductions are shown as negative movements so the waterfall reconciles:
+   * raw gap + (−basis) + (−carry) + (−artifact) = gross residual
+   * gross residual + (−costs) = net edge
+   */
+  const waterfallBars: WaterfallBar[] = [
+    {
+      label: 'Raw gap',
+      bps: result.rawSpreadBps,
+      inr: result.rawSpreadInrPerG,
+      kind: 'raw',
+      working: `normalized ${inrPerG(result.priceANormalized)} − ${inrPerG(result.priceBNormalized)}`,
+    },
+    {
+      label: 'Basis',
+      bps: -result.structuralBasisBps,
+      inr: -result.structuralBasisInrPerG,
+      kind: 'basis',
+      working: 'purity and contract-size difference',
+    },
+    {
+      label: 'Carry',
+      bps: -result.expiryCarryBps,
+      inr: -result.expiryCarryInrPerG,
+      kind: 'carry',
+      working: `${(carryRate * 100).toFixed(1)}% annual carry across expiries`,
+    },
+    {
+      label: 'Artifact',
+      bps: -result.settlementArtifactBps,
+      inr: -result.settlementArtifactInrPerG,
+      kind: 'artifact',
+      working: 'settle vs fill distortion',
+    },
+    {
+      label: 'Residual',
+      bps: result.grossResidualBps,
+      inr: result.grossResidualInrPerG,
+      kind: 'residual',
+      working: 'raw gap minus named structure',
+    },
+    {
+      label: 'Cost',
+      bps: -result.transactionCostsBps,
+      inr: -result.transactionCostsInrPerG,
+      kind: 'cost',
+      working: 'paired round-trip friction',
+    },
+    {
+      label: 'Net edge',
+      bps: result.netEdgeBps,
+      inr: result.netEdgeInrPerG,
+      kind: 'net',
+      working: `judged against a ${DEFAULT_COST_HURDLE_BPS.toFixed(1)} bps hurdle`,
+    },
   ]
 
+  const verdict = normalizeVerdict(result.verdict)
+  const tradable = verdict === 'TRADABLE'
+  const totalCostInr =
+    result.costBreakdownA.totalRoundTripInr + result.costBreakdownB.totalRoundTripInr
+
+  const costRows = [
+    {
+      label: 'Brokerage',
+      inr: result.costBreakdownA.brokerageInr + result.costBreakdownB.brokerageInr,
+      note: '₹30 per lot per side, both legs',
+    },
+    {
+      label: 'Exchange fee',
+      inr: result.costBreakdownA.exchangeChargeInr + result.costBreakdownB.exchangeChargeInr,
+      note: '0.0026% of turnover',
+    },
+    {
+      label: 'CTT',
+      inr: result.costBreakdownA.cttInr + result.costBreakdownB.cttInr,
+      note: '0.01% on the sell leg only',
+    },
+    {
+      label: 'GST',
+      inr: result.costBreakdownA.gstInr + result.costBreakdownB.gstInr,
+      note: '18% on fees',
+    },
+    {
+      label: 'Stamp duty',
+      inr: result.costBreakdownA.stampDutyInr + result.costBreakdownB.stampDutyInr,
+      note: '0.002% on the buy side',
+    },
+    {
+      label: 'Slippage',
+      inr: result.costBreakdownA.slippageInr + result.costBreakdownB.slippageInr,
+      note: '2 bps per leg, 4 bps round trip',
+    },
+  ]
+
+  /*
+   * Signed contributions, not double negatives. The engine stores the basis
+   * component as the amount already subtracted, so the ledger flips its sign
+   * to show what each component did to the raw gap. The columns then add
+   * exactly: raw + basis + carry + artifact = gross residual.
+   */
+  const reconLedger = [
+    workLine(' ', 'raw gap', result.rawSpreadBps, result.rawSpreadInrPerG),
+    workLine(' ', 'basis', -result.structuralBasisBps, -result.structuralBasisInrPerG),
+    workLine(' ', 'carry', -result.expiryCarryBps, -result.expiryCarryInrPerG),
+    workLine(
+      ' ',
+      'artifact',
+      -result.settlementArtifactBps,
+      -result.settlementArtifactInrPerG
+    ),
+    workLine('=', 'gross residual', result.grossResidualBps, result.grossResidualInrPerG),
+    '',
+    workLine(' ', 'costs', -result.transactionCostsBps, -result.transactionCostsInrPerG),
+    workLine('=', 'net edge', result.netEdgeBps, result.netEdgeInrPerG),
+  ].join('\n')
+
   return (
-<<<<<<< Updated upstream
-    <section id="xray-waterfall" className="py-12 scroll-mt-16 border-b border-border/40">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
-              <Layers className="w-3 h-3 text-amber-400" /> Phase 03: Signature Spread Decomposition
-            </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              The X-Ray Waterfall
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Splits every MCX gold gap into basis, carry, artifact and residual, and judges only the residual net of costs.
-=======
     <section id="xray-waterfall" className="scroll-mt-16 border-b border-border bg-background">
       <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
@@ -112,119 +229,79 @@ export function XRayWaterfallSection() {
             <p className="gp-label">Pair controls · quoted prices normalize to 999 fine</p>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
               Editable · results recompute on change
->>>>>>> Stashed changes
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-mono text-muted-foreground px-2.5 py-1 rounded bg-muted border border-border/80">
-              CONFIG: <span className="text-amber-400 font-semibold">{result.configHash}</span>
-            </span>
+          <div className="grid gap-px bg-border md:grid-cols-2">
+            <LegControl
+              title="Leg A · far expiry"
+              code={contractA}
+              onCode={setContractA}
+              price={priceA}
+              onPrice={setPriceA}
+              expiry={expiryA}
+              onExpiry={setExpiryA}
+              normalized={result.priceANormalized}
+            />
+            <LegControl
+              title="Leg B · near expiry"
+              code={contractB}
+              onCode={setContractB}
+              price={priceB}
+              onPrice={setPriceB}
+              expiry={expiryB}
+              onExpiry={setExpiryB}
+              normalized={result.priceBNormalized}
+            />
           </div>
-        </div>
 
-        {/* Pair Control Bar */}
-        <Card className="mb-8 p-4 bg-card/60 border-border/80">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
-            {/* Leg A */}
-            <div className="p-3 rounded-lg bg-muted/30 border border-border/60">
-              <div className="text-xs font-bold text-foreground mb-1">Leg A (Near/Target)</div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={contractA}
-                  onChange={(e) => setContractA(e.target.value as SupportedContractCode)}
-                  className="px-2 py-1 text-xs rounded bg-muted border border-border text-foreground font-mono"
-                >
-                  <option value="GOLDTEN">GOLDTEN (10g)</option>
-                  <option value="GOLDM">GOLDM (100g)</option>
-                  <option value="GOLDGUINEA">GOLDGUINEA (8g)</option>
-                  <option value="GOLDPETAL">GOLDPETAL (1g)</option>
-                </select>
-                <input
-                  type="number"
-                  value={priceA}
-                  onChange={(e) => setPriceA(parseFloat(e.target.value) || 0)}
-                  className="w-24 px-2 py-1 text-xs rounded bg-muted border border-border text-foreground font-mono"
-                />
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono mt-1">
-                Exp: {expiryA} · ₹{result.priceANormalized.toFixed(2)}/g (999)
-              </div>
-            </div>
-
-            {/* Leg B */}
-            <div className="p-3 rounded-lg bg-muted/30 border border-border/60">
-              <div className="text-xs font-bold text-foreground mb-1">Leg B (Benchmark/Far)</div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={contractB}
-                  onChange={(e) => setContractB(e.target.value as SupportedContractCode)}
-                  className="px-2 py-1 text-xs rounded bg-muted border border-border text-foreground font-mono"
-                >
-                  <option value="GOLDM">GOLDM (100g)</option>
-                  <option value="GOLDTEN">GOLDTEN (10g)</option>
-                  <option value="GOLDGUINEA">GOLDGUINEA (8g)</option>
-                  <option value="GOLDPETAL">GOLDPETAL (1g)</option>
-                </select>
-                <input
-                  type="number"
-                  value={priceB}
-                  onChange={(e) => setPriceB(parseFloat(e.target.value) || 0)}
-                  className="w-24 px-2 py-1 text-xs rounded bg-muted border border-border text-foreground font-mono"
-                />
-              </div>
-              <div className="text-[11px] text-muted-foreground font-mono mt-1">
-                Exp: {expiryB} · ₹{result.priceBNormalized.toFixed(2)}/g (999)
-              </div>
-            </div>
-
-            {/* Carry & Artifact Controls */}
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Carry Rate (Repo Proxy):</span>
-                <span className="font-mono font-bold text-foreground">{(carryRate * 100).toFixed(1)}%</span>
+          <div className="grid gap-6 border-t border-border px-4 py-5 md:grid-cols-2">
+            <div>
+              <div className="flex items-baseline justify-between gap-4">
+                <label className="gp-label" htmlFor="carry-rate">
+                  Carry rate · repo proxy
+                </label>
+                <span className="gp-figure text-sm">{(carryRate * 100).toFixed(1)}%</span>
               </div>
               <Slider
+                id="carry-rate"
                 value={[carryRate * 100]}
                 min={4}
                 max={10}
                 step={0.5}
                 onValueChange={(val) => setCarryRate(val[0] / 100)}
-                className="py-1"
+                className="mt-4"
+                aria-label="Annual carry rate, percent"
               />
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                Applied to the average normalized price across the expiry gap
+              </p>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Settlement Artifact:</span>
-                <span className="font-mono font-bold text-foreground">₹{settlementArtifact.toFixed(1)}/g</span>
+            <div>
+              <div className="flex items-baseline justify-between gap-4">
+                <label className="gp-label" htmlFor="settlement-artifact">
+                  Settlement artifact
+                </label>
+                <span className="gp-figure text-sm">{inrPerG(settlementArtifact, 1)}</span>
               </div>
               <Slider
+                id="settlement-artifact"
                 value={[settlementArtifact]}
                 min={0}
                 max={30}
                 step={1}
                 onValueChange={(val) => setSettlementArtifact(val[0])}
-                className="py-1"
+                className="mt-4"
+                aria-label="Settlement artifact, rupees per gram"
               />
+              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                Thin or illiquid settle prices, reported per gram of 999-fine exposure
+              </p>
             </div>
           </div>
-        </Card>
+        </div>
 
-<<<<<<< Updated upstream
-        {/* Visual Waterfall Diagram (Slide 3 Mockup) */}
-        <Card className="mb-8 p-6 bg-card/60 border-border/80">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-              <Activity className="w-4 h-4 text-amber-400" />
-              Waterfall Breakdown (Basis Points of Raw Gap)
-            </h3>
-            <div className="flex items-center gap-2 text-xs font-mono">
-              <span className="text-muted-foreground">Reconciliation Error:</span>
-              <span className="text-emerald-400 font-bold">
-                {result.reconciliationError.toFixed(6)} ₹/g (OK &lt; 0.01)
-              </span>
-=======
         {/* ---------------- Main 61.8 / aside 38.2 ---------------- */}
         <div className="gp-split mt-10">
           <div className="min-w-0">
@@ -262,91 +339,135 @@ export function XRayWaterfallSection() {
                   <span>Tolerance · &lt; 0.01 ₹/g</span>
                 </div>
               </div>
->>>>>>> Stashed changes
             </div>
           </div>
 
-          {/* Bar Diagram */}
-          <div className="grid grid-cols-2 md:grid-cols-7 gap-3 mb-6">
-            {waterfallBars.map((bar, idx) => (
-              <div
-                key={idx}
-                className="p-3 rounded-xl bg-muted/40 border border-border/60 flex flex-col justify-between"
-              >
+          {/* Assay certificate */}
+          <aside className="min-w-0">
+            <div className="gp-certificate">
+              <div className="flex items-start justify-between gap-4 border-b border-border pb-4">
                 <div>
-                  <div className="text-[11px] text-muted-foreground font-medium mb-1 truncate" title={bar.label}>
-                    {bar.label}
-                  </div>
-                  <div className="text-lg font-black font-mono tabular-nums">
-                    {bar.valueBps > 0 ? `+${bar.valueBps.toFixed(1)}` : bar.valueBps.toFixed(1)}{' '}
-                    <span className="text-[10px] font-normal text-muted-foreground">bps</span>
-                  </div>
+                  <p className="gp-label">Assay certificate</p>
+                  <p className="mt-2 font-mono text-sm text-foreground">
+                    No. {certificateDate(result.tradeDate)} · {result.contractA}/
+                    {result.contractB}
+                  </p>
+                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {result.expiryA} / {result.expiryB}
+                  </p>
                 </div>
-
-                <div className="mt-3">
-                  <div className="text-[10px] font-mono text-muted-foreground mb-1">
-                    {bar.valueInr > 0 ? `+₹${bar.valueInr.toFixed(2)}` : `₹${bar.valueInr.toFixed(2)}`}/g
-                  </div>
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full ${bar.color}`}
-                      style={{ width: `${Math.min(100, Math.max(10, Math.abs(bar.valueBps)))}%` }}
-                    />
-                  </div>
-                </div>
+                <Hallmark verdict={verdict} size={56} />
               </div>
-            ))}
-          </div>
 
-          {/* The Verdict Banner */}
-          <div
-            className={`p-5 rounded-xl border flex flex-col md:flex-row md:items-center justify-between gap-4 ${
-              result.verdict === 'TRADABLE'
-                ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400'
-                : result.verdict === 'WATCH'
-                ? 'bg-amber-500/10 border-amber-500/40 text-amber-400'
-                : result.verdict === 'NO EDGE'
-                ? 'bg-zinc-500/10 border-zinc-500/40 text-zinc-300'
-                : 'bg-rose-500/10 border-rose-500/40 text-rose-400'
-            }`}
-          >
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="p-2 rounded-lg bg-black/40 shrink-0 mt-0.5">
-                {result.verdict === 'TRADABLE' ? (
-                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
-                ) : result.verdict === 'WATCH' ? (
-                  <AlertCircle className="w-6 h-6 text-amber-400" />
-                ) : result.verdict === 'NO EDGE' ? (
-                  <XCircle className="w-6 h-6 text-zinc-400" />
-                ) : (
-                  <ShieldAlert className="w-6 h-6 text-rose-400" />
-                )}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xl font-black tracking-wide font-mono uppercase">
-                    {result.verdict}
-                  </span>
-                  <span className="break-all text-xs text-muted-foreground font-mono">
-                    [{result.reasonCodes.join(', ')}]
-                  </span>
+              <dl className="mt-4 space-y-2.5 font-mono text-xs">
+                <CertificateRow label="Raw gap" value={bps(result.rawSpreadBps)} />
+                <CertificateRow label="Basis" value={bps(-result.structuralBasisBps)} />
+                <CertificateRow label="Carry" value={bps(-result.expiryCarryBps)} />
+                <CertificateRow
+                  label="Artifact"
+                  value={bps(-result.settlementArtifactBps)}
+                />
+                <div className="gp-double-rule flex items-end justify-between gap-4 pt-3">
+                  <dt className="gp-label">= Residual</dt>
+                  <dd className="gp-figure text-base">{bps(result.grossResidualBps)}</dd>
                 </div>
-                <p className="text-sm text-foreground/90 leading-relaxed font-medium">
+              </dl>
+
+              <SpectralRule className="my-4" />
+
+              <dl className="space-y-2.5 font-mono text-xs">
+                <CertificateRow
+                  label="Trading cost"
+                  value={bps(-result.transactionCostsBps)}
+                />
+                <div className="gp-double-rule flex items-end justify-between gap-4 pt-3">
+                  <dt className="gp-label">= Net edge</dt>
+                  <dd
+                    className={cn(
+                      'gp-figure text-xl',
+                      tradable && result.netEdgeBps > 0 ? 'gp-gold-text' : 'text-foreground'
+                    )}
+                  >
+                    {bps(result.netEdgeBps)}
+                  </dd>
+                </div>
+              </dl>
+
+              <dl className="mt-3 space-y-2 border-t border-border pt-3 font-mono text-[11px]">
+                <CertificateRow
+                  label="Required hurdle"
+                  value={bps(DEFAULT_COST_HURDLE_BPS)}
+                />
+                <CertificateRow
+                  label="Edge over hurdle"
+                  value={bps(result.netEdgeBps - DEFAULT_COST_HURDLE_BPS)}
+                />
+              </dl>
+
+              <div className="mt-5 border-t border-border pt-4">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="gp-label">Verdict</p>
+                    <p className="gp-ledger mt-1 text-xl">{result.verdictTitle}</p>
+                  </div>
+                  <VerdictTag verdict={verdict} />
+                </div>
+                <p className="mt-3 text-[12px] leading-relaxed text-muted-foreground">
+                  {result.verdictMessage}
+                </p>
+              </div>
+
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {result.reasonCodes.map((code) => (
+                  <span
+                    key={code}
+                    className="border border-border px-1.5 py-1 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"
+                  >
+                    {code}
+                  </span>
+                ))}
+              </div>
+
+              <p className="mt-4 font-mono text-[9px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+                Synthetic · historical fixture values. Not a live market quotation.
+              </p>
+            </div>
+          </aside>
+        </div>
+
+        {/* ---------------- Verdict stamp ---------------- */}
+        <div className="mt-12 border-y-[3px] border-double border-[var(--gp-slag-500)] py-6">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-5">
+              <Hallmark verdict={verdict} size={72} className="gp-verdict-punch" label={false} />
+              <div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="gp-label">Final verdict</p>
+                  <VerdictTag verdict={verdict} />
+                </div>
+                <p className="gp-ledger mt-2 text-2xl md:text-3xl">{result.verdictTitle}</p>
+                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
                   {result.verdictMessage}
                 </p>
               </div>
             </div>
 
-            <div className="shrink-0 text-right font-mono">
-              <div className="text-xs text-muted-foreground">Net Actionable Edge</div>
-              <div className="text-2xl font-black tabular-nums">
-                {result.netEdgeBps > 0 ? `+${result.netEdgeBps.toFixed(1)}` : result.netEdgeBps.toFixed(1)} bps
+            <dl className="grid shrink-0 grid-cols-2 gap-x-8 gap-y-4 md:text-right">
+              <div>
+                <dt className="gp-label">Net edge</dt>
+                <dd
+                  className={cn(
+                    'gp-figure mt-2 text-2xl',
+                    tradable && result.netEdgeBps > 0 ? 'gp-gold-text' : 'text-foreground'
+                  )}
+                >
+                  {bps(result.netEdgeBps)}
+                </dd>
               </div>
-              <div className="text-xs text-muted-foreground">
-                ({result.netEdgeInrPerG > 0 ? `+₹${result.netEdgeInrPerG.toFixed(2)}` : `₹${result.netEdgeInrPerG.toFixed(2)}`} / g)
+              <div>
+                <dt className="gp-label">Per gram</dt>
+                <dd className="gp-figure mt-2 text-2xl">{inrPerG(result.netEdgeInrPerG)}</dd>
               </div>
-<<<<<<< Updated upstream
-=======
               <div className="col-span-2 border-t border-border pt-3">
                 <dt className="gp-label">Edge against hurdle</dt>
                 <dd className="gp-figure mt-2 text-sm">
@@ -421,69 +542,100 @@ export function XRayWaterfallSection() {
                   <span>One verdict per screen. A quiet day is not an error.</span>
                 </li>
               </ul>
->>>>>>> Stashed changes
             </div>
           </div>
-        </Card>
-
-        {/* Itemized Transaction Costs Detail Table */}
-        <Card className="p-5 bg-card/60 border-border/80">
-          <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
-            <Scale className="w-4 h-4 text-amber-400" />
-            Paired Round-Trip Transaction Cost Breakdown (Leg A & Leg B)
-          </h4>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs font-mono">
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">Brokerage (Both)</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">
-                ₹{(result.costBreakdownA.brokerageInr + result.costBreakdownB.brokerageInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-muted-foreground">₹30/lot/side × 2</div>
-            </div>
-
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">Exchange Fee</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">
-                ₹{(result.costBreakdownA.exchangeChargeInr + result.costBreakdownB.exchangeChargeInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-muted-foreground">0.0026% of turnover</div>
-            </div>
-
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">CTT (Sell Leg)</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">
-                ₹{(result.costBreakdownA.cttInr + result.costBreakdownB.cttInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-emerald-400 font-semibold">0.01% on sell only</div>
-            </div>
-
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">GST (18%)</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">
-                ₹{(result.costBreakdownA.gstInr + result.costBreakdownB.gstInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-muted-foreground">18% on fees</div>
-            </div>
-
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">Stamp Duty</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">
-                ₹{(result.costBreakdownA.stampDutyInr + result.costBreakdownB.stampDutyInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-muted-foreground">0.002% on buy side</div>
-            </div>
-
-            <div className="p-2.5 rounded bg-muted/30 border border-border/40">
-              <div className="text-muted-foreground text-[10px]">Slippage (2 bps/leg)</div>
-              <div className="text-sm font-bold text-rose-400 mt-0.5">
-                ₹{(result.costBreakdownA.slippageInr + result.costBreakdownB.slippageInr).toFixed(2)}
-              </div>
-              <div className="text-[10px] text-muted-foreground">4 bps round-trip</div>
-            </div>
-          </div>
-        </Card>
-
+        </div>
       </div>
     </section>
+  )
+}
+
+/* ------------------------------------------------------------------ */
+
+function LegControl({
+  title,
+  code,
+  onCode,
+  price,
+  onPrice,
+  expiry,
+  onExpiry,
+  normalized,
+}: {
+  title: string
+  code: SupportedContractCode
+  onCode: (code: SupportedContractCode) => void
+  price: number
+  onPrice: (price: number) => void
+  expiry: string
+  onExpiry: (expiry: string) => void
+  normalized: number
+}) {
+  return (
+    <div className="bg-card p-4">
+      <div className="flex items-center justify-between gap-3">
+        <p className="gp-label">{title}</p>
+        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          {inrPerG(normalized, 2)} · 999
+        </span>
+      </div>
+
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+        <div>
+          <label className="gp-label" htmlFor={`contract-${title}`}>
+            Contract
+          </label>
+          <select
+            id={`contract-${title}`}
+            value={code}
+            onChange={(e) => onCode(e.target.value as SupportedContractCode)}
+            className="gp-field gp-select mt-1 text-sm"
+          >
+            {CONTRACTS.map((contract) => (
+              <option key={contract.label} value={contract.code}>
+                {contract.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="gp-label" htmlFor={`price-${title}`}>
+            Quoted price
+          </label>
+          <input
+            id={`price-${title}`}
+            type="number"
+            inputMode="decimal"
+            step="0.1"
+            value={price}
+            onChange={(e) => onPrice(parseFloat(e.target.value) || 0)}
+            className="gp-field mt-1 text-sm"
+          />
+        </div>
+
+        <div className="sm:col-span-2">
+          <label className="gp-label" htmlFor={`expiry-${title}`}>
+            Expiry
+          </label>
+          <input
+            id={`expiry-${title}`}
+            type="date"
+            value={expiry}
+            onChange={(e) => onExpiry(e.target.value)}
+            className="gp-field mt-1 text-sm"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function CertificateRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-end justify-between gap-4">
+      <dt className="gp-label">{label}</dt>
+      <dd className="gp-figure text-foreground">{value}</dd>
+    </div>
   )
 }

@@ -1,23 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plexSans = IBM_Plex_Sans({
+  variable: "--font-plex-sans",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const plexSerif = IBM_Plex_Serif({
+  variable: "--font-plex-serif",
   subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
+});
+
+const plexMono = IBM_Plex_Mono({
+  variable: "--font-plex-mono",
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
-  title: "GoldPrism — Prism That Explains Scattered Gold | Team ARCEUS",
+  title: "GoldPrism — Prism That Explains Scattered Gold",
   description:
-    "Quantitative Commodity Derivatives Intelligence platform for MCX Gold Spreads by Team ARCEUS (Hack in Hills '26 Track 03). Separate real economic value from expiry carry, settlement artifacts and transaction costs.",
+    "Quantitative research terminal for MCX gold spreads. Separate real economic value from expiry carry, settlement artifacts and transaction costs.",
   keywords: [
     "GoldPrism",
     "MCX Gold",
@@ -25,20 +36,15 @@ export const metadata: Metadata = {
     "Quantitative Finance",
     "Spread Decomposition",
     "X-Ray Waterfall",
-    "Pawan Singh",
-    "Team ARCEUS",
-    "Hack in Hills 26",
     "Alpha Zoo",
     "Paper Trading",
   ],
-  authors: [{ name: "Pawan Singh", url: "https://github.com/pawan00207" }],
   icons: {
     icon: "/favicon.svg",
   },
   openGraph: {
-    title: "GoldPrism — Prism That Explains Scattered Gold | Team ARCEUS",
-    description:
-      "The only tool that tells you when NOT to trade, and proves it. Auditable MCX gold calendar spread research terminal.",
+    title: "GoldPrism — Prism That Explains Scattered Gold",
+    description: "Auditable MCX gold calendar spread research terminal.",
     type: "website",
   },
   twitter: {
@@ -57,11 +63,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${plexSans.variable} ${plexSerif.variable} ${plexMono.variable} antialiased bg-background text-foreground`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
           enableSystem
           disableTransitionOnChange
         >

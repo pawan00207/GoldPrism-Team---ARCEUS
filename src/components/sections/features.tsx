@@ -23,55 +23,55 @@ const FEATURES = [
     icon: Bot,
     title: 'Autonomous ReAct Agent',
     desc: 'A tool-heavy reasoning loop that plans, fetches market data, drafts strategy code, and validates results — with persistent cross-session memory.',
-    color: 'oklch(0.96 0.002 240)',
+    color: 'var(--gp-gold-ink)',
   },
   {
     icon: Network,
     title: 'Multi-Agent Swarms',
     desc: '29 preset trading teams — investment committee, quant desk, crypto desk, macro desk, risk committee — that run as parallel DAGs.',
-    color: 'oklch(0.70 0.005 240)',
+    color: 'var(--foreground)',
   },
   {
     icon: Layers,
     title: '456-Factor Alpha Zoo',
     desc: 'Qlib158, WorldQuant alpha101, GTJA191, and academic factors — all AST-validated, lookahead-banned, and IC/IR-benchmarked.',
-    color: 'oklch(0.55 0.005 240)',
+    color: 'color-mix(in srgb, var(--foreground) 70%, var(--muted-foreground))',
   },
   {
     icon: Database,
     title: '18-Source Data Layer',
     desc: 'US, HK, CN equities, crypto, futures, and forex — with automatic IP-ban-aware fallback chains. No mandatory API keys.',
-    color: 'oklch(0.65 0.22 16)',
+    color: 'color-mix(in srgb, var(--foreground) 55%, var(--muted-foreground))',
   },
   {
     icon: Brain,
     title: 'Shadow Account',
     desc: 'Upload your broker journal. The agent profiles your behavior, surfaces biases (disposition, overtrading, anchoring), and extracts a rule-based strategy.',
-    color: 'oklch(0.40 0.005 240)',
+    color: 'color-mix(in srgb, var(--foreground) 45%, var(--muted-foreground))',
   },
   {
     icon: LineChart,
     title: 'Backtesting Engine',
     desc: '7 engines with Monte Carlo, Bootstrap, and Walk-Forward validation. Reproducible run cards. Portfolio optimizers included.',
-    color: 'oklch(0.85 0.002 240)',
+    color: 'color-mix(in srgb, var(--foreground) 35%, var(--muted-foreground))',
   },
   {
     icon: GitBranch,
     title: 'MCP-Native',
     desc: 'Plug VibeTrading into Claude Desktop, Cursor, or any MCP-compatible client. Or consume external MCP servers from inside the agent.',
-    color: 'oklch(0.50 0.005 240)',
+    color: 'color-mix(in srgb, var(--foreground) 28%, var(--muted-foreground))',
   },
   {
     icon: Shield,
     title: 'Fail-Closed Risk Gates',
     desc: 'Autonomous trading is opt-in and mandate-gated. Filesystem kill-switch, pre-trade gates, and full audit ledger.',
-    color: 'oklch(0.78 0.002 240)',
+    color: 'var(--gp-watch-ink)',
   },
   {
     icon: Globe,
     title: 'Vercel-Ready',
     desc: 'Deploys as a serverless Next.js app. No Docker, no persistent backend required. Free-tier friendly.',
-    color: 'oklch(0.30 0.005 240)',
+    color: 'color-mix(in srgb, var(--foreground) 20%, var(--muted-foreground))',
   },
 ]
 
@@ -112,7 +112,7 @@ export function Features() {
               >
                 <Card className="p-5 h-full hover:border-primary/40 transition-colors group">
                   <div
-                    className="w-10 h-10 rounded-lg flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
+                    className="w-10 h-10 rounded-[2px] flex items-center justify-center mb-3 group-hover:scale-110 transition-transform"
                     style={{ background: `color-mix(in srgb, ${f.color} 15%, transparent)` }}
                   >
                     <Icon className="w-5 h-5" style={{ color: f.color }} />

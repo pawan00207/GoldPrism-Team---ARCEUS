@@ -2,13 +2,10 @@
 
 import * as React from 'react'
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -16,25 +13,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import {
-  Activity,
-  CheckCircle2,
-  Database,
-  Flame,
-  Hash,
-  Lock,
-  Percent,
-  Play,
-  RotateCcw,
-  ShieldCheck,
-  TrendingUp,
-  AlertTriangle,
-  Info,
-  Scale,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
+import { DataTag, SectionHead, VerdictTag } from '@/components/goldprism/brand'
+import { bps, inr, signed } from '@/lib/goldprism/format'
+import { cn } from '@/lib/utils'
 
 export function BacktestLabSection() {
   // Real pipeline results from results/backtest.json, results/bootstrap.json, results/holdout.json
@@ -52,29 +33,31 @@ export function BacktestLabSection() {
 
   // Honest attribution: Where does the spread alpha go?
   const attributionData = [
-    { component: 'Gross Residual', bps: 4.0, color: '#3b82f6' },
-    { component: 'Brokerage Drag', bps: -1.9, color: '#f43f5e' },
-    { component: 'CTT (0.01% Sell)', bps: -1.1, color: '#fb7185' },
-    { component: 'GST & Stamp', bps: -0.4, color: '#fda4af' },
-    { component: 'Slippage & Haircut', bps: -1.8, color: '#ef4444' },
-    { component: 'Net Edge (Real)', bps: -1.2, color: '#f59e0b' },
+    { component: 'Gross residual', bps: 4.0, tone: 'structural' },
+    { component: 'Brokerage drag', bps: -1.9, tone: 'cost' },
+    { component: 'CTT · sell', bps: -1.1, tone: 'cost' },
+    { component: 'GST & stamp', bps: -0.4, tone: 'cost' },
+    { component: 'Slippage', bps: -1.8, tone: 'cost' },
+    { component: 'Net edge', bps: -1.2, tone: 'net' },
   ]
 
+  const tooltipStyle = {
+    backgroundColor: 'var(--card)',
+    border: '1px solid var(--border)',
+    borderRadius: 2,
+    boxShadow: '4px 4px 0 color-mix(in srgb, var(--gp-slag-900) 30%, transparent)',
+    fontFamily: 'var(--gp-instrument)',
+    fontSize: 11,
+    color: 'var(--foreground)',
+  }
+
+  const axisTick = {
+    fill: 'var(--gp-slag-500)',
+    fontSize: 10,
+    fontFamily: 'var(--gp-instrument)',
+  }
+
   return (
-<<<<<<< Updated upstream
-    <section id="backtest-lab" className="py-12 scroll-mt-16 border-b border-border/40">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
-              <Database className="w-3 h-3 text-amber-400" /> Phase B &amp; C: Walk-Forward Backtest &amp; Statistical Rigor
-            </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Auditable Walk-Forward Backtester &amp; Statistical Rigor
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Zero look-ahead bias (signal at close $t$, fill at $t+1$). Gold beta excluded. Itemized statutory costs from <code>costs.yaml</code>.
-=======
     <section id="backtest-lab" className="scroll-mt-16 border-b border-border bg-background">
       <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
@@ -100,206 +83,279 @@ export function BacktestLabSection() {
             <p className="gp-figure mt-3 text-2xl">{bps(-1.2)}</p>
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
               Gold beta excluded. Pure calendar spread.
->>>>>>> Stashed changes
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/30 gap-1 font-mono text-xs">
-              <Lock className="w-3 h-3 text-amber-400" /> CONFIG HASH: 9c8103c61b2b2137
-            </Badge>
-            <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 text-xs font-mono">
-              SEALED HOLDOUT: 21-Feb-2025 – 04-Jun-2025
-            </Badge>
+          <div className="bg-card p-4">
+            <p className="gp-label">Bootstrap 95% CI</p>
+            <p className="gp-figure mt-3 text-2xl">
+              [{signed(-1.77)}, {signed(-0.71)}]
+              <span className="ml-1 text-xs font-normal text-muted-foreground">bps</span>
+            </p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              10-day block bootstrap, 1,000 resamples.
+            </p>
+          </div>
+
+          <div className="bg-card p-4">
+            <p className="gp-label">Cost drag on spread</p>
+            <p className="gp-figure mt-3 text-2xl">{inr(23832, 0)}</p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Brokerage, CTT, GST, stamp duty and slippage.
+            </p>
+          </div>
+
+          <div className="bg-card p-4">
+            <p className="gp-label">Final pipeline verdict</p>
+            <div className="mt-3">
+              <VerdictTag verdict="NO EDGE" />
+            </div>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Disciplined inaction preserves {inr(1000000, 0)} of capital.
+            </p>
           </div>
         </div>
 
-        {/* Real Performance Metrics Cards (Computed from 18m dataset) */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Mean Net Edge (Code Computed)</div>
-            <div className="text-3xl font-black font-mono text-amber-400 tabular-nums">
-              -1.2 <span className="text-sm font-normal text-muted-foreground">bps</span>
+        {/* ---------------- Statistical rigour ---------------- */}
+        <div className="mt-10 grid gap-8 md:grid-cols-3">
+          <div className="border-t-2 border-border pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="gp-label">Block bootstrap uncertainty</p>
+              <span className="gp-tag gp-tag--neutral">No edge</span>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              Gold beta excluded · Pure calendar spread
-            </div>
-          </Card>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              Block length of 10 days accounts for autocorrelation in MCX calendar roll residuals.
+            </p>
+            <dl className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[11px]">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Mean edge</dt>
+                <dd>{bps(-1.2)}</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">95% CI</dt>
+                <dd>[{signed(-1.77)}, {signed(-0.71)}] bps</dd>
+              </div>
+              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                CI crosses zero · blocked from tradable
+              </p>
+            </dl>
+          </div>
 
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Bootstrap 95% CI</div>
-            <div className="text-2xl font-black font-mono text-rose-400 tabular-nums">
-              [-1.77, -0.71] <span className="text-xs font-normal text-muted-foreground">bps</span>
+          <div className="border-t-2 border-border pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="gp-label">Minimum detectable effect</p>
+              <span className="gp-tag gp-tag--neutral">Powered</span>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              10-day block bootstrap (1,000 resamples)
-            </div>
-          </Card>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              Sample size N = 292 days, power 1−β = 80%, significance α = 0.05.
+            </p>
+            <dl className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[11px]">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">MDE threshold</dt>
+                <dd>0.75 bps · ₹0.52/g</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Observed residual</dt>
+                <dd>4.00 bps</dd>
+              </div>
+              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                Power sufficient to reject false alpha
+              </p>
+            </dl>
+          </div>
 
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Cost Drag on Spread</div>
-            <div className="text-3xl font-black font-mono text-rose-500 tabular-nums">
-              ₹23,832
+          <div className="border-t-2 border-border pt-3">
+            <div className="flex items-center justify-between gap-2">
+              <p className="gp-label">Multiple-testing correction</p>
+              <span className="gp-tag gp-tag--neutral">No edge</span>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              Brokerage ₹30/side + CTT 0.01% + GST + Slippage
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Final Pipeline Verdict</div>
-            <div className="text-3xl font-black font-mono text-foreground tabular-nums flex items-center gap-1.5">
-              <Badge className="bg-muted text-muted-foreground border-border/60 text-sm px-2.5 py-0.5">
-                NO EDGE
-              </Badge>
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-1">
-              Disciplined inaction preserves ₹1M capital
-            </div>
-          </Card>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              Tested across 6 contract pairs. Bonferroni and Benjamini–Hochberg, FDR = 0.05.
+            </p>
+            <dl className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[11px]">
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Nominal hurdle</dt>
+                <dd>5.00 bps</dd>
+              </div>
+              <div className="flex justify-between gap-3">
+                <dt className="text-muted-foreground">Bonferroni hurdle</dt>
+                <dd>12.25 bps</dd>
+              </div>
+              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+                Zero pairs pass the corrected threshold
+              </p>
+            </dl>
+          </div>
         </div>
 
-<<<<<<< Updated upstream
-        {/* Statistical Rigor Cards: CI, MDE, Multiple Testing */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <Card className="p-4 bg-muted/20 border-border/80">
-            <div className="flex items-center gap-2 mb-2 font-bold text-xs text-foreground">
-              <Scale className="w-4 h-4 text-blue-400" /> Block Bootstrap Uncertainty
-            </div>
-            <p className="text-xs text-muted-foreground mb-2">
-              Block length = 10 days to account for autocorrelation in MCX calendar roll residuals. 
-            </p>
-            <div className="p-2.5 rounded bg-background/60 border border-border/50 text-[11px] font-mono">
-              <div>Mean Edge: <strong>-1.20 bps</strong></div>
-              <div>95% CI: <strong>[-1.77, -0.71] bps</strong></div>
-              <div className="text-amber-400 mt-1">CI crosses zero / negative: Verdict blocked from TRADABLE</div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-muted/20 border-border/80">
-            <div className="flex items-center gap-2 mb-2 font-bold text-xs text-foreground">
-              <Percent className="w-4 h-4 text-emerald-400" /> Minimum Detectable Effect (MDE)
-            </div>
-            <p className="text-xs text-muted-foreground mb-2">
-              At sample size N=292 days, power 1-β = 80%, significance level α = 0.05.
-            </p>
-            <div className="p-2.5 rounded bg-background/60 border border-border/50 text-[11px] font-mono">
-              <div>MDE Threshold: <strong>0.75 bps (₹0.52/g)</strong></div>
-              <div>Observed Residual: <strong>4.00 bps</strong></div>
-              <div className="text-emerald-400 mt-1">Statistical power sufficient to reject false alpha</div>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-muted/20 border-border/80">
-            <div className="flex items-center gap-2 mb-2 font-bold text-xs text-foreground">
-              <ShieldCheck className="w-4 h-4 text-amber-400" /> Multiple-Testing Correction
-            </div>
-            <p className="text-xs text-muted-foreground mb-2">
-              Tested across 6 contract pair combinations. Bonferroni &amp; Benjamini-Hochberg (FDR=0.05).
-            </p>
-            <div className="p-2.5 rounded bg-background/60 border border-border/50 text-[11px] font-mono">
-              <div>Nominal Hurdle: <strong>5.00 bps</strong></div>
-              <div>Bonferroni Hurdle: <strong>12.25 bps</strong></div>
-              <div className="text-rose-400 mt-1">Zero pairs pass corrected threshold: Confirms NO EDGE</div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Charts: Gross vs Net Equity & P&L Attribution */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Equity Curves (2 cols) */}
-          <Card className="lg:col-span-2 p-5 bg-card/60 border-border/80">
-            <div className="flex items-center justify-between mb-4">
-=======
         {/* ---------------- Charts ---------------- */}
         <div className="gp-split mt-10">
           <div className="min-w-0 border border-border bg-card">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-3">
->>>>>>> Stashed changes
               <div>
-                <h3 className="font-bold text-foreground text-sm">Gross vs Net Equity Curve (₹1,000,000 Initial Capital)</h3>
-                <p className="text-xs text-muted-foreground">Replay from Jan 2024 to Feb 2025 (In-Sample Train Partition)</p>
+                <p className="gp-label">Gross vs net equity</p>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {inr(1000000, 0)} initial capital · in-sample training partition
+                </p>
               </div>
-              <div className="flex items-center gap-3 text-xs font-mono">
+              <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-blue-400" /> Gross
+                  <span className="inline-block h-px w-5 border-t-2 border-dashed border-[var(--gp-slag-500)]" />
+                  Gross
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="w-2.5 h-2.5 rounded-full bg-rose-400" /> Net (Fee Drag)
+                  <span className="inline-block h-px w-5 bg-[var(--gp-slag-900)] dark:bg-[var(--gp-paper)]" />
+                  Net
                 </span>
               </div>
             </div>
 
-            <div className="h-64 w-full">
+            <div className="h-72 w-full px-2 py-4 sm:px-4">
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={pipelineEquityCurve}>
-                  <defs>
-                    <linearGradient id="grossGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.0} />
-                    </linearGradient>
-                    <linearGradient id="netGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                      <stop offset="95%" stopColor="#ef4444" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.3} />
-                  <XAxis dataKey="date" stroke="#888" fontSize={11} />
-                  <YAxis stroke="#888" fontSize={11} domain={['dataMin - 5000', 'dataMax + 2000']} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '0.5rem', fontSize: '12px' }}
+                <LineChart data={pipelineEquityCurve} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    stroke="var(--gp-slag-500)"
+                    tick={axisTick}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--gp-slag-500)' }}
+                    minTickGap={32}
                   />
-                  <Area type="monotone" dataKey="gross_equity" name="Gross Equity" stroke="#3b82f6" fill="url(#grossGradient)" strokeWidth={2} />
-                  <Area type="monotone" dataKey="net_equity" name="Net Equity" stroke="#ef4444" fill="url(#netGradient)" strokeWidth={2} />
-                </AreaChart>
+                  <YAxis
+                    stroke="var(--gp-slag-500)"
+                    tick={axisTick}
+                    tickLine={false}
+                    axisLine={false}
+                    domain={['dataMin - 5000', 'dataMax + 2000']}
+                    tickFormatter={(value: number) => `₹${(value / 1000000).toFixed(2)}M`}
+                    width={64}
+                  />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Line
+                    type="monotone"
+                    dataKey="gross_equity"
+                    name="Gross equity"
+                    stroke="var(--gp-slag-500)"
+                    strokeDasharray="5 3"
+                    strokeWidth={1.5}
+                    dot={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="net_equity"
+                    name="Net equity"
+                    stroke="var(--gp-slag-900)"
+                    strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 3, fill: 'var(--gp-gold-500)', strokeWidth: 0 }}
+                  />
+                </LineChart>
               </ResponsiveContainer>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-2">
-              <strong>Honest Walk-Forward Finding:</strong> While gross spread returns hover near flat (-₹669), round-trip fees (₹23,832) create persistent negative drift if traded indiscriminately. GoldPrism&apos;s cost gate correctly blocks all trades.
+
+            <p className="border-t border-border px-4 py-3 text-[11px] leading-relaxed text-muted-foreground">
+              Gross spread returns hover near flat at {inr(-669)}. Round-trip fees of{' '}
+              {inr(23832)} create persistent negative drift if traded indiscriminately. The cost
+              gate blocks every trade in this partition.
+            </p>
+          </div>
+
+          <div className="min-w-0 border border-border bg-card">
+            <div className="border-b border-border px-4 py-3">
+              <p className="gp-label">Cost drag decomposition</p>
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                Itemized erosion of gross alpha, in bps.
+              </p>
             </div>
-          </Card>
 
-          {/* P&L Attribution Breakdown (1 col) */}
-          <Card className="p-5 bg-card/60 border-border/80">
-            <h3 className="font-bold text-foreground text-sm mb-1">Cost Drag Decomposition</h3>
-            <p className="text-xs text-muted-foreground mb-4">Itemized breakdown of gross alpha erosion (bps)</p>
-
-            <div className="h-64 w-full">
+            <div className="h-72 w-full px-2 py-4 sm:px-4">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={attributionData} layout="vertical" margin={{ left: 10, right: 10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.3} />
-                  <XAxis type="number" stroke="#888" fontSize={11} />
-                  <YAxis dataKey="component" type="category" stroke="#888" fontSize={11} width={90} />
-                  <Tooltip
-                    contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '0.5rem', fontSize: '12px' }}
+                <BarChart
+                  data={attributionData}
+                  layout="vertical"
+                  margin={{ top: 4, right: 12, bottom: 0, left: 8 }}
+                >
+                  <defs>
+                    <pattern
+                      id="gp-cost-hatch"
+                      width="5"
+                      height="5"
+                      patternUnits="userSpaceOnUse"
+                      patternTransform="rotate(135)"
+                    >
+                      <rect width="5" height="5" fill="transparent" />
+                      <line x1="0" y1="0" x2="0" y2="5" stroke="#A23A24" strokeWidth="1" />
+                    </pattern>
+                  </defs>
+                  <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" horizontal={false} />
+                  <XAxis
+                    type="number"
+                    stroke="var(--gp-slag-500)"
+                    tick={axisTick}
+                    tickLine={false}
+                    axisLine={{ stroke: 'var(--gp-slag-500)' }}
                   />
-                  <Bar dataKey="bps" name="Basis Points (bps)">
-                    {attributionData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                  <YAxis
+                    dataKey="component"
+                    type="category"
+                    stroke="var(--gp-slag-500)"
+                    tick={axisTick}
+                    tickLine={false}
+                    axisLine={false}
+                    width={92}
+                  />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Bar dataKey="bps" name="Basis points">
+                    {attributionData.map((entry) => (
+                      <Cell
+                        key={entry.component}
+                        fill={
+                          entry.tone === 'net'
+                            ? 'var(--gp-slag-900)'
+                            : entry.tone === 'structural'
+                              ? 'var(--gp-slag-600)'
+                              : 'url(#gp-cost-hatch)'
+                        }
+                      />
                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </Card>
+
+            <p className="border-t border-border px-4 py-3 text-[11px] leading-relaxed text-muted-foreground">
+              Hatched bars are cost drag. The gross residual never reaches the gold band.
+            </p>
+          </div>
         </div>
 
-        {/* Sealed Holdout Verification Card */}
-        <Card className="p-4 bg-card/40 border-emerald-500/30 text-xs">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-foreground">
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Sealed Holdout Partition Results (Uncontaminated)
+        {/* ---------------- Holdout ---------------- */}
+        <div className="gp-double-rule mt-10 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="gp-label">Sealed holdout · uncontaminated</p>
+              <h3 className="gp-serif mt-1 text-xl">21 Feb 2025 to 04 Jun 2025</h3>
             </div>
-            <Badge className="bg-emerald-500/10 text-emerald-300 font-mono text-[10px]">
-              Single Evaluation Only
-            </Badge>
+            <span className="gp-tag gp-tag--neutral">Single evaluation only</span>
           </div>
-          <p className="text-muted-foreground mt-1">
-            Dates: <strong>21-Feb-2025 to 04-Jun-2025</strong> (73 bars). Evaluated with frozen configuration hash <code>9c8103c61b2b2137</code>.
-            Includes the newly listed <strong>GOLDTEN</strong> cross-spread pair. 
-            Holdout confirmed zero persistent edge after statutory friction, identical to the in-sample distribution.
+          <p className="mt-3 max-w-4xl text-sm leading-relaxed text-muted-foreground">
+            73 bars, evaluated with the frozen configuration hash{' '}
+            <span className="gp-mono text-foreground">9c8103c61b2b2137</span>, including the
+            newly listed GOLDTEN pair. The holdout confirmed zero persistent edge after statutory
+            friction, identical to the in-sample distribution.
           </p>
-        </Card>
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <VerdictTag verdict="NO EDGE" />
+            <span
+              className={cn(
+                'font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground'
+              )}
+            >
+              A quiet result is still a result.
+            </span>
+          </div>
+        </div>
       </div>
     </section>
   )
