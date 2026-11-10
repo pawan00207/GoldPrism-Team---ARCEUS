@@ -30,6 +30,7 @@ export function BestVehicleSection() {
   }, [exposureG])
 
   return (
+<<<<<<< Updated upstream
     <section id="best-vehicle" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -73,6 +74,103 @@ export function BestVehicleSection() {
                 className="w-20 font-mono text-xs h-9"
               />
               <span className="text-xs text-muted-foreground font-mono">grams</span>
+=======
+    <section id="best-vehicle" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.3"
+          eyebrow="Market structure · Vehicle match"
+          title="Match the hedge to the lot you can actually fill."
+          description="Finds the MCX contract whose trading unit fits the physical exposure with the least lumpiness and the lowest round-trip friction."
+          aside={
+            <div className="flex flex-wrap items-end gap-2 lg:justify-end">
+              <div className="flex flex-wrap gap-1.5">
+                {presets.map((g) => (
+                  <button
+                    key={g}
+                    type="button"
+                    onClick={() => setExposureG(g)}
+                    aria-pressed={exposureG === g}
+                    className={cn(
+                      'gp-button px-3',
+                      exposureG === g && 'gp-button--selected'
+                    )}
+                  >
+                    {g}g
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex min-w-[9rem] items-end gap-2">
+                <div className="flex-1">
+                  <label className="gp-label" htmlFor="exposure-grams">
+                    Exposure
+                  </label>
+                  <input
+                    id="exposure-grams"
+                    type="number"
+                    min="1"
+                    max="10000"
+                    value={exposureG}
+                    onChange={(e) =>
+                      setExposureG(Math.max(1, parseFloat(e.target.value) || 1))
+                    }
+                    className="gp-field mt-1 text-sm"
+                  />
+                </div>
+                <span className="pb-3 font-mono text-xs text-muted-foreground">g</span>
+              </div>
+            </div>
+          }
+        />
+
+        {/* ---------------- Winner certificate ---------------- */}
+        {winner ? (
+          <div className="mt-10 border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <p className="gp-label">Optimal vehicle · {exposureG} g exposure</p>
+              <span className="gp-tag gp-tag--gold">Rank 01</span>
+            </div>
+
+            <div className="gp-split--tight grid p-5 lg:items-center">
+              <div>
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <h3 className="gp-serif text-3xl">{winner.contractCode}</h3>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    {winner.tradingUnitG} g per lot
+                  </span>
+                </div>
+                <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                  {winner.rationale}
+                </p>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-px border border-border bg-border sm:grid-cols-4 lg:grid-cols-2">
+                <div className="bg-card p-3">
+                  <dt className="gp-label">Lots required</dt>
+                  <dd className="gp-figure mt-2 text-lg">{winner.lotsRequired}</dd>
+                </div>
+                <div className="bg-card p-3">
+                  <dt className="gp-label">Fitted exposure</dt>
+                  <dd className="gp-figure mt-2 text-lg gp-tradable-text">
+                    {winner.actualExposureG} g
+                  </dd>
+                </div>
+                <div className="bg-card p-3">
+                  <dt className="gp-label">Mismatch</dt>
+                  <dd className="gp-figure mt-2 text-lg">
+                    {winner.exposureMismatchG} g
+                    <span className="ml-1 text-xs font-normal text-muted-foreground">
+                      · {pctAbs(winner.exposureMismatchPct)}
+                    </span>
+                  </dd>
+                </div>
+                <div className="bg-card p-3">
+                  <dt className="gp-label">Round-trip cost</dt>
+                  <dd className="gp-figure mt-2 text-lg">{bps(winner.estimatedCostBps)}</dd>
+                </div>
+              </dl>
+>>>>>>> Stashed changes
             </div>
           </div>
         </div>

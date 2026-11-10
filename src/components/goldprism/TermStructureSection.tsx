@@ -79,6 +79,7 @@ export function TermStructureSection() {
   }, [termStructureCurves])
 
   return (
+<<<<<<< Updated upstream
     <section id="term-structure" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -100,6 +101,44 @@ export function TermStructureSection() {
             <div className="text-xs">
               <span className="text-muted-foreground">Financing Benchmark: </span>
               <span className="font-bold font-mono text-foreground">RBI Repo {repoRate.toFixed(2)}%</span>
+=======
+    <section id="term-structure" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.4"
+          eyebrow="Market structure · Term structure"
+          title="Name the carry before you call it alpha."
+          description="Separates mechanical time-decay convergence toward expiry from genuine forward-curve shifts. The repo benchmark is editable."
+          aside={
+            <div className="w-full max-w-[20rem]">
+              <div className="flex items-baseline justify-between gap-3">
+                <label className="gp-label" htmlFor="repo-rate">
+                  RBI repo benchmark
+                </label>
+                <span className="gp-figure text-sm">{repoRate.toFixed(2)}%</span>
+              </div>
+              <div className="mt-2 flex items-center gap-3">
+                <Slider
+                  id="repo-rate-slider"
+                  value={[repoRate]}
+                  min={4}
+                  max={10}
+                  step={0.25}
+                  onValueChange={(val) => setRepoRate(val[0])}
+                  aria-label="RBI repo rate"
+                />
+                <input
+                  id="repo-rate"
+                  type="number"
+                  step="0.25"
+                  min="4.0"
+                  max="10.0"
+                  value={repoRate}
+                  onChange={(e) => setRepoRate(parseFloat(e.target.value) || 6.5)}
+                  className="gp-field w-20 shrink-0 text-right text-sm"
+                />
+              </div>
+>>>>>>> Stashed changes
             </div>
             <Input
               type="number"

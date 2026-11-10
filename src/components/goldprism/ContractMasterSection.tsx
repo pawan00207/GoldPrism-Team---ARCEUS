@@ -36,6 +36,7 @@ export function ContractMasterSection() {
   }, [priceNum, selectedContract])
 
   return (
+<<<<<<< Updated upstream
     <section id="contract-master" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-8">
@@ -49,6 +50,30 @@ export function ContractMasterSection() {
             Authoritative parameters, lot sizes, delivery windows, and fine-gold (999.0) quotation normalization.
           </p>
         </div>
+=======
+    <section id="contract-master" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.2"
+          eyebrow="Market structure · Contract master"
+          title="A gram is not a gram until it is 999."
+          description="Authoritative lot sizes, quoted units, delivery windows and purity. Every price is normalized to one fine-gold benchmark before any spread is compared."
+          aside={
+            <p className="max-w-[19rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
+              Source · MCX India commodity derivatives contract specifications
+            </p>
+          }
+        />
+
+        {/* ---------------- Specification table ---------------- */}
+        <div className="mt-10 border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">Verified contract specifications</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              {specs.length} contracts · 999-fine benchmark
+            </p>
+          </div>
+>>>>>>> Stashed changes
 
         {/* Specifications Table */}
         <Card className="mb-8 border-border/80 bg-card/60 overflow-hidden">
@@ -104,6 +129,7 @@ export function ContractMasterSection() {
           </div>
         </Card>
 
+<<<<<<< Updated upstream
         {/* Two Columns: Discrepancy Note & Interactive Purity Normalizer */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Discrepancy Investigation Note */}
@@ -119,6 +145,47 @@ export function ContractMasterSection() {
                 <p className="text-xs text-muted-foreground leading-relaxed mb-3">
                   An earlier automated test script utilized <code className="text-amber-300">purity = 996</code>.
                   Team ARCEUS conducted a primary verification against the official MCX India Commodity Derivatives Contract Specifications circular.
+=======
+        {/* ---------------- Audit note + normalizer ---------------- */}
+        <div className="gp-split mt-10">
+          <div className="min-w-0 border border-border bg-card">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+              <p className="gp-label">Contract specification audit</p>
+              <span className="gp-tag gp-tag--watch">Resolved</span>
+            </div>
+
+            <div className="px-4 py-5">
+              <h3 className="gp-serif text-2xl">
+                GOLDGUINEA purity: 996 or 999?
+              </h3>
+              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+                An earlier automated test script assumed a purity of 996. The contract master
+                records the verified specification against the official MCX India commodity
+                derivatives contract specifications circular.
+              </p>
+
+              <dl className="mt-6 grid gap-px border border-border bg-border sm:grid-cols-3">
+                <div className="bg-card p-4">
+                  <dt className="gp-label">Official standard</dt>
+                  <dd className="mt-2 font-mono text-sm text-foreground">999 fine · 24 carat</dd>
+                </div>
+                <div className="bg-card p-4">
+                  <dt className="gp-label">Trading unit</dt>
+                  <dd className="mt-2 font-mono text-sm text-foreground">8 g · 1 guinea lot</dd>
+                </div>
+                <div className="bg-card p-4">
+                  <dt className="gp-label">Quotation</dt>
+                  <dd className="mt-2 font-mono text-sm text-foreground">Per 8 g</dd>
+                </div>
+              </dl>
+
+              <div className="mt-5 border-l-2 border-[var(--gp-gold-500)] pl-4">
+                <p className="gp-label">Resolution</p>
+                <p className="mt-2 text-sm leading-relaxed text-foreground">
+                  999.0 purity is enforced in the contract master. This prevents cross-contract
+                  basis drift when GOLDM, GOLDTEN, GOLDGUINEA and GOLDPETAL are compared as if
+                  they were the same metal.
+>>>>>>> Stashed changes
                 </p>
                 <div className="p-3 rounded-lg bg-black/40 border border-border/40 text-xs font-mono space-y-1.5 text-muted-foreground">
                   <div className="text-foreground font-semibold">Verification Audit Trail:</div>

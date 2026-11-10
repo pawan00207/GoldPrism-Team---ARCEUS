@@ -78,6 +78,7 @@ export function ContractLifecycleSection() {
   ]
 
   return (
+<<<<<<< Updated upstream
     <section id="contract-lifecycle" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -90,6 +91,107 @@ export function ContractLifecycleSection() {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Automated delivery window validation: strictly blocks new spread positions inside physical tender periods.
+=======
+    <section
+      id="contract-lifecycle"
+      className="scroll-mt-16 border-b border-border bg-background"
+    >
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.5"
+          eyebrow="Market structure · Lifecycle"
+          title="Know when you must be out."
+          description="Every contract carries a delivery window, a tender period and a liquidity peak. The guard blocks new spread positions inside physical tender periods."
+          aside={
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <span className="gp-tag gp-tag--watch">Physical tender lock active</span>
+              <p className="max-w-[18rem] text-right font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+                One missed roll is a delivery, not a trade.
+              </p>
+            </div>
+          }
+        />
+
+        {/* ---------------- Contract cards ---------------- */}
+        <div className="mt-10 grid gap-px border border-border bg-border md:grid-cols-2">
+          {CONTRACTS.map((contract) => {
+            const status = STATUS[contract.status]
+            return (
+              <article key={contract.symbol} className="flex flex-col bg-card p-5">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="gp-serif text-2xl">{contract.symbol}</h3>
+                    <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      {contract.tradingUnit} · {contract.purity}
+                    </p>
+                  </div>
+                  <span className={cn('gp-tag', status.tone)}>{status.label}</span>
+                </div>
+
+                <dl className="mt-5 grid gap-x-6 gap-y-4 border-t border-border pt-4 sm:grid-cols-2">
+                  <div>
+                    <dt className="gp-label">Listing cycle</dt>
+                    <dd className="mt-1.5 text-[12px] leading-relaxed text-foreground">
+                      {contract.listingCycle}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="gp-label">Expiry window</dt>
+                    <dd className="mt-1.5 text-[12px] leading-relaxed text-foreground">
+                      {contract.expiryDay}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="gp-label">Tender / delivery</dt>
+                    <dd className="mt-1.5 text-[12px] leading-relaxed text-foreground">
+                      {contract.deliveryWindow}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="gp-label">Liquidity peak</dt>
+                    <dd className="mt-1.5 text-[12px] leading-relaxed text-foreground">
+                      {contract.liquidityPeak}
+                    </dd>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <dt className="gp-label">Tender period</dt>
+                    <dd className="mt-1.5 text-[12px] leading-relaxed text-muted-foreground">
+                      {contract.tenderPeriod}
+                    </dd>
+                  </div>
+                </dl>
+
+                {contract.warningMessage ? (
+                  <div
+                    className={cn(
+                      'mt-5 border-l-2 pl-3',
+                      contract.status === 'EARLY_EXPIRY_WARNING'
+                        ? 'border-[var(--gp-watch-ink)]'
+                        : 'border-border'
+                    )}
+                  >
+                    <p className="gp-label">
+                      {contract.status === 'EARLY_EXPIRY_WARNING'
+                        ? 'Roll warning'
+                        : 'History note'}
+                    </p>
+                    <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                      {contract.warningMessage}
+                    </p>
+                  </div>
+                ) : null}
+              </article>
+            )
+          })}
+        </div>
+
+        {/* ---------------- Enforcement ---------------- */}
+        <div className="mt-10 border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">Strict enforcement rules for quantitative entries</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              Applied before signal evaluation
+>>>>>>> Stashed changes
             </p>
           </div>
 

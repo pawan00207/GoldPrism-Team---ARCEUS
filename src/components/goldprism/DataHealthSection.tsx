@@ -92,6 +92,7 @@ export function DataHealthSection({
   }
 
   return (
+<<<<<<< Updated upstream
     <section id="data-health" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -104,6 +105,42 @@ export function DataHealthSection({
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Deterministic date-match gates, immutable Parquet schema validation, and SHA-256 provenance tracking.
+=======
+    <section id="data-health" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.1"
+          eyebrow="Market structure · Data health"
+          title="Trust the file before the figure."
+          description="Deterministic date-match gates, immutable schema validation and SHA-256 provenance. A rejected day stops the sequence here."
+          aside={
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              <Button variant="outline" size="sm" onClick={loadCleanData}>
+                Load clean bhavcopy
+              </Button>
+              <Button variant="outline" size="sm" onClick={loadSeededFault}>
+                Load seeded fault
+              </Button>
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+                <Button asChild size="sm" variant="default">
+                  <span>
+                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                    Upload CSV
+                  </span>
+                </Button>
+              </label>
+            </div>
+          }
+        />
+
+        {/* ---------------- Integrity gates ---------------- */}
+        <div className="mt-10 border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">MCX bhavcopy · integrity gates</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              DuckDB / Parquet store
+>>>>>>> Stashed changes
             </p>
           </div>
 

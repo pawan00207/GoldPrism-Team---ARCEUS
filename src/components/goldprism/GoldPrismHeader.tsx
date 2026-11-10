@@ -75,12 +75,46 @@ const STATS = [
 
 export function GoldPrismHeader() {
   return (
+<<<<<<< Updated upstream
     <section className="relative overflow-hidden pt-14 pb-12 border-b border-border/60 bg-gradient-to-b from-amber-500/5 via-background to-background">
       {/* Ambient glow blobs */}
       <div className="absolute top-0 right-1/4 w-96 h-96 bg-amber-500/8 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-amber-600/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="container mx-auto px-4 max-w-7xl relative z-10">
+=======
+    <section className="relative overflow-hidden border-b border-border bg-background">
+      {/* Hero atmosphere — the prism sits right, the ledger stays on paper. */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.65]"
+          style={{ backgroundImage: "url('/hero-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      </div>
+      <div className="gp-register-mark gp-register-mark--top" aria-hidden="true" />
+      <div className="gp-container relative z-10 py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <div className="gp-split items-end">
+          <div>
+            <div className="mb-8 flex items-center gap-4">
+              <BrandMark className="h-12 w-12" />
+              <div>
+                <p className="gp-kicker">MCX gold / research terminal</p>
+                <h1 className="gp-display mt-2">
+                  Gold<span className="gp-gold-text">Prism</span>
+                </h1>
+              </div>
+            </div>
+
+            <p className="gp-ledger-lg mt-4">
+              Prism that explains scattered gold.
+            </p>
+            <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
+              Normalize the contract. Name the carry. Price the friction. The remaining spread is
+              the only number that deserves attention.
+            </p>
+>>>>>>> Stashed changes
 
         {/* Top badges bar */}
         <motion.div

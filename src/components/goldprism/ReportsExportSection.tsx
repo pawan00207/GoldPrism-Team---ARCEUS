@@ -76,6 +76,7 @@ export function ReportsExportSection() {
   }
 
   return (
+<<<<<<< Updated upstream
     <section id="reports" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="mb-8">
@@ -88,6 +89,49 @@ export function ReportsExportSection() {
           <p className="text-sm text-muted-foreground mt-1">
             Download raw audit artifacts, validation reports, backtest time series, and configuration manifests.
           </p>
+=======
+    <section id="reports" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="03.2"
+          eyebrow="Audit trail · Reports"
+          title="Take the record with you."
+          description="Download the raw audit artifacts: validated bhavcopy, backtest time series, vehicle rankings and the frozen configuration manifest."
+          aside={<DataTag synthetic detail="fixture run" />}
+        />
+
+        <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+          {EXPORTS.map((item) => (
+            <article key={item.id} className="flex flex-col justify-between bg-card p-4">
+              <div>
+                <div className="flex items-center justify-between gap-3">
+                  <span className="gp-tag gp-tag--neutral shrink-0">{item.type}</span>
+                  <span
+                    title={item.filename}
+                    className="min-w-0 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"
+                  >
+                    {item.filename}
+                  </span>
+                </div>
+
+                <h3 className="gp-serif mt-4 text-xl leading-tight">{item.title}</h3>
+                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                  {item.description}
+                </p>
+              </div>
+
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={actions[item.id]}
+                className="mt-6 w-full"
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                Download {item.type}
+              </Button>
+            </article>
+          ))}
+>>>>>>> Stashed changes
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

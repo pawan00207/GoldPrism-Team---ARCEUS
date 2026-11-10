@@ -61,6 +61,7 @@ export function BacktestLabSection() {
   ]
 
   return (
+<<<<<<< Updated upstream
     <section id="backtest-lab" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -73,6 +74,33 @@ export function BacktestLabSection() {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Zero look-ahead bias (signal at close $t$, fill at $t+1$). Gold beta excluded. Itemized statutory costs from <code>costs.yaml</code>.
+=======
+    <section id="backtest-lab" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.6"
+          eyebrow="Market structure · Backtest lab"
+          title="One run, frozen config. Show the result."
+          description="Walk-forward replay with signal at close t and fill at t+1. Gold beta is excluded, and statutory costs are itemized. If the edge is negative, the gate says so."
+          aside={
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <div className="flex flex-wrap gap-2">
+                <span className="gp-tag gp-tag--neutral">Config · 9c8103c61b2b2137</span>
+                <span className="gp-tag gp-tag--watch">Holdout sealed</span>
+              </div>
+              <DataTag synthetic detail="pipeline results" />
+            </div>
+          }
+        />
+
+        {/* ---------------- Headline metrics ---------------- */}
+        <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+          <div className="bg-card p-4">
+            <p className="gp-label">Mean net edge</p>
+            <p className="gp-figure mt-3 text-2xl">{bps(-1.2)}</p>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Gold beta excluded. Pure calendar spread.
+>>>>>>> Stashed changes
             </p>
           </div>
 
@@ -131,6 +159,7 @@ export function BacktestLabSection() {
           </Card>
         </div>
 
+<<<<<<< Updated upstream
         {/* Statistical Rigor Cards: CI, MDE, Multiple Testing */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <Card className="p-4 bg-muted/20 border-border/80">
@@ -181,6 +210,12 @@ export function BacktestLabSection() {
           {/* Equity Curves (2 cols) */}
           <Card className="lg:col-span-2 p-5 bg-card/60 border-border/80">
             <div className="flex items-center justify-between mb-4">
+=======
+        {/* ---------------- Charts ---------------- */}
+        <div className="gp-split mt-10">
+          <div className="min-w-0 border border-border bg-card">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-3">
+>>>>>>> Stashed changes
               <div>
                 <h3 className="font-bold text-foreground text-sm">Gross vs Net Equity Curve (₹1,000,000 Initial Capital)</h3>
                 <p className="text-xs text-muted-foreground">Replay from Jan 2024 to Feb 2025 (In-Sample Train Partition)</p>

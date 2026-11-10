@@ -80,6 +80,7 @@ export function TraderIntelligenceSection() {
   ]
 
   return (
+<<<<<<< Updated upstream
     <section id="trader-intelligence" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -94,6 +95,46 @@ export function TraderIntelligenceSection() {
               Every day the terminal is silent, it explains exactly why: proving that inactivity is a profitable quant choice.
             </p>
           </div>
+=======
+    <section
+      id="trader-intelligence"
+      className="scroll-mt-16 border-b border-border bg-background"
+    >
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="02.7"
+          eyebrow="Market structure · Silence audit"
+          title="When it is quiet, say why."
+          description="Every silent day is explained: which carry consumed the gap, how much structure remains, and why the residual did not clear the cost hurdle."
+          aside={
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  onClick={handleVerifyReproducibility}
+                  disabled={reproStatus === 'VERIFYING'}
+                  variant="outline"
+                  size="sm"
+                >
+                  {reproStatus === 'VERIFYING' ? 'Verifying…' : 'Verify pipeline hash'}
+                </Button>
+                <span className={cn('gp-tag', reproTone)}>
+                  {reproStatus === 'PASSED'
+                    ? 'Hash match · pass'
+                    : reproStatus === 'VERIFYING'
+                      ? 'Checking'
+                      : 'Stored hash'}
+                </span>
+              </div>
+              <p className="max-w-[22rem] break-all font-mono text-[10px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground lg:text-right">
+                9c8103c61b2b2137
+                {reproStatus === 'PASSED' && reproTimestamp
+                  ? ` · verified ${reproTimestamp}`
+                  : ''}
+              </p>
+            </div>
+          }
+        />
+>>>>>>> Stashed changes
 
           {/* Reproducibility Verification Button */}
           <div className="flex flex-wrap items-center gap-3">

@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 
 export function DataAuditMethodologySection() {
   return (
+<<<<<<< Updated upstream
     <section id="methodology-audit" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -30,6 +31,109 @@ export function DataAuditMethodologySection() {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Transparent, unvarnished documentation of statutory cost schedules, known data gaps, and contract specification resolutions.
+=======
+    <section
+      id="methodology-audit"
+      className="scroll-mt-16 border-b border-border bg-background"
+    >
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="03.1"
+          eyebrow="Audit trail · Methodology"
+          title="Show the work. Even the gaps."
+          description="Statutory cost schedules, known data gaps and contract-specification resolutions are documented in the open. A method you cannot inspect is not a method."
+          aside={<span className="gp-tag gp-tag--neutral">Methodology v1.0</span>}
+        />
+
+        {/* ---------------- Case study ---------------- */}
+        <div className="mt-10 border border-border bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">Case study · GOLDGUINEA purity</p>
+            <span className="gp-tag gp-tag--tradable">Resolved &amp; verified</span>
+          </div>
+
+          <div className="gp-split--tight grid p-5">
+            <div>
+              <h3 className="gp-serif text-2xl">996 or 999?</h3>
+              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
+                Earlier test drafts and unofficial third-party tables listed GOLDGUINEA, an 8 g
+                trading unit, as having 996 purity. An audit of official MCX circulars
+                <span className="gp-mono text-foreground"> MCX/C&amp;S/412/2021 </span>
+                and the Contract Specifications Master confirms that Gold Guinea delivers bars of
+                999 purity, 0.999 fine.
+              </p>
+
+              <div className="mt-5 border-l-2 border-[var(--gp-gold-500)] pl-4">
+                <p className="gp-label">Impact if left at 996</p>
+                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  The purity ratio 996/999 = 0.996997 falsely penalizes GOLDGUINEA by roughly 30.0
+                  bps, creating a phantom arbitrage spread that does not exist in delivery.
+                </p>
+              </div>
+            </div>
+
+            <dl className="grid gap-px self-start border border-border bg-border">
+              <div className="bg-card p-4">
+                <dt className="gp-label">Official purity</dt>
+                <dd className="mt-2 font-mono text-lg text-foreground">999 fine · 24 carat</dd>
+              </div>
+              <div className="bg-card p-4">
+                <dt className="gp-label">Trading unit</dt>
+                <dd className="mt-2 font-mono text-lg text-foreground">8 g · 1 guinea lot</dd>
+              </div>
+              <div className="bg-card p-4">
+                <dt className="gp-label">Audit resolution</dt>
+                <dd className="mt-2 text-[12px] leading-relaxed text-muted-foreground">
+                  The contract master hardcodes 999 fine purity with a verified timestamp and a
+                  regression test in{' '}
+                  <span className="gp-mono text-foreground">tests/goldprism.test.ts</span>.
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        {/* ---------------- Method + fees ---------------- */}
+        <div className="mt-10 grid gap-8 lg:grid-cols-2">
+          <div className="min-w-0">
+            <div className="border-b border-border pb-3">
+              <p className="gp-label">Core methodology &amp; assumptions</p>
+            </div>
+            <ol className="mt-4 space-y-4">
+              {METHOD.map((item, i) => (
+                <li key={item.title} className="flex gap-4">
+                  <span className="gp-figure mt-0.5 w-6 shrink-0 text-sm text-muted-foreground">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <div>
+                    <h4 className="text-sm font-medium text-foreground">{item.title}</h4>
+                    <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">
+                      {item.body}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+
+          <div className="min-w-0">
+            <div className="border-b border-border pb-3">
+              <p className="gp-label">Statutory fee schedule &amp; cost model</p>
+            </div>
+            <dl className="mt-2">
+              {FEES.map((fee) => (
+                <div
+                  key={fee.label}
+                  className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border py-3"
+                >
+                  <dt className="text-[12px] text-muted-foreground">{fee.label}</dt>
+                  <dd className="gp-figure text-[12px] text-foreground">{fee.value}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="mt-4 font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+              Fee schedule is applied on both legs before the residual is judged.
+>>>>>>> Stashed changes
             </p>
           </div>
 

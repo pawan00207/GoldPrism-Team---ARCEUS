@@ -62,6 +62,7 @@ export function XRayWaterfallSection() {
   ]
 
   return (
+<<<<<<< Updated upstream
     <section id="xray-waterfall" className="py-12 scroll-mt-16 border-b border-border/40">
       <div className="container mx-auto px-4 max-w-7xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -74,6 +75,44 @@ export function XRayWaterfallSection() {
             </h2>
             <p className="text-sm text-muted-foreground mt-1">
               Splits every MCX gold gap into basis, carry, artifact and residual, and judges only the residual net of costs.
+=======
+    <section id="xray-waterfall" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <SectionHead
+          index="01"
+          eyebrow="Decision surface · X-Ray"
+          title={
+            <>
+              Split the gap.
+              <br />
+              Judge only what is left.
+            </>
+          }
+          description="Every MCX gold spread is opened into structural basis, expiry carry and settlement artifact. The residual is then charged the full round-trip cost of trading it."
+          aside={
+            <div className="flex flex-col items-start gap-3 lg:items-end">
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <DataTag synthetic detail="20 Mar 2026" />
+                <span className="gp-tag gp-tag--neutral">
+                  Config · {result.configHash}
+                </span>
+              </div>
+              <p className="max-w-[20rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
+                Pair · {result.contractA} / {result.contractB}
+                <br />
+                Recon tolerance · {result.reconciliationOk ? 'within 0.01 ₹/g' : 'failed'}
+              </p>
+            </div>
+          }
+        />
+
+        {/* ---------------- Pair controls ---------------- */}
+        <div className="mt-10 border border-border bg-card">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">Pair controls · quoted prices normalize to 999 fine</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              Editable · results recompute on change
+>>>>>>> Stashed changes
             </p>
           </div>
 
@@ -172,6 +211,7 @@ export function XRayWaterfallSection() {
           </div>
         </Card>
 
+<<<<<<< Updated upstream
         {/* Visual Waterfall Diagram (Slide 3 Mockup) */}
         <Card className="mb-8 p-6 bg-card/60 border-border/80">
           <div className="flex items-center justify-between mb-4">
@@ -184,6 +224,45 @@ export function XRayWaterfallSection() {
               <span className="text-emerald-400 font-bold">
                 {result.reconciliationError.toFixed(6)} ₹/g (OK &lt; 0.01)
               </span>
+=======
+        {/* ---------------- Main 61.8 / aside 38.2 ---------------- */}
+        <div className="gp-split mt-10">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
+              <h3 className="gp-serif text-xl">Waterfall · signed components</h3>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                bps of leg A normalized price
+              </p>
+            </div>
+
+            <div className="mt-6">
+              <WaterfallChart bars={waterfallBars} tradable={tradable} />
+            </div>
+
+            <div className="mt-8 border border-border">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+                <p className="gp-label">Show the work · reconciliation</p>
+                <span
+                  className={cn(
+                    'gp-tag',
+                    result.reconciliationOk ? 'gp-tag--tradable' : 'gp-tag--blocked'
+                  )}
+                >
+                  {result.reconciliationOk ? 'reconciled' : 'recon failed'}
+                </span>
+              </div>
+              <div className="px-4 py-4">
+                <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground">
+                  {reconLedger}
+                </pre>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span>
+                    Reconciliation error · {result.reconciliationError.toFixed(6)} ₹/g
+                  </span>
+                  <span>Tolerance · &lt; 0.01 ₹/g</span>
+                </div>
+              </div>
+>>>>>>> Stashed changes
             </div>
           </div>
 
@@ -266,6 +345,83 @@ export function XRayWaterfallSection() {
               <div className="text-xs text-muted-foreground">
                 ({result.netEdgeInrPerG > 0 ? `+₹${result.netEdgeInrPerG.toFixed(2)}` : `₹${result.netEdgeInrPerG.toFixed(2)}`} / g)
               </div>
+<<<<<<< Updated upstream
+=======
+              <div className="col-span-2 border-t border-border pt-3">
+                <dt className="gp-label">Edge against hurdle</dt>
+                <dd className="gp-figure mt-2 text-sm">
+                  {bps(result.netEdgeBps - DEFAULT_COST_HURDLE_BPS)}
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+
+        {/* ---------------- Cost table ---------------- */}
+        <div className="gp-split mt-10">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
+              <h3 className="gp-serif text-xl">Cost of the round trip</h3>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                Both legs · one lot each
+              </p>
+            </div>
+
+            <table className="gp-table mt-4">
+              <thead>
+                <tr>
+                  <th scope="col">Component</th>
+                  <th scope="col" className="gp-num">
+                    ₹ · both legs
+                  </th>
+                  <th scope="col" className="hidden sm:table-cell">
+                    Basis
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {costRows.map((row) => (
+                  <tr key={row.label}>
+                    <td className="text-foreground">{row.label}</td>
+                    <td className="gp-num text-foreground">{inr(row.inr)}</td>
+                    <td className="hidden text-muted-foreground sm:table-cell">{row.note}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Total friction</td>
+                  <td className="gp-num">{inr(totalCostInr)}</td>
+                  <td className="hidden text-muted-foreground sm:table-cell">
+                    {bps(result.transactionCostsBps)} · {inrPerG(result.transactionCostsInrPerG)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+
+          <div className="min-w-0">
+            <div className="border border-border bg-card p-4">
+              <p className="gp-label">How to read the verdict</p>
+              <ul className="mt-4 space-y-3 text-[12px] leading-relaxed text-muted-foreground">
+                <li className="flex gap-3">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 bg-[var(--gp-slag-800)]" aria-hidden="true" />
+                  <span>Grey bars are structure we can name. They are explained away, not edge.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 gp-hatch border border-[var(--gp-slag-500)]" aria-hidden="true" />
+                  <span>Hatched bars are not clean measurements: grey hatch marks cost drag, and the same hatch marks synthetic or estimated inputs.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 bg-[var(--gp-gold-500)]" aria-hidden="true" />
+                  <span>Gold appears only when the residual survives the cost hurdle.</span>
+                </li>
+                <li className="flex gap-3">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 border border-[var(--gp-slag-500)]" aria-hidden="true" />
+                  <span>One verdict per screen. A quiet day is not an error.</span>
+                </li>
+              </ul>
+>>>>>>> Stashed changes
             </div>
           </div>
         </Card>
