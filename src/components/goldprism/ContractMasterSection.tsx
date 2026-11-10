@@ -2,13 +2,23 @@
 
 import * as React from 'react'
 import {
+  Calculator,
+  CheckCircle2,
+  FileText,
+  Info,
+  Scale,
+  Sparkles,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
   CONTRACT_MASTER,
   getAllContractSpecs,
   normalizePriceTo999,
   SupportedContractCode,
 } from '@/lib/goldprism/contract-master'
-import { SectionHead } from '@/components/goldprism/brand'
-import { inr, inrPerG } from '@/lib/goldprism/format'
 
 export function ContractMasterSection() {
   const specs = getAllContractSpecs()
@@ -26,74 +36,65 @@ export function ContractMasterSection() {
   }, [priceNum, selectedContract])
 
   return (
-    <section id="contract-master" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
-        <SectionHead
-          index="02.2"
-          eyebrow="Market structure · Contract master"
-          title="A gram is not a gram until it is 999."
-          description="Authoritative lot sizes, quoted units, delivery windows and purity. Every price is normalized to one fine-gold benchmark before any spread is compared."
-          aside={
-            <p className="max-w-[19rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
-              Source · MCX India commodity derivatives contract specifications
-            </p>
-          }
-        />
+    <section id="contract-master" className="py-12 scroll-mt-16 border-b border-border/40">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-8">
+          <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
+            <Scale className="w-3 h-3 text-amber-400" /> Phase 02: MCX Contract Master
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Verified MCX Gold Contract Specifications
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Authoritative parameters, lot sizes, delivery windows, and fine-gold (999.0) quotation normalization.
+          </p>
+        </div>
 
-        {/* ---------------- Specification table ---------------- */}
-        <div className="mt-10 border border-border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <p className="gp-label">Verified contract specifications</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-              {specs.length} contracts · 999-fine benchmark
-            </p>
-          </div>
-
+        {/* Specifications Table */}
+        <Card className="mb-8 border-border/80 bg-card/60 overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="gp-table">
+            <table className="w-full text-xs">
               <thead>
-                <tr>
-                  <th scope="col">Contract</th>
-                  <th scope="col" className="gp-num">Trading unit</th>
-                  <th scope="col" className="gp-num">Quoted per</th>
-                  <th scope="col">Purity</th>
-                  <th scope="col" className="gp-num">Tick size</th>
-                  <th scope="col">Expiry window</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Source reference</th>
+                <tr className="border-b border-border/60 text-muted-foreground bg-muted/30">
+                  <th className="py-3 px-4 text-left font-semibold">Contract</th>
+                  <th className="py-3 px-4 text-left font-semibold">Trading Unit</th>
+                  <th className="py-3 px-4 text-left font-semibold">Quoted Per</th>
+                  <th className="py-3 px-4 text-left font-semibold">Purity</th>
+                  <th className="py-3 px-4 text-left font-semibold">Tick Size</th>
+                  <th className="py-3 px-4 text-left font-semibold">Expiry Window</th>
+                  <th className="py-3 px-4 text-center font-semibold">Status</th>
+                  <th className="py-3 px-4 text-left font-semibold">Source Reference</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-border/20">
                 {specs.map((spec) => (
-                  <tr key={spec.contractCode}>
-                    <td>
-                      <div className="font-medium text-foreground">{spec.contractCode}</div>
-                      <div className="mt-0.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                        {spec.name}
-                      </div>
+                  <tr key={spec.contractCode} className="hover:bg-muted/30 transition-colors">
+                    <td className="py-3 px-4">
+                      <div className="font-bold text-foreground text-sm">{spec.contractCode}</div>
+                      <div className="text-[11px] text-muted-foreground">{spec.name}</div>
                     </td>
-                    <td className="gp-num text-foreground">{spec.tradingUnitG} g</td>
-                    <td className="gp-num text-muted-foreground">{spec.quoteUnitG} g</td>
-                    <td>
-                      <span
+                    <td className="py-3 px-4 font-mono font-semibold">{spec.tradingUnitG} g</td>
+                    <td className="py-3 px-4 font-mono text-muted-foreground">{spec.quoteUnitG} g</td>
+                    <td className="py-3 px-4">
+                      <Badge
+                        variant="outline"
                         className={
                           spec.purityFine === 995
-                            ? 'gp-tag gp-tag--watch'
-                            : 'gp-tag gp-tag--neutral'
+                            ? 'border-amber-500/40 text-amber-300 font-mono'
+                            : 'border-emerald-500/40 text-emerald-300 font-mono'
                         }
                       >
-                        {spec.purityFine}/1000 · {spec.purityFine === 995 ? 'near 24k' : '24k'}
-                      </span>
+                        {spec.purityFine}/1000 ({spec.purityFine === 995 ? '22k' : '24k'})
+                      </Badge>
                     </td>
-                    <td className="gp-num">{inr(spec.tickSizeInr, 0)}</td>
-                    <td className="text-muted-foreground">{spec.expiryWindow}</td>
-                    <td>
-                      <span className="gp-tag gp-tag--tradable">Verified</span>
+                    <td className="py-3 px-4 font-mono">₹{spec.tickSizeInr}</td>
+                    <td className="py-3 px-4 font-mono text-muted-foreground">{spec.expiryWindow}</td>
+                    <td className="py-3 px-4 text-center">
+                      <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/30 gap-1 text-[10px] font-mono">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> VERIFIED
+                      </Badge>
                     </td>
-                    <td
-                      className="max-w-[18rem] truncate text-[10px] text-muted-foreground"
-                      title={spec.sourceReference}
-                    >
+                    <td className="py-3 px-4 text-[11px] text-muted-foreground max-w-xs truncate" title={spec.sourceReference}>
                       {spec.sourceReference}
                     </td>
                   </tr>
@@ -101,114 +102,90 @@ export function ContractMasterSection() {
               </tbody>
             </table>
           </div>
-        </div>
+        </Card>
 
-        {/* ---------------- Audit note + normalizer ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
-          <div className="min-w-0 border border-border bg-card">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-              <p className="gp-label">Contract specification audit</p>
-              <span className="gp-tag gp-tag--watch">Resolved</span>
-            </div>
-
-            <div className="px-4 py-5">
-              <h3 className="gp-serif text-2xl">
-                GOLDGUINEA purity: 996 or 999?
-              </h3>
-              <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                An earlier automated test script assumed a purity of 996. The contract master
-                records the verified specification against the official MCX India commodity
-                derivatives contract specifications circular.
-              </p>
-
-              <dl className="mt-6 grid gap-px border border-border bg-border sm:grid-cols-3">
-                <div className="bg-card p-4">
-                  <dt className="gp-label">Official standard</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">999 fine · 24 carat</dd>
-                </div>
-                <div className="bg-card p-4">
-                  <dt className="gp-label">Trading unit</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">8 g · 1 guinea lot</dd>
-                </div>
-                <div className="bg-card p-4">
-                  <dt className="gp-label">Quotation</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">Per 8 g</dd>
-                </div>
-              </dl>
-
-              <div className="mt-5 border-l-2 border-[var(--gp-gold-500)] pl-4">
-                <p className="gp-label">Resolution</p>
-                <p className="mt-2 text-sm leading-relaxed text-foreground">
-                  999.0 purity is enforced in the contract master. This prevents cross-contract
-                  basis drift when GOLDM, GOLDTEN, GOLDGUINEA and GOLDPETAL are compared as if
-                  they were the same metal.
+        {/* Two Columns: Discrepancy Note & Interactive Purity Normalizer */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Discrepancy Investigation Note */}
+          <Card className="border-amber-500/30 bg-amber-500/5 p-5">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
+                <Info className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm mb-1">
+                  Contract Specification Audit: GOLDGUINEA Purity (996 vs 999)
+                </h3>
+                <p className="text-xs text-muted-foreground leading-relaxed mb-3">
+                  An earlier automated test script utilized <code className="text-amber-300">purity = 996</code>.
+                  Team ARCEUS conducted a primary verification against the official MCX India Commodity Derivatives Contract Specifications circular.
                 </p>
+                <div className="p-3 rounded-lg bg-black/40 border border-border/40 text-xs font-mono space-y-1.5 text-muted-foreground">
+                  <div className="text-foreground font-semibold">Verification Audit Trail:</div>
+                  <div>• Official MCX Circular Standard: <span className="text-emerald-400 font-bold">999 fine (24 Carat)</span></div>
+                  <div>• Trading Unit: 8 grams (1 Guinea lot) | Quotation: Per 8 grams</div>
+                  <div>• Resolution: Enforced 999.0 purity in contract master; prevents cross-contract basis drift.</div>
+                </div>
               </div>
             </div>
-          </div>
+          </Card>
 
-          <div className="min-w-0 border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
-              <p className="gp-label">Fine-gold normalizer</p>
-              <h3 className="gp-serif mt-1 text-xl">Convert to ₹/g at 999.</h3>
+          {/* Interactive Purity Normalizer Tool */}
+          <Card className="border-border/80 bg-card/60 p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+                <Calculator className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="font-bold text-foreground text-sm">Fine-Gold (999.0) Normalization Calculator</h3>
+                <p className="text-[11px] text-muted-foreground">Convert any MCX contract quoted price into standard ₹/g equivalent</p>
+              </div>
             </div>
 
-            <div className="px-4 py-5">
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
-                <div>
-                  <label className="gp-label" htmlFor="normalizer-contract">
-                    Contract
-                  </label>
-                  <select
-                    id="normalizer-contract"
-                    value={selectedContract}
-                    onChange={(e) =>
-                      setSelectedContract(e.target.value as SupportedContractCode)
-                    }
-                    className="gp-field gp-select mt-1 text-sm"
-                  >
-                    <option value="GOLDM">GOLDM · 100g · 995</option>
-                    <option value="GOLDTEN">GOLDTEN · 10g · 999</option>
-                    <option value="GOLDGUINEA">GOLDGUINEA · 8g · 999</option>
-                    <option value="GOLDPETAL">GOLDPETAL · 1g · 999</option>
-                  </select>
-                </div>
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <Label className="text-xs text-muted-foreground">Select Contract</Label>
+                <select
+                  value={selectedContract}
+                  onChange={(e) => setSelectedContract(e.target.value as SupportedContractCode)}
+                  className="w-full mt-1.5 px-3 py-2 text-xs rounded-md bg-muted border border-border/80 text-foreground font-mono focus:outline-none focus:ring-1 focus:ring-amber-500"
+                >
+                  <option value="GOLDM">GOLDM (100g, 995)</option>
+                  <option value="GOLDTEN">GOLDTEN (10g, 999)</option>
+                  <option value="GOLDGUINEA">GOLDGUINEA (8g, 999)</option>
+                  <option value="GOLDPETAL">GOLDPETAL (1g, 999)</option>
+                </select>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground">Quoted Price (INR)</Label>
+                <Input
+                  type="number"
+                  value={inputPrice}
+                  onChange={(e) => setInputPrice(e.target.value)}
+                  className="mt-1.5 font-mono text-xs"
+                  placeholder="e.g. 73500"
+                />
+              </div>
+            </div>
 
-                <div>
-                  <label className="gp-label" htmlFor="normalizer-price">
-                    Quoted price
-                  </label>
-                  <input
-                    id="normalizer-price"
-                    type="number"
-                    inputMode="decimal"
-                    value={inputPrice}
-                    onChange={(e) => setInputPrice(e.target.value)}
-                    className="gp-field mt-1 text-sm"
-                    placeholder="e.g. 73500"
-                  />
+            {normResult && (
+              <div className="p-3 rounded-lg bg-muted/40 border border-border/60">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <span className="text-muted-foreground">Normalized 999-Fine Benchmark:</span>
+                  <span className="text-base font-bold font-mono text-amber-400 tabular-nums">
+                    ₹{normResult.normalizedPrice.toFixed(2)} / gram
+                  </span>
+                </div>
+                <div className="space-y-1 text-[11px] font-mono text-muted-foreground border-t border-border/40 pt-2">
+                  {normResult.trace.stepByStep.map((step, idx) => (
+                    <div key={idx}>{step}</div>
+                  ))}
                 </div>
               </div>
-
-              {normResult ? (
-                <div className="mt-6 border-t border-border pt-4">
-                  <p className="gp-label">Normalized 999-fine benchmark</p>
-                  <p className="gp-figure mt-2 text-3xl">{inrPerG(normResult.normalizedPrice)}</p>
-
-                  <div className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
-                    {normResult.trace.stepByStep.map((step, idx) => (
-                      <p key={idx}>{step}</p>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
-                  Enter a positive quoted price to normalize it.
-                </p>
-              )}
-            </div>
-          </div>
+            )}
+          </Card>
         </div>
+
       </div>
     </section>
   )

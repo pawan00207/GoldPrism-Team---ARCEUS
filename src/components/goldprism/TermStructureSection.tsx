@@ -11,17 +11,24 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import {
+  TrendingUp,
+  Percent,
+  Sliders,
+  Calendar,
+  Layers,
+  ArrowRight,
+  Info,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Slider } from '@/components/ui/slider'
-import { SectionHead } from '@/components/goldprism/brand'
-import { inr, pctAbs } from '@/lib/goldprism/format'
-import { cn } from '@/lib/utils'
-
-const FAMILIES = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'] as const
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export function TermStructureSection() {
   const [repoRate, setRepoRate] = React.useState<number>(6.5)
-  const [selectedFamily, setSelectedFamily] =
-    React.useState<(typeof FAMILIES)[number]>('GOLDM')
+  const [selectedFamily, setSelectedFamily] = React.useState<'GOLDM' | 'GOLDTEN' | 'GOLDGUINEA' | 'GOLDPETAL'>('GOLDM')
 
   // Futures curve points across calendar expiries for each family (normalized ₹/g 999-fine)
   const termStructureCurves = React.useMemo(() => {
@@ -49,9 +56,7 @@ export function TermStructureSection() {
         mechanicalCarryPerG: Number(mechanicalCarryPerG.toFixed(2)),
         curveShiftPerG: Number(curveShiftPerG.toFixed(2)),
         futuresPrice: Number(modelFuturesPrice.toFixed(2)),
-        impliedAnnualCarryPct: Number(
-          (((modelFuturesPrice - baseSpot) / baseSpot) * (365.0 / exp.days) * 100).toFixed(2)
-        ),
+        impliedAnnualCarryPct: Number((((modelFuturesPrice - baseSpot) / baseSpot) * (365.0 / exp.days) * 100).toFixed(2)),
       }
     })
   }, [repoRate])
@@ -74,106 +79,92 @@ export function TermStructureSection() {
   }, [termStructureCurves])
 
   return (
-    <section id="term-structure" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
-        <SectionHead
-          index="02.4"
-          eyebrow="Market structure · Term structure"
-          title="Name the carry before you call it alpha."
-          description="Separates mechanical time-decay convergence toward expiry from genuine forward-curve shifts. The repo benchmark is editable."
-          aside={
-            <div className="w-full max-w-[20rem]">
-              <div className="flex items-baseline justify-between gap-3">
-                <label className="gp-label" htmlFor="repo-rate">
-                  RBI repo benchmark
-                </label>
-                <span className="gp-figure text-sm">{repoRate.toFixed(2)}%</span>
-              </div>
-              <div className="mt-2 flex items-center gap-3">
-                <Slider
-                  id="repo-rate-slider"
-                  value={[repoRate]}
-                  min={4}
-                  max={10}
-                  step={0.25}
-                  onValueChange={(val) => setRepoRate(val[0])}
-                  aria-label="RBI repo rate"
-                />
-                <input
-                  id="repo-rate"
-                  type="number"
-                  step="0.25"
-                  min="4.0"
-                  max="10.0"
-                  value={repoRate}
-                  onChange={(e) => setRepoRate(parseFloat(e.target.value) || 6.5)}
-                  className="gp-field w-20 shrink-0 text-right text-sm"
-                />
-              </div>
+    <section id="term-structure" className="py-12 scroll-mt-16 border-b border-border/40">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
+              <TrendingUp className="w-3 h-3 text-amber-400" /> Phase D: Term Structure &amp; Carry Analytics
+            </Badge>
+            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+              Futures Curve &amp; Roll-Down Decomposition
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Separates mechanical time-decay convergence toward expiry from genuine forward curve shifts.
+            </p>
+          </div>
+
+          {/* Repo Rate Control */}
+          <div className="flex items-center gap-3 bg-card/60 p-2.5 rounded-lg border border-border/80">
+            <Sliders className="w-4 h-4 text-amber-400" />
+            <div className="text-xs">
+              <span className="text-muted-foreground">Financing Benchmark: </span>
+              <span className="font-bold font-mono text-foreground">RBI Repo {repoRate.toFixed(2)}%</span>
             </div>
-          }
-        />
-
-        {/* ---------------- Decomposition metrics ---------------- */}
-        <div className="mt-10 grid gap-6 md:grid-cols-3">
-          <div className="border-t-2 border-[var(--gp-slag-900)] pt-3 dark:border-[var(--gp-paper)]">
-            <p className="gp-label">M2 → M1 calendar gap</p>
-            <p className="gp-figure mt-3 text-2xl">
-              {inr(rollDownDecomp.totalSpread)}
-              <span className="ml-1 text-xs font-normal text-muted-foreground">/g</span>
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-              Observable forward premium between 05 Jun and 05 Apr.
-            </p>
-          </div>
-
-          <div className="border-t-2 border-border pt-3">
-            <p className="gp-label">Mechanical roll-down convergence</p>
-            <p className="gp-figure mt-3 text-2xl">
-              {inr(rollDownDecomp.mechanicalConvergence)}
-              <span className="ml-1 text-xs font-normal text-muted-foreground">
-                {pctAbs(rollDownDecomp.mechanicalPct)}
-              </span>
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-              Predictable time-value decay driven by {repoRate}% repo carry.
-            </p>
-          </div>
-
-          <div className="border-t-2 border-border pt-3">
-            <p className="gp-label">Genuine forward curve shift</p>
-            <p className="gp-figure mt-3 text-2xl">
-              {inr(rollDownDecomp.genuineCurveShift)}
-              <span className="ml-1 text-xs font-normal text-muted-foreground">
-                {pctAbs(rollDownDecomp.genuinePct)}
-              </span>
-            </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-              Economic curve distortion left after removing carry decay.
-            </p>
+            <Input
+              type="number"
+              step="0.25"
+              min="4.0"
+              max="10.0"
+              value={repoRate}
+              onChange={(e) => setRepoRate(parseFloat(e.target.value) || 6.5)}
+              className="w-20 h-7 text-xs font-mono"
+            />
           </div>
         </div>
 
-        {/* ---------------- Curve ---------------- */}
-        <div className="mt-10 border border-border bg-card">
-          <div className="flex flex-col gap-4 border-b border-border px-4 py-3 md:flex-row md:items-center md:justify-between">
+        {/* 3 Analytics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="p-4 bg-card/60 border-border/80">
+            <div className="text-xs text-muted-foreground mb-1">M2 → M1 Calendar Gap</div>
+            <div className="text-3xl font-black font-mono text-amber-400 tabular-nums">
+              ₹{rollDownDecomp.totalSpread} <span className="text-sm font-normal text-muted-foreground">/g</span>
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Total observable forward premium between 05-Jun &amp; 05-Apr
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-card/60 border-border/80">
+            <div className="text-xs text-muted-foreground mb-1">Mechanical Roll-Down Convergence</div>
+            <div className="text-3xl font-black font-mono text-blue-400 tabular-nums">
+              ₹{rollDownDecomp.mechanicalConvergence} <span className="text-sm font-normal text-muted-foreground">({rollDownDecomp.mechanicalPct}%)</span>
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Predictable time-value decay driven by {repoRate}% repo carry
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-card/60 border-border/80">
+            <div className="text-xs text-muted-foreground mb-1">Genuine Forward Curve Shift</div>
+            <div className="text-3xl font-black font-mono text-emerald-400 tabular-nums">
+              ₹{rollDownDecomp.genuineCurveShift} <span className="text-sm font-normal text-muted-foreground">({rollDownDecomp.genuinePct}%)</span>
+            </div>
+            <div className="text-[11px] text-muted-foreground mt-1">
+              Pure economic curve distortion after removing carry decay
+            </div>
+          </Card>
+        </div>
+
+        {/* Interactive Futures Curve Chart */}
+        <Card className="p-5 bg-card/60 border-border/80 mb-6">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div>
-              <p className="gp-label">Model price vs implied carry</p>
-              <p className="mt-1 text-[11px] text-muted-foreground">
-                Normalized 999-fine progression · base spot {inr(7350)}/g
+              <h3 className="font-bold text-sm text-foreground">MCX Term Structure: Model Price vs Implied Carry</h3>
+              <p className="text-xs text-muted-foreground">
+                Normalized 999-fine price progression across sequential expiry contracts (Base Spot ₹7,350/g)
               </p>
             </div>
-            <div className="flex flex-wrap gap-1.5">
-              {FAMILIES.map((fam) => (
+            <div className="flex items-center gap-2">
+              {(['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'] as const).map((fam) => (
                 <button
                   key={fam}
-                  type="button"
                   onClick={() => setSelectedFamily(fam)}
-                  aria-pressed={selectedFamily === fam}
-                  className={cn(
-                    'gp-button px-3',
-                    selectedFamily === fam && 'gp-button--selected'
-                  )}
+                  className={`text-xs px-2.5 py-1 rounded transition-colors font-mono ${
+                    selectedFamily === fam
+                      ? 'bg-amber-500 text-black font-bold'
+                      : 'bg-muted/60 text-muted-foreground hover:bg-muted'
+                  }`}
                 >
                   {fam}
                 </button>
@@ -181,118 +172,31 @@ export function TermStructureSection() {
             </div>
           </div>
 
-          <div className="px-2 py-5 sm:px-4">
-            <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={termStructureCurves} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                  <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" vertical={false} />
-                  <XAxis
-                    dataKey="expiry"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={{ stroke: 'var(--gp-slag-500)' }}
-                  />
-                  <YAxis
-                    yAxisId="price"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={false}
-                    domain={['dataMin - 10', 'dataMax + 10']}
-                    width={52}
-                  />
-                  <YAxis
-                    yAxisId="carry"
-                    orientation="right"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={false}
-                    unit="%"
-                    width={44}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--card)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 2,
-                      boxShadow: '4px 4px 0 color-mix(in srgb, var(--gp-slag-900) 30%, transparent)',
-                      fontFamily: 'var(--gp-instrument)',
-                      fontSize: 11,
-                      color: 'var(--foreground)',
-                    }}
-                    labelStyle={{
-                      color: 'var(--gp-slag-500)',
-                      fontSize: 10,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                    }}
-                    itemStyle={{ color: 'var(--foreground)' }}
-                  />
-                  <Legend
-                    wrapperStyle={{
-                      fontFamily: 'var(--gp-instrument)',
-                      fontSize: 10,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      paddingTop: 12,
-                    }}
-                  />
-                  <Line
-                    yAxisId="price"
-                    type="monotone"
-                    dataKey="futuresPrice"
-                    name={`${selectedFamily} futures · ₹/g`}
-                    stroke="var(--gp-slag-900)"
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: 'var(--gp-slag-900)', strokeWidth: 0 }}
-                    activeDot={{ r: 4, fill: 'var(--gp-gold-500)', strokeWidth: 0 }}
-                  />
-                  <Line
-                    yAxisId="price"
-                    type="monotone"
-                    dataKey="spotPrice"
-                    name="Spot baseline · ₹/g"
-                    stroke="var(--gp-slag-600)"
-                    strokeDasharray="4 3"
-                    strokeWidth={1}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="carry"
-                    type="monotone"
-                    dataKey="impliedAnnualCarryPct"
-                    name="Implied carry · % p.a."
-                    stroke="var(--gp-slag-300)"
-                    strokeDasharray="1 3"
-                    strokeWidth={2}
-                    dot={{ r: 2, fill: 'var(--gp-slag-300)', strokeWidth: 0 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
+          <div className="h-64 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={termStructureCurves}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.3} />
+                <XAxis dataKey="expiry" stroke="#888" fontSize={11} />
+                <YAxis yAxisId="price" stroke="#888" fontSize={11} domain={['dataMin - 10', 'dataMax + 10']} />
+                <YAxis yAxisId="carry" orientation="right" stroke="#10b981" fontSize={11} unit="%" />
+                <Tooltip
+                  contentStyle={{ backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '0.5rem', fontSize: '12px' }}
+                />
+                <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                <Line yAxisId="price" type="monotone" dataKey="futuresPrice" name="Futures Price (₹/g)" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4 }} />
+                <Line yAxisId="price" type="monotone" dataKey="spotPrice" name="Spot Baseline (₹7,350)" stroke="#6b7280" strokeDasharray="4 4" dot={false} />
+                <Line yAxisId="carry" type="monotone" dataKey="impliedAnnualCarryPct" name="Implied Carry (% p.a.)" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} />
+              </LineChart>
+            </ResponsiveContainer>
           </div>
+        </Card>
 
-          <div className="border-t border-border px-4 py-3">
-            <p className="font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
-              All three series are shown in slag grey. Gold is reserved for a residual that
-              survives costs, not for a curve.
-            </p>
+        {/* Informational Callout */}
+        <div className="p-3.5 rounded-lg bg-blue-500/5 border border-blue-500/20 text-xs text-blue-300 flex items-start gap-2.5">
+          <Info className="w-4 h-4 text-blue-400 shrink-0 mt-0.5" />
+          <div>
+            <strong>Quant Insight:</strong> In calendar spreads, retail traders often mistake the upward slope of the futures curve (contango) for alpha. GoldPrism subtracts the exact mechanical carry (S₀ × r_repo × Δt / 365) before computing any trading signal, eliminating false convergence triggers.
           </div>
-        </div>
-
-        {/* ---------------- Note ---------------- */}
-        <div className="mt-8 border-l-2 border-[var(--gp-gold-500)] pl-4">
-          <p className="gp-label">Quant note</p>
-          <p className="mt-2 max-w-4xl text-sm leading-relaxed text-muted-foreground">
-            In calendar spreads, the upward slope of the futures curve is often mistaken for
-            alpha. GoldPrism subtracts the exact mechanical carry
-            {' '}
-            <span className="gp-mono text-foreground">S₀ × r_repo × Δt / 365</span>
-            {' '}
-            before computing any signal, removing false convergence triggers.
-          </p>
         </div>
       </div>
     </section>

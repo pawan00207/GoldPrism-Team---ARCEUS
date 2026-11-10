@@ -34,9 +34,9 @@ interface StatusMeta {
 const STATUS_META: Record<WorkerStatus, StatusMeta> = {
   waiting: { icon: Clock, color: 'text-muted-foreground', bg: 'bg-muted', label: 'Waiting' },
   running: { icon: Loader2, color: 'text-chart-2', bg: 'bg-chart-2/10', label: 'Running', spin: true },
-  done: { icon: CheckCircle2, color: 'gp-pos', bg: 'gp-tint-pos', label: 'Done' },
-  failed: { icon: XCircle, color: 'gp-neg', bg: 'gp-tint-neg', label: 'Failed' },
-  blocked: { icon: AlertCircle, color: 'gp-warn', bg: 'gp-tint-warn', label: 'Blocked' },
+  done: { icon: CheckCircle2, color: 'text-emerald-500', bg: 'bg-emerald-500/10', label: 'Done' },
+  failed: { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-500/10', label: 'Failed' },
+  blocked: { icon: AlertCircle, color: 'text-amber-500', bg: 'bg-amber-500/10', label: 'Blocked' },
   retrying: { icon: RefreshCw, color: 'text-chart-5', bg: 'bg-chart-5/10', label: 'Retrying', spin: true },
 }
 
@@ -123,7 +123,7 @@ export function Swarm() {
               key={p.id}
               onClick={() => setActivePreset(p)}
               className={cn(
-                'text-left p-4 rounded-[2px] border transition-all',
+                'text-left p-4 rounded-lg border transition-all',
                 activePreset.id === p.id
                   ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
                   : 'border-border hover:border-primary/40 hover:bg-muted/30'
@@ -231,17 +231,17 @@ export function Swarm() {
                         transition={{ delay: i * 0.05 }}
                         whileHover={{ scale: 1.03 }}
                         className={cn(
-                          'relative p-3 rounded-[2px] border-2 text-left transition-colors bg-card',
+                          'relative p-3 rounded-lg border-2 text-left transition-colors bg-card',
                           selectedWorker?.id === w.id
                             ? 'border-primary'
                             : 'border-border hover:border-primary/40',
                           w.status === 'running' && 'border-chart-2/50 shadow-lg shadow-chart-2/20',
-                          w.status === 'done' && 'border-[color-mix(in_srgb,var(--gp-tradable-ink)_30%,transparent)]'
+                          w.status === 'done' && 'border-emerald-500/30'
                         )}
                         style={{ minHeight: 88 }}
                       >
                         <div className="flex items-start justify-between mb-2">
-                          <div className={cn('w-7 h-7 rounded-[2px] flex items-center justify-center', meta.bg)}>
+                          <div className={cn('w-7 h-7 rounded-full flex items-center justify-center', meta.bg)}>
                             <Icon className={cn('w-3.5 h-3.5', meta.color, meta.spin && 'animate-spin')} />
                           </div>
                           <span className="text-[10px] text-muted-foreground">#{i + 1}</span>
@@ -302,7 +302,7 @@ export function Swarm() {
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground mb-1">Output</div>
-                      <div className="p-3 rounded-[2px] bg-muted/40 text-sm leading-relaxed">
+                      <div className="p-3 rounded-md bg-muted/40 text-sm leading-relaxed">
                         {selectedWorker.output || 'Worker has not produced output yet.'}
                       </div>
                     </div>

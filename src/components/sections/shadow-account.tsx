@@ -72,21 +72,21 @@ function parseCsv(text: string) {
 }
 
 const STATUS_STYLES = {
-  good: { icon: CheckCircle2, color: 'gp-pos' },
-  warning: { icon: AlertTriangle, color: 'gp-warn' },
-  bad: { icon: XCircle, color: 'gp-neg' },
+  good: { icon: CheckCircle2, color: 'text-emerald-500' },
+  warning: { icon: AlertTriangle, color: 'text-amber-500' },
+  bad: { icon: XCircle, color: 'text-rose-500' },
 }
 
 const SEVERITY_STYLES = {
-  low: 'gp-tint-pos gp-pos',
-  moderate: 'gp-tint-warn gp-warn',
-  high: 'gp-tint-neg gp-neg',
+  low: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+  moderate: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  high: 'bg-rose-500/10 text-rose-600 dark:text-rose-400',
 }
 
 const TYPE_COLORS = {
   entry: 'bg-chart-1/10 text-chart-1',
   exit: 'bg-chart-4/10 text-chart-4',
-  risk: 'gp-tint-warn gp-warn',
+  risk: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
   filter: 'bg-chart-2/10 text-chart-2',
 }
 
@@ -195,7 +195,7 @@ export function ShadowAccount() {
                 value={csv}
                 onChange={(e) => setCsv(e.target.value)}
                 spellCheck={false}
-                className="w-full h-72 p-3 rounded-[2px] border border-input bg-background font-mono text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                className="w-full h-72 p-3 rounded-md border border-input bg-background font-mono text-xs resize-none focus:outline-none focus:ring-2 focus:ring-ring"
               />
 
               <div className="text-xs text-muted-foreground">
@@ -221,7 +221,7 @@ export function ShadowAccount() {
               </Button>
 
               {error && (
-                <div className="p-2.5 rounded-[2px] gp-tint-neg gp-neg text-xs">
+                <div className="p-2.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs">
                   {error}
                 </div>
               )}
@@ -238,13 +238,13 @@ export function ShadowAccount() {
                 {result ? (
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     <p className="text-sm text-muted-foreground mb-4">{result.summary}</p>
-                    <ScrollArea className="h-72">
+                    <ScrollArea className="max-h-72">
                       <div className="space-y-2">
                         {result.metrics.map((m) => {
                           const s = STATUS_STYLES[m.status]
                           const Icon = s.icon
                           return (
-                            <div key={m.metric} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
+                            <div key={m.metric} className="flex items-start gap-2 p-2.5 rounded-md bg-muted/30">
                               <Icon className={cn('w-4 h-4 mt-0.5 shrink-0', s.color)} />
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export function ShadowAccount() {
                       const s = STATUS_STYLES[m.status]
                       const Icon = s.icon
                       return (
-                        <div key={m.metric} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
+                        <div key={m.metric} className="flex items-start gap-2 p-2.5 rounded-md bg-muted/30">
                           <Icon className={cn('w-4 h-4 mt-0.5 shrink-0', s.color)} />
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
@@ -299,15 +299,15 @@ export function ShadowAccount() {
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
-                  <AlertTriangle className="w-4 h-4 gp-warn" />
+                  <AlertTriangle className="w-4 h-4 text-amber-500" />
                   Detected Biases
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-80">
+                <ScrollArea className="max-h-80">
                   <div className="space-y-3">
                     {result.biases.map((b) => (
-                      <div key={b.name} className="p-3 rounded-[2px] border border-border">
+                      <div key={b.name} className="p-3 rounded-md border border-border">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-semibold text-sm">{b.name}</span>
                           <Badge variant="secondary" className={cn('text-[10px] capitalize', SEVERITY_STYLES[b.severity])}>
@@ -315,7 +315,7 @@ export function ShadowAccount() {
                           </Badge>
                         </div>
                         <div className="text-xs text-muted-foreground mb-2">{b.evidence}</div>
-                        <div className="text-xs p-2 rounded-[2px] gp-tint-pos gp-pos">
+                        <div className="text-xs p-2 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
                           <strong>Fix:</strong> {b.fix}
                         </div>
                       </div>
@@ -333,10 +333,10 @@ export function ShadowAccount() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <ScrollArea className="h-80">
+                <ScrollArea className="max-h-80">
                   <div className="space-y-2">
                     {result.extractedRules.map((r, i) => (
-                      <div key={i} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
+                      <div key={i} className="flex items-start gap-2 p-2.5 rounded-md bg-muted/30">
                         <Badge variant="secondary" className={cn('text-[10px] capitalize shrink-0', TYPE_COLORS[r.type])}>
                           {r.type}
                         </Badge>
@@ -348,7 +348,7 @@ export function ShadowAccount() {
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="mt-4 p-3 rounded-[2px] bg-primary/5 border border-primary/20">
+                <div className="mt-4 p-3 rounded-md bg-primary/5 border border-primary/20">
                   <div className="text-xs font-semibold text-primary mb-1">Coach Recommendation</div>
                   <p className="text-xs text-muted-foreground leading-relaxed">{result.recommendation}</p>
                 </div>
@@ -364,7 +364,7 @@ export function ShadowAccount() {
               <CardTitle className="text-base">Sample Trade History</CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="h-64">
+              <ScrollArea className="max-h-64">
                 <table className="w-full text-sm">
                   <thead className="text-xs text-muted-foreground">
                     <tr>
@@ -383,13 +383,13 @@ export function ShadowAccount() {
                         <td className="py-2 text-xs tabular-nums">{t.date}</td>
                         <td className="py-2 font-semibold">{t.symbol}</td>
                         <td className="py-2">
-                          <span className={cn('text-xs font-medium', t.side === 'BUY' ? 'gp-pos' : 'gp-neg')}>
+                          <span className={cn('text-xs font-medium', t.side === 'BUY' ? 'text-emerald-500' : 'text-rose-500')}>
                             {t.side}
                           </span>
                         </td>
                         <td className="py-2 text-right tabular-nums">{t.qty}</td>
                         <td className="py-2 text-right tabular-nums">${t.price.toFixed(2)}</td>
-                        <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'gp-pos' : t.pnl < 0 ? 'gp-neg' : 'text-muted-foreground')}>
+                        <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'text-emerald-500' : t.pnl < 0 ? 'text-rose-500' : 'text-muted-foreground')}>
                           {t.pnl === 0 ? '—' : `${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}`}
                         </td>
                         <td className="py-2 text-right tabular-nums text-muted-foreground">{t.holdingDays || '—'}</td>

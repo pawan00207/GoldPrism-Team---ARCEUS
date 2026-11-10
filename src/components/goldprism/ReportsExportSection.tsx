@@ -1,46 +1,20 @@
 'use client'
 
 import * as React from 'react'
-import { Download } from 'lucide-react'
+import {
+  Download,
+  FileCheck2,
+  FileDown,
+  FileJson,
+  FileSpreadsheet,
+  FileText,
+  Hash,
+} from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { DataTag, SectionHead } from '@/components/goldprism/brand'
 import { CLEAN_MCX_BHAVCOPY_CSV, generateWalkForwardHistory } from '@/lib/goldprism/fixtures'
 import { rankBestVehicleForExposure } from '@/lib/goldprism/signal'
-
-const EXPORTS = [
-  {
-    id: 'bhavcopy',
-    type: 'CSV',
-    title: 'Normalized bhavcopy',
-    description:
-      'Cleaned MCX settlement prices converted to a 999-fine ₹/g basis, with volume and open-interest flags.',
-    filename: 'goldprism_bhavcopy_normalized.csv',
-  },
-  {
-    id: 'backtest',
-    type: 'CSV',
-    title: 'Walk-forward backtest',
-    description:
-      'Monthly gross alpha, net returns and drawdown metrics for the calendar-spread strategy.',
-    filename: 'goldprism_walkforward_backtest.csv',
-  },
-  {
-    id: 'vehicles',
-    type: 'CSV',
-    title: 'Best-vehicle rankings',
-    description:
-      'Ranked lot sizes, exposure mismatch percentages and total friction for a 50 g target exposure.',
-    filename: 'goldprism_best_vehicle_ranking_50g.csv',
-  },
-  {
-    id: 'manifest',
-    type: 'JSON',
-    title: 'Audit run manifest',
-    description:
-      'Machine-readable config hashes, parameters and reproducibility seeds for the frozen run.',
-    filename: 'goldprism_audit_manifest.json',
-  },
-] as const
 
 export function ReportsExportSection() {
   const triggerDownload = (filename: string, content: string, contentType: string) => {
@@ -86,7 +60,8 @@ export function ReportsExportSection() {
   const exportManifest = () => {
     const manifest = {
       project: 'GoldPrism — Prism That Explains Scattered Gold',
-      dataMode: 'Synthetic fixture · 20 Mar 2026',
+      team: 'ARCEUS',
+      event: "Hack in Hills '26 — Track 03: Commodity Derivatives Intelligence",
       runId: 'GP-A84F2B01',
       engineVersion: '1.0.0-auditable',
       timestamp: new Date().toISOString(),
@@ -97,71 +72,104 @@ export function ReportsExportSection() {
       provenanceHash: 'sha256_bhavcopy_clean_20260320_verified',
       auditStatus: 'PASS',
     }
-    triggerDownload(
-      'goldprism_audit_manifest.json',
-      JSON.stringify(manifest, null, 2),
-      'application/json'
-    )
-  }
-
-  const actions: Record<string, () => void> = {
-    bhavcopy: exportBhavcopy,
-    backtest: exportBacktest,
-    vehicles: exportBestVehicle,
-    manifest: exportManifest,
+    triggerDownload('goldprism_audit_manifest.json', JSON.stringify(manifest, null, 2), 'application/json')
   }
 
   return (
-    <section id="reports" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
-        <SectionHead
-          index="03.2"
-          eyebrow="Audit trail · Reports"
-          title="Take the record with you."
-          description="Download the raw audit artifacts: validated bhavcopy, backtest time series, vehicle rankings and the frozen configuration manifest."
-          aside={<DataTag synthetic detail="fixture run" />}
-        />
-
-        <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
-          {EXPORTS.map((item) => (
-            <article key={item.id} className="flex flex-col justify-between bg-card p-4">
-              <div>
-                <div className="flex items-center justify-between gap-3">
-                  <span className="gp-tag gp-tag--neutral shrink-0">{item.type}</span>
-                  <span
-                    title={item.filename}
-                    className="min-w-0 truncate font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground"
-                  >
-                    {item.filename}
-                  </span>
-                </div>
-
-                <h3 className="gp-serif mt-4 text-xl leading-tight">{item.title}</h3>
-                <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-                  {item.description}
-                </p>
-              </div>
-
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={actions[item.id]}
-                className="mt-6 w-full"
-              >
-                <Download className="h-3.5 w-3.5" aria-hidden="true" />
-                Download {item.type}
-              </Button>
-            </article>
-          ))}
+    <section id="reports" className="py-12 scroll-mt-16 border-b border-border/40">
+      <div className="container mx-auto px-4 max-w-7xl">
+        <div className="mb-8">
+          <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
+            <FileDown className="w-3 h-3 text-amber-400" /> Phase 06: Auditable Reports & Exports
+          </Badge>
+          <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
+            Research Manifest & Data Exports
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Download raw audit artifacts, validation reports, backtest time series, and configuration manifests.
+          </p>
         </div>
 
-        <div className="mt-8 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            All exports are generated from the frozen fixture run
-          </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            No live market feed is used
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4 bg-card/60 border-border/80 flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-3">
+                <FileSpreadsheet className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-foreground text-sm">Normalized Bhavcopy CSV</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Cleaned MCX settlement prices converted into 999-fine ₹/g basis with volume &amp; OI flags.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportBhavcopy}
+              className="mt-4 gap-1.5 border-border/80 text-xs font-mono"
+            >
+              <Download className="w-3.5 h-3.5" /> Download CSV
+            </Button>
+          </Card>
+
+          <Card className="p-4 bg-card/60 border-border/80 flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center mb-3">
+                <FileText className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-foreground text-sm">Walk-Forward Backtest</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Monthly gross alpha, net returns, and drawdown metrics for the calendar spread strategy.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportBacktest}
+              className="mt-4 gap-1.5 border-border/80 text-xs font-mono"
+            >
+              <Download className="w-3.5 h-3.5" /> Download CSV
+            </Button>
+          </Card>
+
+          <Card className="p-4 bg-card/60 border-border/80 flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center mb-3">
+                <FileCheck2 className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-foreground text-sm">Best-Vehicle Rankings</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Ranked comparison of lot sizes, mismatch percentages, and total friction for target exposures.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportBestVehicle}
+              className="mt-4 gap-1.5 border-border/80 text-xs font-mono"
+            >
+              <Download className="w-3.5 h-3.5" /> Download CSV
+            </Button>
+          </Card>
+
+          <Card className="p-4 bg-card/60 border-border/80 flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+            <div>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center mb-3">
+                <FileJson className="w-4 h-4" />
+              </div>
+              <h3 className="font-bold text-foreground text-sm">Audit Run Manifest</h3>
+              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                Machine-readable JSON manifest containing config hashes, parameters, and reproducibility seeds.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={exportManifest}
+              className="mt-4 gap-1.5 border-border/80 text-xs font-mono"
+            >
+              <Download className="w-3.5 h-3.5" /> Download JSON
+            </Button>
+          </Card>
         </div>
       </div>
     </section>

@@ -13,18 +13,18 @@ import { cn } from '@/lib/utils'
 import { ALPHAS, type Alpha, familyStats, categoryStats } from '@/lib/alphas'
 
 const FAMILY_META: Record<string, { icon: any; color: string; label: string }> = {
-  Qlib158: { icon: Atom, color: 'var(--foreground)', label: 'Qlib158' },
-  alpha101: { icon: Layers, color: 'color-mix(in srgb, var(--foreground) 70%, var(--muted-foreground))', label: 'alpha101' },
-  GTJA191: { icon: FlaskConical, color: 'color-mix(in srgb, var(--foreground) 45%, var(--muted-foreground))', label: 'GTJA191' },
-  Academic: { icon: GraduationCap, color: 'color-mix(in srgb, var(--foreground) 25%, var(--muted-foreground))', label: 'Academic' },
-  'GoldPrism-Commodity': { icon: Atom, color: 'var(--gp-gold-ink)', label: 'GoldPrism Commodity' },
+  Qlib158: { icon: Atom, color: 'oklch(0.96 0.002 240)', label: 'Qlib158' },
+  alpha101: { icon: Layers, color: 'oklch(0.70 0.005 240)', label: 'alpha101' },
+  GTJA191: { icon: FlaskConical, color: 'oklch(0.55 0.005 240)', label: 'GTJA191' },
+  Academic: { icon: GraduationCap, color: 'oklch(0.40 0.005 240)', label: 'Academic' },
+  'GoldPrism-Commodity': { icon: Atom, color: '#D4AF37', label: 'GoldPrism Commodity' },
 }
 
 const STATUS_COLORS = {
-  live: 'gp-pos gp-tint-pos',
-  'alive-reversed': 'gp-warn gp-tint-warn',
-  dead: 'gp-neg gp-tint-neg',
-  experimental: 'text-muted-foreground bg-muted',
+  live: 'text-emerald-500 bg-emerald-500/10',
+  'alive-reversed': 'text-amber-500 bg-amber-500/10',
+  dead: 'text-rose-500 bg-rose-500/10',
+  experimental: 'text-chart-2 bg-chart-2/10',
 }
 
 export function AlphaZoo() {
@@ -46,7 +46,6 @@ export function AlphaZoo() {
 
   const famStats = familyStats()
   const catStats = categoryStats()
-  const maxCategoryCount = Math.max(...catStats.map((c) => c.count), 1)
 
   return (
     <section id="alphas" className="py-16 md:py-24 scroll-mt-16">
@@ -71,7 +70,7 @@ export function AlphaZoo() {
         </motion.div>
 
         {/* Family stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {famStats.map((f) => {
             const meta = FAMILY_META[f.family as keyof typeof FAMILY_META]
             const Icon = meta.icon
@@ -110,15 +109,14 @@ export function AlphaZoo() {
                 <XAxis dataKey="category" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" height={50} />
                 <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip
-                  contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 2, fontSize: 12 }}
+                  contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
                   cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
                 />
-                <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
                   {catStats.map((c, i) => {
-                    // Slag ramp: heavier categories hold more ink.
-                    const intensity = c.count / maxCategoryCount
-                    const fill = `color-mix(in srgb, var(--foreground) ${Math.round(22 + intensity * 58)}%, var(--muted))`
-                    return <Cell key={i} fill={fill} />
+                    // Grayscale gradient across categories
+                    const lightness = 0.95 - (i / catStats.length) * 0.55
+                    return <Cell key={i} fill={`oklch(${lightness.toFixed(2)} 0.005 240)`} />
                   })}
                 </Bar>
               </BarChart>
@@ -181,7 +179,7 @@ export function AlphaZoo() {
                         key={a.id}
                         onClick={() => setSelected(a)}
                         className={cn(
-                          'w-full text-left p-3 rounded-[2px] border transition-all',
+                          'w-full text-left p-3 rounded-lg border transition-all',
                           isSelected
                             ? 'border-primary bg-primary/5'
                             : 'border-border hover:border-primary/40 hover:bg-muted/30'
@@ -215,7 +213,7 @@ export function AlphaZoo() {
                           </span>
                           <span>
                             <span className="text-muted-foreground">MaxDD </span>
-                            <span className="font-mono gp-neg">{a.maxDrawdown.toFixed(1)}%</span>
+                            <span className="font-mono text-rose-500">{a.maxDrawdown.toFixed(1)}%</span>
                           </span>
                         </div>
                       </button>
@@ -245,7 +243,7 @@ export function AlphaZoo() {
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground mb-1">Formula</div>
-                    <pre className="text-xs font-mono bg-muted p-3 rounded-[2px] overflow-x-auto whitespace-pre-wrap break-all">
+                    <pre className="text-xs font-mono bg-muted p-3 rounded-md overflow-x-auto whitespace-pre-wrap break-all">
                       {selected.formula}
                     </pre>
                   </div>
@@ -282,7 +280,7 @@ export function AlphaZoo() {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="p-2 rounded-[2px] bg-muted/40">
+    <div className="p-2 rounded-md bg-muted/40">
       <div className="text-xs text-muted-foreground">{label}</div>
       <div className="text-sm font-mono font-medium tabular-nums">{value}</div>
     </div>

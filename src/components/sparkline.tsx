@@ -23,6 +23,8 @@ export function Sparkline({
   showArea = true,
   strokeWidth = 1.5,
 }: SparklineProps) {
+  const gradId = React.useId()
+
   if (!data || data.length === 0) return null
 
   const min = Math.min(...data)
@@ -43,7 +45,7 @@ export function Sparkline({
   const areaPath = `${path} L ${width},${height} L 0,${height} Z`
 
   const isUp = data[data.length - 1] >= data[0]
-  const stroke = color ?? (isUp ? 'var(--gp-tradable-ink)' : 'var(--gp-blocked-ink)')
+  const stroke = color ?? (isUp ? 'var(--foreground)' : 'oklch(0.7 0.22 16)')
 
   return (
     <svg
@@ -53,7 +55,17 @@ export function Sparkline({
       className={cn('overflow-visible', className)}
       preserveAspectRatio="none"
     >
-      {showArea && <path d={areaPath} fill={stroke} fillOpacity="0.14" />}
+      {showArea && (
+        <>
+          <defs>
+            <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={stroke} stopOpacity="0.25" />
+              <stop offset="100%" stopColor={stroke} stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          <path d={areaPath} fill={`url(#${gradId})`} />
+        </>
+      )}
       <path
         d={path}
         fill="none"

@@ -123,7 +123,7 @@ export function Hero() {
                   <span className="font-semibold text-sm">{s.name}</span>
                   <span
                     className={`text-xs font-medium ${
-                      s.change >= 0 ? 'gp-pos' : 'gp-neg'
+                      s.change >= 0 ? 'text-emerald-500' : 'text-rose-500'
                     }`}
                   >
                     {s.change >= 0 ? '+' : ''}

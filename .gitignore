@@ -61,6 +61,3 @@ server.log
 /examples/
 /mini-services/
 /Caddyfile
-
-# brand kit (not part of the project)
-/GoldPrism Brand Kit.html/

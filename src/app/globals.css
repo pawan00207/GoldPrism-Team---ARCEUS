@@ -6,9 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-sans);
-  --font-serif: var(--font-plex-serif);
-  --font-mono: var(--font-plex-mono);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -38,745 +37,98 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 2px;
-  --radius-md: 2px;
-  --radius-lg: 2px;
-  --radius-xl: 2px;
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
 /* ============================================================
-   GOLDPRISM BRAND TOKENS — Brand Kit GP-02 · GP-09 · GP-14
-   A prism splits one beam. An assay tells you what is pure.
+   LIGHT THEME — clean white / near-black, monochrome accents
    ============================================================ */
 :root {
-  --radius: 2px;
-
-  /* Golden ratio */
-  --gp-phi: 1.618;
-  --gp-phi-fr: 1.618fr;
-  --gp-phi-inverse: 0.618fr;
-  --gp-main: 61.8%;
-  --gp-aside: 38.2%;
-
-  /* Slag ramp — neutral: text, rules, raw gap, everything explained away */
-  --gp-slag-50: #F0EADB;
-  --gp-slag-100: #E4DCC8;
-  --gp-slag-200: #CBC1A8;
-  --gp-slag-300: #A89F8C;
-  --gp-slag-400: #8A8272;
-  --gp-slag-500: #6F6859;
-  --gp-slag-600: #524C40;
-  --gp-slag-700: #443F35;
-  --gp-slag-800: #3A352C;
-  --gp-slag-900: #14110D;
-
-  /* Gold ramp — residual that survives costs. Fills only. 600+ for text. */
-  --gp-gold-50: #F8F1E0;
-  --gp-gold-100: #F4E8CA;
-  --gp-gold-200: #EBD49F;
-  --gp-gold-300: #E2C173;
-  --gp-gold-400: #D9AD48;
-  --gp-gold-500: #D09A1C;
-  --gp-gold-600: #A67B19;
-  --gp-gold-700: #7B5C15;
-  --gp-gold-800: #513E12;
-  --gp-gold-900: #271F0E;
-
-  /* Verdigris — tradable */
-  --gp-verd-50: #EDEEE4;
-  --gp-verd-100: #D7E0D5;
-  --gp-verd-200: #ADC4B5;
-  --gp-verd-300: #83A896;
-  --gp-verd-400: #588B76;
-  --gp-verd-500: #2E6F57;
-  --gp-verd-600: #285A46;
-  --gp-verd-700: #224536;
-  --gp-verd-800: #1C3025;
-  --gp-verd-900: #171A14;
-
-  /* Flux — watch */
-  --gp-flux-500: #D98B2B;
-  --gp-flux-600: #AD7024;
-  --gp-flux-700: #80541E;
-
-  /* Oxide — blocked, bad data */
-  --gp-oxide-500: #A23A24;
-  --gp-oxide-400: #B4614E;
-  --gp-oxide-600: #82311F;
-
-  /* Named brand values */
-  --gp-crucible: #14110D;
-  --gp-paper: #F0EADB;
-  --gp-vellum: #E4DCC8;
-  --gp-rule: #CBC1A8;
-  --gp-gold: #D09A1C;
-  --gp-gold-text: #7A5608;
-  --gp-gold-deep: #7A5608;
-  --gp-tradable: #2E6F57;
-  --gp-tradable-d: #4FA383;
-  --gp-watch: #A8610F;
-  --gp-watch-d: #D98B2B;
-  --gp-blocked: #A23A24;
-  --gp-blocked-d: #D9644A;
-
-  /* Foil finish — rare by rule: one element per screen */
-  --gp-foil: linear-gradient(115deg, #8A5F0B, #D09A1C 16%, #F6D983 36%, #FFF3C4 46%, #D9A62E 58%, #9A6B10 78%, #C99318);
-  --gp-ease-foil: cubic-bezier(.16, 1, .3, 1);
-  --gp-dur-foil: 900ms;
-
-  /* Semantic, contrast-safe ink per ground */
-  --gp-ink: var(--gp-slag-900);
-  --gp-muted-ink: var(--gp-slag-600);
-  --gp-meta-ink: var(--gp-slag-500);
-  --gp-surface: var(--gp-vellum);
-  --gp-hairline: var(--gp-rule);
-  --gp-gold-ink: var(--gp-gold-text);
-  --gp-tradable-ink: var(--gp-tradable);
-  --gp-watch-ink: var(--gp-watch);
-  --gp-blocked-ink: var(--gp-blocked);
-
-  /* Motion — six movements, nothing else moves */
-  --gp-ease-weight: cubic-bezier(.2, .7, .2, 1);
-  --gp-dur-press: 120ms;
-  --gp-dur-base: 240ms;
-  --gp-dur-slow: 600ms;
-  --gp-dur-scan: 2400ms;
-
-  /* Shape — depth comes from rules, not blur */
-  --gp-radius: 2px;
-  --gp-rule-width: 1px;
-  --gp-hard-shadow: 6px 6px 0 var(--gp-slag-900);
-  --gp-hard-shadow-press: 4px 4px 0 var(--gp-slag-900);
-
-  /* Type — one family, three voices */
-  --gp-ledger: var(--font-plex-serif), "IBM Plex Serif", Georgia, serif;
-  --gp-clerk: var(--font-plex-sans), "IBM Plex Sans", "Segoe UI", sans-serif;
-  --gp-instrument: var(--font-plex-mono), "IBM Plex Mono", Consolas, monospace;
-
-  /* App surfaces */
-  --background: var(--gp-paper);
-  --foreground: var(--gp-slag-900);
-  --card: var(--gp-vellum);
-  --card-foreground: var(--gp-slag-900);
-  --popover: var(--gp-paper);
-  --popover-foreground: var(--gp-slag-900);
-  --primary: var(--gp-slag-900);
-  --primary-foreground: var(--gp-paper);
-  --secondary: var(--gp-vellum);
-  --secondary-foreground: var(--gp-slag-900);
-  --muted: var(--gp-vellum);
-  --muted-foreground: var(--gp-slag-600);
-  --accent: #EBD49F;
-  --accent-foreground: var(--gp-slag-900);
-  --destructive: var(--gp-blocked);
-  --border: var(--gp-rule);
-  --input: var(--gp-rule);
-  --ring: var(--gp-gold-text);
-  --chart-1: var(--gp-gold);
-  --chart-2: var(--gp-slag-800);
-  --chart-3: var(--gp-slag-500);
-  --chart-4: var(--gp-blocked);
-  --chart-5: var(--gp-tradable);
-  --sidebar: var(--gp-vellum);
-  --sidebar-foreground: var(--gp-slag-900);
-  --sidebar-primary: var(--gp-slag-900);
-  --sidebar-primary-foreground: var(--gp-paper);
-  --sidebar-accent: var(--gp-paper);
-  --sidebar-accent-foreground: var(--gp-slag-900);
-  --sidebar-border: var(--gp-rule);
-  --sidebar-ring: var(--gp-gold-text);
+  --radius: 0.75rem;
+  --background: oklch(0.99 0.001 240);
+  --foreground: oklch(0.18 0.005 240);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.005 240);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.005 240);
+  --primary: oklch(0.22 0.005 240);
+  --primary-foreground: oklch(0.99 0 0);
+  --secondary: oklch(0.96 0.003 240);
+  --secondary-foreground: oklch(0.22 0.005 240);
+  --muted: oklch(0.96 0.003 240);
+  --muted-foreground: oklch(0.50 0.005 240);
+  --accent: oklch(0.93 0.003 240);
+  --accent-foreground: oklch(0.18 0.005 240);
+  --destructive: oklch(0.62 0.24 16);
+  --border: oklch(0.91 0.003 240);
+  --input: oklch(0.92 0.003 240);
+  --ring: oklch(0.30 0.005 240);
+  --chart-1: oklch(0.30 0.005 240);
+  --chart-2: oklch(0.55 0.005 240);
+  --chart-3: oklch(0.70 0.005 240);
+  --chart-4: oklch(0.62 0.24 16);
+  --chart-5: oklch(0.40 0.005 240);
+  --sidebar: oklch(0.98 0.002 240);
+  --sidebar-foreground: oklch(0.18 0.005 240);
+  --sidebar-primary: oklch(0.22 0.005 240);
+  --sidebar-primary-foreground: oklch(0.99 0 0);
+  --sidebar-accent: oklch(0.95 0.003 240);
+  --sidebar-accent-foreground: oklch(0.22 0.005 240);
+  --sidebar-border: oklch(0.91 0.003 240);
+  --sidebar-ring: oklch(0.30 0.005 240);
 }
 
-/* Dark ground — Crucible. Paper on crucible, ≈15:1. */
+/* ============================================================
+   DARK THEME — true dark black with subtle warm-white accents
+   ============================================================ */
 .dark {
-  --gp-ink: var(--gp-paper);
-  --gp-muted-ink: var(--gp-slag-300);
-  --gp-meta-ink: var(--gp-slag-300);
-  --gp-surface: color-mix(in srgb, var(--gp-crucible) 88%, var(--gp-paper));
-  --gp-hairline: color-mix(in srgb, var(--gp-paper) 20%, transparent);
-  --gp-gold-ink: var(--gp-gold);
-  --gp-tradable-ink: var(--gp-tradable-d);
-  --gp-watch-ink: var(--gp-watch-d);
-  --gp-blocked-ink: var(--gp-blocked-d);
-  --gp-gold-deep: var(--gp-gold);
-  --gp-hard-shadow: 6px 6px 0 #000000;
-  --gp-hard-shadow-press: 4px 4px 0 #000000;
-
-  --background: var(--gp-crucible);
-  --foreground: var(--gp-paper);
-  --card: var(--gp-surface);
-  --card-foreground: var(--gp-paper);
-  --popover: var(--gp-surface);
-  --popover-foreground: var(--gp-paper);
-  --primary: var(--gp-paper);
-  --primary-foreground: var(--gp-crucible);
-  --secondary: var(--gp-slag-700);
-  --secondary-foreground: var(--gp-paper);
-  --muted: color-mix(in srgb, var(--gp-crucible) 82%, var(--gp-paper));
-  --muted-foreground: var(--gp-slag-300);
-  --accent: var(--gp-gold-800);
-  --accent-foreground: var(--gp-paper);
-  --destructive: var(--gp-blocked-d);
-  --border: var(--gp-hairline);
-  --input: var(--gp-hairline);
-  --ring: var(--gp-gold);
-  --chart-1: var(--gp-gold);
-  --chart-2: var(--gp-paper);
-  --chart-3: var(--gp-slag-300);
-  --chart-4: var(--gp-blocked-d);
-  --chart-5: var(--gp-tradable-d);
-  --sidebar: var(--gp-surface);
-  --sidebar-foreground: var(--gp-paper);
-  --sidebar-primary: var(--gp-paper);
-  --sidebar-primary-foreground: var(--gp-crucible);
-  --sidebar-accent: var(--gp-slag-700);
-  --sidebar-accent-foreground: var(--gp-paper);
-  --sidebar-border: var(--gp-hairline);
-  --sidebar-ring: var(--gp-gold);
+  --background: oklch(0.10 0.002 240);
+  --foreground: oklch(0.96 0.002 240);
+  --card: oklch(0.14 0.002 240);
+  --card-foreground: oklch(0.96 0.002 240);
+  --popover: oklch(0.13 0.002 240);
+  --popover-foreground: oklch(0.96 0.002 240);
+  --primary: oklch(0.98 0.002 240);
+  --primary-foreground: oklch(0.10 0.002 240);
+  --secondary: oklch(0.20 0.002 240);
+  --secondary-foreground: oklch(0.96 0.002 240);
+  --muted: oklch(0.18 0.002 240);
+  --muted-foreground: oklch(0.62 0.005 240);
+  --accent: oklch(0.22 0.002 240);
+  --accent-foreground: oklch(0.96 0.002 240);
+  --destructive: oklch(0.65 0.22 16);
+  --border: oklch(1 0 0 / 8%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.85 0.002 240);
+  --chart-1: oklch(0.96 0.002 240);
+  --chart-2: oklch(0.70 0.005 240);
+  --chart-3: oklch(0.50 0.005 240);
+  --chart-4: oklch(0.65 0.22 16);
+  --chart-5: oklch(0.35 0.005 240);
+  --sidebar: oklch(0.12 0.002 240);
+  --sidebar-foreground: oklch(0.96 0.002 240);
+  --sidebar-primary: oklch(0.98 0.002 240);
+  --sidebar-primary-foreground: oklch(0.10 0.002 240);
+  --sidebar-accent: oklch(0.20 0.002 240);
+  --sidebar-accent-foreground: oklch(0.96 0.002 240);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.85 0.002 240);
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  html {
-    scroll-behavior: smooth;
-    -webkit-text-size-adjust: 100%;
-  }
-  /* Native controls follow the ground: light on paper, dark in the crucible. */
-  :root {
-    color-scheme: light;
-  }
-  .dark {
-    color-scheme: dark;
-  }
-  select option {
-    background-color: var(--card);
-    color: var(--foreground);
-  }
-  select option:checked {
-    background-color: var(--gp-gold-200);
-    color: var(--gp-slag-900);
-  }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--gp-clerk);
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
-    text-rendering: optimizeLegibility;
-  }
-  h1,
-  h2,
-  h3 {
-    font-family: var(--gp-ledger);
-    font-weight: 500;
-  }
-  ::selection {
-    background: var(--gp-gold-200);
-    color: var(--gp-slag-900);
-  }
-  :focus-visible {
-    outline: 2px solid var(--gp-ink);
-    outline-offset: 2px;
   }
 }
 
 @layer utilities {
-  /* ---------- Layout · golden ratio, split once ---------- */
-  .gp-section {
-    background: var(--background);
-    color: var(--foreground);
-  }
-  .gp-band {
-    background: var(--background);
-    color: var(--foreground);
-    border-bottom: 1px solid var(--border);
-    padding-block: 3.5rem;
-  }
-  .gp-container {
-    width: 100%;
-    max-width: 1200px;
-    margin-inline: auto;
-    padding-inline: 1rem;
-  }
-  .gp-split {
-    display: grid;
-    gap: 2rem;
-  }
-  @media (min-width: 1024px) {
-    .gp-split {
-      grid-template-columns: minmax(0, var(--gp-main)) minmax(0, var(--gp-aside));
-      gap: 3rem;
-    }
-    .gp-split--reverse {
-      grid-template-columns: minmax(0, var(--gp-aside)) minmax(0, var(--gp-main));
-    }
-  }
-
-  /* ---------- Type · the ledger, the clerk, the instrument ---------- */
-  .gp-kicker {
-    font-family: var(--gp-instrument);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    line-height: 1.3;
-    text-transform: uppercase;
-    color: var(--gp-meta-ink);
-  }
-  .gp-label {
-    font-family: var(--gp-instrument);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    letter-spacing: 0.14em;
-    line-height: 1.3;
-    text-transform: uppercase;
-    color: var(--gp-meta-ink);
-  }
-  .gp-ledger {
-    font-family: var(--gp-ledger);
-    font-weight: 500;
-    letter-spacing: -0.025em;
-    line-height: 1.08;
-  }
-  .gp-title {
-    font-family: var(--gp-ledger);
-    font-weight: 500;
-    letter-spacing: -0.025em;
-    line-height: 1.18;
-    font-size: clamp(1.625rem, 2.6vw, 2.625rem);
-  }
-  .gp-display {
-    font-family: var(--gp-ledger);
-    font-size: clamp(3.25rem, 8vw, 6.25rem);
-    line-height: 0.95;
-    letter-spacing: -0.045em;
-    font-weight: 500;
-  }
-  .gp-clerk {
-    font-family: var(--gp-clerk);
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    color: var(--gp-muted-ink);
-  }
-  .gp-serif {
-    font-family: var(--gp-ledger);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-  .gp-mono,
-  .gp-figure {
-    font-family: var(--gp-instrument);
-    font-variant-numeric: tabular-nums;
-  }
-  .gp-figure {
-    font-weight: 500;
-  }
-  .gp-gold-text {
-    color: var(--gp-gold-ink);
-  }
-  .gp-tradable-text {
-    color: var(--gp-tradable-ink);
-  }
-  .gp-watch-text {
-    color: var(--gp-watch-ink);
-  }
-  .gp-blocked-text {
-    color: var(--gp-blocked-ink);
-  }
-  /* Workspace semantics — same ink as the verdict system. */
-  .gp-pos {
-    color: var(--gp-tradable-ink);
-  }
-  .gp-neg {
-    color: var(--gp-blocked-ink);
-  }
-  .gp-warn {
-    color: var(--gp-watch-ink);
-  }
-  .gp-tint-pos {
-    background-color: color-mix(in srgb, var(--gp-tradable-ink) 12%, transparent);
-  }
-  .gp-tint-neg {
-    background-color: color-mix(in srgb, var(--gp-blocked-ink) 12%, transparent);
-  }
-  .gp-tint-warn {
-    background-color: color-mix(in srgb, var(--gp-watch-ink) 12%, transparent);
-  }
-  .gp-sign {
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
-
-  /* ---------- Surfaces · depth from rules, not blur ---------- */
-  .gp-certificate,
-  .gp-data-card,
-  .gp-panel {
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    background: var(--card);
-    padding: 1.25rem;
-  }
-  .gp-certificate {
-    box-shadow: var(--gp-hard-shadow);
-    transition: transform var(--gp-dur-press) var(--gp-ease-weight),
-      box-shadow var(--gp-dur-press) var(--gp-ease-weight),
-      border-color var(--gp-dur-press) ease;
-  }
-  .gp-certificate:hover,
-  .gp-data-card:hover {
-    border-color: var(--gp-gold-500);
-    box-shadow: var(--gp-hard-shadow-press);
-    transform: translate(2px, 2px);
-  }
-  .gp-certificate--flat {
-    box-shadow: none;
-  }
-  .gp-data-card--accent {
-    border-top: 3px solid var(--gp-gold-500);
-  }
-  .gp-panel {
-    background: color-mix(in srgb, var(--card) 74%, transparent);
-  }
-  .gp-recess {
-    background: color-mix(in srgb, var(--background) 72%, var(--card));
-    border: 1px solid var(--border);
-    border-radius: 2px;
-  }
-
-  /* ---------- Rules ---------- */
-  .gp-rule {
-    border-color: var(--border);
-  }
-  .gp-hairline {
-    border-top: 1px solid var(--border);
-  }
-  .gp-double-rule {
-    border-bottom: 3px double var(--gp-slag-500);
-  }
-  .dark .gp-double-rule {
-    border-bottom-color: var(--gp-slag-300);
-  }
-  .gp-spectral {
-    position: relative;
-    height: 1px;
-    background: var(--border);
-    overflow: visible;
-  }
-  .gp-spectral::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    top: 0;
-    height: 1px;
-    width: 38.2%;
-    background: var(--gp-gold-500);
-  }
-  .gp-tick {
-    box-shadow: inset 4px 0 0 var(--gp-gold-500);
-  }
-  .gp-register-mark {
-    height: 1px;
-    position: absolute;
-    width: 30px;
-  }
-  .gp-register-mark::after {
-    content: "";
-    height: 30px;
-    left: 0;
-    position: absolute;
-    top: 0;
-    width: 1px;
-  }
-  .gp-register-mark--top {
-    background: var(--gp-slag-300);
-    right: 3rem;
-    top: 2rem;
-  }
-  .gp-register-mark--top::after {
-    background: var(--gp-slag-300);
-  }
-
-  /* ---------- Texture · hatch is drawn, not measured ---------- */
-  .gp-hatch {
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0,
-      transparent 4px,
-      color-mix(in srgb, var(--gp-slag-500) 26%, transparent) 4px,
-      color-mix(in srgb, var(--gp-slag-500) 26%, transparent) 5px
-    );
-  }
-  .dark .gp-hatch {
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0,
-      transparent 4px,
-      color-mix(in srgb, var(--gp-slag-300) 30%, transparent) 4px,
-      color-mix(in srgb, var(--gp-slag-300) 30%, transparent) 5px
-    );
-  }
-  .gp-hatch-gold {
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0,
-      transparent 4px,
-      color-mix(in srgb, var(--gp-gold-500) 42%, transparent) 4px,
-      color-mix(in srgb, var(--gp-gold-500) 42%, transparent) 5px
-    );
-  }
-  .gp-hatch-shimmer {
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0,
-      transparent 4px,
-      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 4px,
-      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 5px
-    );
-    background-size: 14px 14px;
-    animation: gp-hatch-shimmer 1.6s linear infinite;
-  }
-  @keyframes gp-hatch-shimmer {
-    from { background-position: 0 0; }
-    to { background-position: 14px 14px; }
-  }
-
-  /* ---------- Foil · gold is a colour, foil is a finish ---------- */
-  .gp-foil {
-    background-image: var(--gp-foil);
-    background-size: 240% 100%;
-    background-position: 0% 50%;
-    color: var(--gp-slag-900);
-    border: 1px solid #8A5F0B;
-    box-shadow: inset 0 1px 0 #FFF3C4, inset 0 -1px 0 #8A5F0B;
-  }
-  .gp-foil:hover,
-  .gp-foil:focus-visible {
-    background-position: 100% 50%;
-    transition: background-position var(--gp-dur-foil) var(--gp-ease-foil);
-  }
-  .gp-foil-band {
-    fill: url(#gp-foil-grad);
-  }
-
-  /* ---------- Buttons · hover turns gold: the one invitation ---------- */
-  .gp-button {
-    align-items: center;
-    background: transparent;
-    border: 1px solid var(--gp-slag-500);
-    border-radius: 2px;
-    color: var(--foreground);
-    display: inline-flex;
-    font-family: var(--gp-instrument);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    gap: 0.5rem;
-    letter-spacing: 0.1em;
-    min-height: 2.75rem;
-    padding: 0.5rem 0.9rem;
-    text-transform: uppercase;
-    transition: background-color var(--gp-dur-press) ease,
-      color var(--gp-dur-press) ease,
-      border-color var(--gp-dur-press) ease,
-      transform var(--gp-dur-press) ease;
-  }
-  .gp-button:hover,
-  .gp-button:focus-visible {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: var(--gp-slag-900);
-  }
-  .gp-button:active {
-    transform: translate(2px, 2px);
-  }
-  .gp-button[aria-pressed="true"],
-  .gp-button--selected {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: var(--gp-slag-900);
-  }
-  .gp-button--quiet {
-    border-color: var(--border);
-    color: var(--gp-muted-ink);
-  }
-  .gp-button--danger:hover {
-    background: var(--gp-blocked);
-    border-color: var(--gp-blocked);
-    color: var(--gp-paper);
-  }
-  .gp-button--primary {
-    background: var(--gp-slag-900);
-    border-color: var(--gp-slag-900);
-    color: var(--gp-paper);
-  }
-  .gp-button--primary:hover {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: var(--gp-slag-900);
-  }
-  .dark .gp-button--primary {
-    background: var(--gp-paper);
-    border-color: var(--gp-paper);
-    color: var(--gp-crucible);
-  }
-
-  /* ---------- Fields · underline, error turns the rule oxide ---------- */
-  .gp-field {
-    background: transparent;
-    border: 0;
-    border-bottom: 1px solid var(--gp-slag-500);
-    border-radius: 0;
-    color: var(--foreground);
-    font-family: var(--gp-instrument);
-    font-variant-numeric: tabular-nums;
-    min-height: 2.75rem;
-    padding: 0.35rem 0;
-    width: 100%;
-  }
-  .gp-field::placeholder {
-    color: var(--gp-meta-ink);
-  }
-  .gp-field:focus {
-    outline: none;
-    border-bottom: 2px solid var(--gp-slag-900);
-  }
-  .dark .gp-field:focus {
-    border-bottom-color: var(--gp-paper);
-  }
-  .gp-field[aria-invalid="true"] {
-    border-bottom-color: var(--gp-blocked);
-  }
-  .gp-select {
-    appearance: none;
-    background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
-      linear-gradient(135deg, currentColor 50%, transparent 50%);
-    background-position: calc(100% - 12px) 55%, calc(100% - 7px) 55%;
-    background-repeat: no-repeat;
-    background-size: 5px 5px, 5px 5px;
-    padding-right: 1.5rem;
-  }
-
-  /* ---------- Tags · verdict survives greyscale ---------- */
-  .gp-tag {
-    align-items: center;
-    border: 1px solid var(--border);
-    border-radius: 2px;
-    display: inline-flex;
-    font-family: var(--gp-instrument);
-    font-size: 0.625rem;
-    font-weight: 500;
-    gap: 0.375rem;
-    letter-spacing: 0.1em;
-    line-height: 1;
-    padding: 0.35rem 0.45rem;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .gp-tag--neutral {
-    color: var(--gp-muted-ink);
-  }
-  .gp-tag--tradable {
-    border-color: color-mix(in srgb, var(--gp-tradable-ink) 45%, var(--border));
-    color: var(--gp-tradable-ink);
-  }
-  .gp-tag--watch {
-    border-color: color-mix(in srgb, var(--gp-watch-ink) 45%, var(--border));
-    color: var(--gp-watch-ink);
-  }
-  .gp-tag--blocked {
-    border-color: color-mix(in srgb, var(--gp-blocked-ink) 45%, var(--border));
-    color: var(--gp-blocked-ink);
-  }
-  .gp-tag--gold {
-    border-color: color-mix(in srgb, var(--gp-gold-500) 55%, var(--border));
-    color: var(--gp-gold-ink);
-  }
-
-  /* ---------- Tables · numbers align or they do not ship ---------- */
-  .gp-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--gp-instrument);
-    font-size: 0.75rem;
-    font-variant-numeric: tabular-nums;
-  }
-  .gp-table thead th {
-    border-bottom: 1px solid var(--gp-slag-500);
-    color: var(--gp-meta-ink);
-    font-size: 0.625rem;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    padding: 0.65rem 0.75rem;
-    text-align: left;
-    text-transform: uppercase;
-    white-space: nowrap;
-  }
-  .gp-table tbody td {
-    border-bottom: 1px solid color-mix(in srgb, var(--border) 65%, transparent);
-    padding: 0.65rem 0.75rem;
-    vertical-align: top;
-  }
-  .gp-table tbody tr:hover {
-    background: color-mix(in srgb, var(--gp-gold-500) 7%, transparent);
-    box-shadow: inset 4px 0 0 var(--gp-gold-500);
-  }
-  .gp-table tfoot td {
-    border-top: 3px double var(--gp-slag-500);
-    font-weight: 500;
-    padding: 0.65rem 0.75rem;
-  }
-  .gp-table .gp-num {
-    text-align: right;
-  }
-
-  /* ---------- Waterfall ---------- */
-  .gp-waterfall-bar {
-    transform-origin: bottom;
-    animation: gp-drop var(--gp-dur-base) var(--gp-ease-weight) both;
-  }
-  @keyframes gp-drop {
-    from { transform: scaleY(0); opacity: 0.35; }
-    to { transform: scaleY(1); opacity: 1; }
-  }
-  .gp-verdict-punch {
-    animation: gp-punch var(--gp-dur-press) ease-out both;
-  }
-  @keyframes gp-punch {
-    from { transform: scale(1.12); }
-    to { transform: scale(1); }
-  }
-  .gp-reveal {
-    animation: gp-reveal 520ms var(--gp-ease-weight) both;
-  }
-  .gp-rise {
-    animation: gp-rise var(--gp-dur-slow) ease-out both;
-  }
-  @keyframes gp-rise {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .gp-stagger > * {
-    animation: gp-reveal 520ms var(--gp-ease-weight) both;
-  }
-  .gp-stagger > *:nth-child(1) { animation-delay: 60ms; }
-  .gp-stagger > *:nth-child(2) { animation-delay: 120ms; }
-  .gp-stagger > *:nth-child(3) { animation-delay: 180ms; }
-  .gp-stagger > *:nth-child(4) { animation-delay: 240ms; }
-  @keyframes gp-reveal {
-    from { opacity: 0; transform: translateY(8px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .gp-scan-line {
-    position: absolute;
-    inset-block: 0;
-    width: 2px;
-    background: var(--gp-gold-500);
-    animation: gp-scan var(--gp-dur-scan) linear infinite;
-  }
-  @keyframes gp-scan {
-    from { left: 0; }
-    to { left: 100%; }
-  }
-
-  /* ---------- Scrollbars ---------- */
   .scrollbar-thin {
     scrollbar-width: thin;
     scrollbar-color: var(--muted-foreground) transparent;
@@ -790,19 +142,34 @@
   }
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: var(--muted-foreground);
-    border-radius: 0;
+    border-radius: 3px;
+    opacity: 0.5;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--foreground);
   }
 
-  /* ---------- Legacy workspace helpers ---------- */
   .grid-bg {
     background-image:
       linear-gradient(to right, var(--border) 1px, transparent 1px),
       linear-gradient(to bottom, var(--border) 1px, transparent 1px);
     background-size: 32px 32px;
   }
+
+  .glow-emerald {
+    box-shadow: 0 0 40px -10px oklch(0.7 0.18 158 / 0.4);
+  }
+  .glow-rose {
+    box-shadow: 0 0 40px -10px oklch(0.7 0.22 16 / 0.5);
+  }
+  .glow-white {
+    box-shadow: 0 0 60px -15px oklch(0.95 0 0 / 0.15);
+  }
+
   .text-balance {
     text-wrap: balance;
   }
+
   .animate-pulse-slow {
     animation: pulse-slow 3s ease-in-out infinite;
   }
@@ -810,6 +177,7 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
   }
+
   .animate-float {
     animation: float 6s ease-in-out infinite;
   }
@@ -817,6 +185,16 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
   }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 8s ease infinite;
+  }
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
   .ticker-track {
     animation: ticker-scroll 60s linear infinite;
   }
@@ -824,73 +202,90 @@
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
   }
+
+  /* ── Trading-app utility classes ── */
+
+  /* Subtle scanline overlay for terminals */
   .scanlines {
     background-image: repeating-linear-gradient(
       to bottom,
       transparent 0px,
       transparent 3px,
-      rgba(0, 0, 0, 0.03) 3px,
-      rgba(0, 0, 0, 0.03) 4px
+      rgba(0,0,0,0.03) 3px,
+      rgba(0,0,0,0.03) 4px
     );
   }
+
+  /* Glow helpers for gold accent */
+  .glow-gold {
+    box-shadow: 0 0 24px -6px oklch(0.78 0.15 85 / 0.45);
+  }
+  .glow-gold-sm {
+    box-shadow: 0 0 12px -4px oklch(0.78 0.15 85 / 0.35);
+  }
+
+  /* Number flash animation (positive) */
   .flash-green {
     animation: flash-green 0.6s ease-out;
   }
   @keyframes flash-green {
-    0% { background-color: color-mix(in srgb, var(--gp-tradable) 25%, transparent); }
+    0% { background-color: oklch(0.70 0.18 158 / 0.25); }
     100% { background-color: transparent; }
   }
+
+  /* Number flash animation (negative) */
   .flash-red {
     animation: flash-red 0.6s ease-out;
   }
   @keyframes flash-red {
-    0% { background-color: color-mix(in srgb, var(--gp-blocked) 25%, transparent); }
+    0% { background-color: oklch(0.70 0.22 16 / 0.25); }
     100% { background-color: transparent; }
   }
+
+  /* Shimmer loading skeleton */
   .shimmer {
-    background: var(--muted);
-    background-image: repeating-linear-gradient(
-      135deg,
-      transparent 0,
-      transparent 4px,
-      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 4px,
-      color-mix(in srgb, var(--gp-slag-500) 20%, transparent) 5px
+    background: linear-gradient(
+      90deg,
+      var(--muted) 0%,
+      oklch(from var(--muted) l c h / 0.6) 50%,
+      var(--muted) 100%
     );
-    background-size: 14px 14px;
-    animation: gp-hatch-shimmer 1.6s linear infinite;
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
   }
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  /* Section accent divider line */
   .section-divider {
     height: 1px;
-    background: var(--border);
+    background: linear-gradient(to right, transparent, oklch(0.78 0.15 85 / 0.3), transparent);
   }
+
+  /* Data terminal monospace table cells */
   .font-terminal {
-    font-family: var(--gp-instrument);
+    font-family: var(--font-geist-mono), 'Courier New', monospace;
     font-variant-numeric: tabular-nums;
     letter-spacing: 0.02em;
   }
+
+  /* Verdict badge ring pulse */
   .verdict-pulse {
     animation: verdict-ring 2s ease-in-out infinite;
   }
   @keyframes verdict-ring {
-    0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gp-gold-500) 50%, transparent); }
-    50% { box-shadow: 0 0 0 6px transparent; }
+    0%, 100% { box-shadow: 0 0 0 0 oklch(0.78 0.15 85 / 0.5); }
+    50% { box-shadow: 0 0 0 6px oklch(0.78 0.15 85 / 0); }
   }
+
+  /* Card hover lift */
   .card-lift {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-lift:hover {
     transform: translateY(-2px);
-    box-shadow: none;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
-    scroll-behavior: auto !important;
-    transition-duration: 1ms !important;
+    box-shadow: 0 8px 24px -6px oklch(0 0 0 / 0.15);
   }
 }
