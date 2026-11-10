@@ -61,11 +61,11 @@ const BLOCK_LIBRARY: Array<{ type: BlockType; name: string; param: string; defau
 ]
 
 const TYPE_META: Record<BlockType, { color: string; icon: typeof Boxes; label: string }> = {
-  entry: { color: 'oklch(0.96 0.002 240)', icon: ArrowRight, label: 'Entry' },
-  exit: { color: 'oklch(0.70 0.005 240)', icon: ArrowRight, label: 'Exit' },
-  risk: { color: 'oklch(0.55 0.005 240)', icon: Settings2, label: 'Risk' },
-  filter: { color: 'oklch(0.85 0.002 240)', icon: Braces, label: 'Filter' },
-  position: { color: 'oklch(0.40 0.005 240)', icon: Boxes, label: 'Position' },
+  entry: { color: 'var(--foreground)', icon: ArrowRight, label: 'Entry' },
+  exit: { color: 'color-mix(in srgb, var(--foreground) 72%, var(--muted-foreground))', icon: ArrowRight, label: 'Exit' },
+  risk: { color: 'var(--gp-watch-ink)', icon: Settings2, label: 'Risk' },
+  filter: { color: 'color-mix(in srgb, var(--foreground) 48%, var(--muted-foreground))', icon: Braces, label: 'Filter' },
+  position: { color: 'color-mix(in srgb, var(--foreground) 28%, var(--muted-foreground))', icon: Boxes, label: 'Position' },
 }
 
 interface BacktestResult {
@@ -193,7 +193,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                           <button
                             key={b.name}
                             onClick={() => addBlock(b)}
-                            className="w-full text-left p-2 rounded-md border border-border hover:border-primary/40 hover:bg-muted/30 transition-colors group"
+                            className="w-full text-left p-2 rounded-[2px] border border-border hover:border-primary/40 hover:bg-muted/30 transition-colors group"
                           >
                             <div className="flex items-center justify-between">
                               <span className="text-sm font-medium">{b.name}</span>
@@ -241,7 +241,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
 
               <div className="space-y-2 min-h-[200px]">
                 {blocks.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground text-sm border-2 border-dashed border-border rounded-lg">
+                  <div className="text-center py-12 text-muted-foreground text-sm border-2 border-dashed border-border rounded-[2px]">
                     Add blocks from the library to start composing.
                   </div>
                 ) : (
@@ -254,10 +254,10 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className="flex items-center gap-2 p-3 rounded-lg border-2 border-border bg-card hover:border-primary/30 transition-colors"
+                        className="flex items-center gap-2 p-3 rounded-[2px] border-2 border-border bg-card hover:border-primary/30 transition-colors"
                         style={{ borderLeftColor: meta.color, borderLeftWidth: 4 }}
                       >
-                        <div className="w-7 h-7 rounded-md flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${meta.color} 15%, transparent)` }}>
+                        <div className="w-7 h-7 rounded-[2px] flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${meta.color} 15%, transparent)` }}>
                           <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
                         </div>
                         <div className="flex-1 min-w-0">
@@ -276,7 +276,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-rose-500"
+                            className="h-8 w-8 text-muted-foreground hover:text-[var(--gp-blocked-ink)]"
                             onClick={() => removeBlock(b.id)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -308,7 +308,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
               </Button>
 
               {error && (
-                <div className="p-2.5 rounded-md bg-rose-500/10 text-rose-600 dark:text-rose-400 text-xs">
+                <div className="p-2.5 rounded-[2px] gp-tint-neg gp-neg text-xs">
                   {error}
                 </div>
               )}
@@ -379,13 +379,13 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                     <ul className="space-y-1.5">
                       {result.observations.map((o, i) => (
                         <li key={i} className="text-xs flex items-start gap-2">
-                          <span className="w-1 h-1 rounded-full bg-primary mt-1.5 shrink-0" />
+                          <span className="w-1 h-1 rounded-[1px] bg-primary mt-1.5 shrink-0" />
                           {o}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="p-3 rounded-md bg-primary/5 border border-primary/20">
+                  <div className="p-3 rounded-[2px] bg-primary/5 border border-primary/20">
                     <div className="text-xs font-semibold text-primary mb-1">Recommendation</div>
                     <p className="text-xs text-muted-foreground leading-relaxed">{result.recommendation}</p>
                   </div>
@@ -417,13 +417,13 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                           <td className="py-2 text-xs tabular-nums">{t.date}</td>
                           <td className="py-2 font-semibold">{t.symbol}</td>
                           <td className="py-2">
-                            <span className={cn('text-xs font-medium', t.side === 'BUY' ? 'text-emerald-500' : 'text-rose-500')}>
+                            <span className={cn('text-xs font-medium', t.side === 'BUY' ? 'gp-pos' : 'gp-neg')}>
                               {t.side}
                             </span>
                           </td>
                           <td className="py-2 text-right tabular-nums">{t.qty}</td>
                           <td className="py-2 text-right tabular-nums">${t.price.toFixed(2)}</td>
-                          <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'text-emerald-500' : t.pnl < 0 ? 'text-rose-500' : 'text-muted-foreground')}>
+                          <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'gp-pos' : t.pnl < 0 ? 'gp-neg' : 'text-muted-foreground')}>
                             {t.pnl === 0 ? '—' : `${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}`}
                           </td>
                           <td className="py-2 text-right tabular-nums text-muted-foreground">{t.holdingDays || '—'}</td>
@@ -443,9 +443,9 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
 
 function MetricBox({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
   return (
-    <div className={cn('p-2 rounded-md border', positive ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-border bg-muted/30')}>
+    <div className={cn('p-2 rounded-[2px] border', positive ? 'border-[color-mix(in_srgb,var(--gp-tradable-ink)_20%,transparent)] bg-[color-mix(in_srgb,var(--gp-tradable-ink)_5%,transparent)]' : 'border-border bg-muted/30')}>
       <div className="text-xs text-muted-foreground">{label}</div>
-      <div className={cn('text-sm font-mono font-semibold tabular-nums', positive ? 'text-emerald-600 dark:text-emerald-400' : '')}>
+      <div className={cn('text-sm font-mono font-semibold tabular-nums', positive ? 'gp-pos' : '')}>
         {value}
       </div>
     </div>

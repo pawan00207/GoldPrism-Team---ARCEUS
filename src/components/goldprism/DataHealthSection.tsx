@@ -1,21 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Database,
-  FileCheck2,
-  FileUp,
-  FileWarning,
-  Hash,
-  RefreshCw,
-  ShieldAlert,
-  ShieldCheck,
-  Upload,
-} from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
+import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   parseAndValidateBhavcopyCsv,
@@ -25,6 +11,9 @@ import {
   CLEAN_MCX_BHAVCOPY_CSV,
   SEEDED_ERROR_BHAVCOPY_CSV,
 } from '@/lib/goldprism/fixtures'
+import { DataTag, SectionHead } from '@/components/goldprism/brand'
+import { inr, inrPerG } from '@/lib/goldprism/format'
+import { cn } from '@/lib/utils'
 
 // Client-only timestamp to avoid SSR hydration mismatch
 function AuditTimestamp({ ts }: { ts: string }) {
@@ -33,11 +22,49 @@ function AuditTimestamp({ ts }: { ts: string }) {
     setLabel(new Date(ts).toLocaleTimeString())
   }, [ts])
   return (
-    <div className="text-[11px] text-muted-foreground mt-2">
-      {label ? `Audited at ${label}` : 'Auditing…'}
-    </div>
+    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+      {label ? `Audited ${label}` : 'Auditing…'}
+    </span>
   )
 }
+
+const GATES = [
+  {
+    step: '1',
+    title: 'Ingest raw CSV',
+    detail: 'Symbol, date, expiry, OHLC, volume, open interest.',
+    state: 'Schema check',
+    tone: 'tradable' as const,
+  },
+  {
+    step: '2',
+    title: 'Date match gate',
+    detail: 'Returned date must equal the requested trade date.',
+    state: 'Reject mismatch + log',
+    tone: 'watch' as const,
+  },
+  {
+    step: '3',
+    title: 'Key integrity',
+    detail: 'Unique key on symbol and expiry date.',
+    state: 'Deduplication gate',
+    tone: 'tradable' as const,
+  },
+  {
+    step: '4',
+    title: 'Settle trust check',
+    detail: 'Volume above 50, otherwise flag THIN_SETTLE.',
+    state: 'Flag artifacts',
+    tone: 'watch' as const,
+  },
+  {
+    step: '5',
+    title: 'Signal & backtest',
+    detail: 'Signal at t, fill at t+1. No look-ahead.',
+    state: 'Proceed to X-Ray',
+    tone: 'tradable' as const,
+  },
+]
 
 export function DataHealthSection({
   onDatasetChange,
@@ -91,250 +118,232 @@ export function DataHealthSection({
     onDatasetChange?.(res)
   }
 
+  const statusTone =
+    ingestionResult.status === 'PASSED'
+      ? 'gp-tag--tradable'
+      : ingestionResult.status === 'FAILED'
+        ? 'gp-tag--blocked'
+        : 'gp-tag--watch'
+
+  const statusLabel =
+    ingestionResult.status === 'PASSED'
+      ? 'Passed'
+      : ingestionResult.status === 'FAILED'
+        ? 'Failed · run blocked'
+        : 'Partial verification'
+
   return (
-    <section id="data-health" className="py-12 scroll-mt-16 border-b border-border/40">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <Badge variant="outline" className="mb-2 gap-1.5 border-amber-500/40 text-amber-300">
-              <Database className="w-3 h-3 text-amber-400" /> Phase 01: Auditable Data Pipeline
-            </Badge>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              Data Health & Ingestion Gates
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Deterministic date-match gates, immutable Parquet schema validation, and SHA-256 provenance tracking.
+    <section id="data-health" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+        <SectionHead
+          index="02.1"
+          eyebrow="Market structure · Data health"
+          title="Trust the file before the figure."
+          description="Deterministic date-match gates, immutable schema validation and SHA-256 provenance. A rejected day stops the sequence here."
+          aside={
+            <div className="flex flex-wrap gap-2 lg:justify-end">
+              <Button variant="outline" size="sm" onClick={loadCleanData}>
+                Load clean bhavcopy
+              </Button>
+              <Button variant="outline" size="sm" onClick={loadSeededFault}>
+                Load seeded fault
+              </Button>
+              <label className="cursor-pointer">
+                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
+                <Button asChild size="sm" variant="default">
+                  <span>
+                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
+                    Upload CSV
+                  </span>
+                </Button>
+              </label>
+            </div>
+          }
+        />
+
+        {/* ---------------- Integrity gates ---------------- */}
+        <div className="mt-10 border border-border">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+            <p className="gp-label">MCX bhavcopy · integrity gates</p>
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              DuckDB / Parquet store
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadCleanData}
-              className="gap-1.5 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10"
+          <ol className="grid gap-px bg-border sm:grid-cols-2 lg:grid-cols-5">
+            {GATES.map((gate) => (
+              <li key={gate.step} className="flex flex-col justify-between bg-card p-4">
+                <div>
+                  <div className="flex items-baseline gap-2">
+                    <span className="gp-figure text-lg text-muted-foreground">{gate.step}</span>
+                    <h3 className="text-sm font-medium leading-tight text-foreground">
+                      {gate.title}
+                    </h3>
+                  </div>
+                  <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                    {gate.detail}
+                  </p>
+                </div>
+                <p
+                  className={cn(
+                    'mt-4 font-mono text-[9px] uppercase tracking-[0.1em]',
+                    gate.tone === 'tradable' ? 'gp-tradable-text' : 'gp-watch-text'
+                  )}
+                >
+                  {gate.state}
+                </p>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        {/* ---------------- Provenance metrics ---------------- */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="border-t-2 border-[var(--gp-slag-900)] pt-3 dark:border-[var(--gp-paper)]">
+            <p className="gp-label">Validation status</p>
+            <div className="mt-3">
+              <span className={cn('gp-tag', statusTone)}>{statusLabel}</span>
+            </div>
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+              {ingestionResult.statusSummary}
+            </p>
+          </div>
+
+          <div className="border-t-2 border-border pt-3">
+            <p className="gp-label">Row counts</p>
+            <p className="gp-figure mt-3 text-2xl">
+              <span className="gp-tradable-text">{ingestionResult.totalRowsValidated}</span>
+              <span className="text-sm font-normal text-muted-foreground">
+                {' '}
+                / {ingestionResult.totalRowsRaw}
+              </span>
+            </p>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Rejected rows{' '}
+              <span className="gp-blocked-text font-medium">{ingestionResult.totalRowsRejected}</span>
+            </p>
+          </div>
+
+          <div className="border-t-2 border-border pt-3">
+            <p className="gp-label">Source provenance</p>
+            <p className="mt-3 truncate font-mono text-xs text-foreground">
+              {ingestionResult.originalFileName}
+            </p>
+            <p
+              className="mt-2 truncate font-mono text-[10px] text-muted-foreground"
+              title={ingestionResult.sha256Hash}
             >
-              <FileCheck2 className="w-4 h-4" />
-              Load Clean Bhavcopy
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={loadSeededFault}
-              className="gap-1.5 border-rose-500/30 text-rose-400 hover:bg-rose-500/10"
-            >
-              <FileWarning className="w-4 h-4" />
-              Load Seeded Fault (Fault Demo)
-            </Button>
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept=".csv"
-                className="hidden"
-                onChange={handleFileUpload}
+              sha256 · {ingestionResult.sha256Hash}
+            </p>
+          </div>
+
+          <div className="gp-hatch border-t-2 border-border pt-3">
+            <p className="gp-label">Data mode</p>
+            <div className="mt-3">
+              <DataTag
+                synthetic={ingestionResult.dataMode === 'HISTORICAL_FIXTURE'}
+                detail={ingestionResult.dataMode === 'HISTORICAL_FIXTURE' ? 'fixture' : 'upload'}
               />
-              <Button asChild size="sm" variant="default" className="gap-1.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold">
-                <span>
-                  <Upload className="w-4 h-4" />
-                  Upload CSV Bhavcopy
-                </span>
-              </Button>
-            </label>
+            </div>
+            <div className="mt-3">
+              <AuditTimestamp ts={ingestionResult.retrievalTimestamp} />
+            </div>
           </div>
         </div>
 
-        {/* Integrity Gates Flowchart Banner */}
-        <Card className="mb-6 p-4 bg-muted/20 border-border/60">
-          <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3 flex items-center justify-between">
-            <span>MCX Bhavcopy Integrity Gate Flowchart (Slide 4 Specification)</span>
-            <span className="font-mono text-[11px] text-amber-400">DuckDB / Parquet Store</span>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-2 text-xs">
-            <div className="p-3 rounded-lg bg-card border border-border/80 flex flex-col justify-between">
-              <div className="font-bold text-foreground">1. Ingest Raw CSV</div>
-              <div className="text-muted-foreground text-[11px] mt-1">Symbol, Date, Expiry, OHLC, Volume, OI</div>
-              <div className="mt-2 text-emerald-400 font-mono text-[10px]">PASS: Schema check</div>
+        {/* ---------------- Records ---------------- */}
+        <div className="mt-10 grid gap-8 lg:grid-cols-2">
+          <div className="min-w-0 border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <h3 className="gp-serif text-base">
+                Validated &amp; normalized records ({ingestionResult.validatedRecords.length})
+              </h3>
+              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                ₹/g · 999 fine
+              </span>
             </div>
-            <div className="p-3 rounded-lg bg-card border border-border/80 flex flex-col justify-between">
-              <div className="font-bold text-foreground">2. Date Match Gate</div>
-              <div className="text-muted-foreground text-[11px] mt-1">Returned date == Requested trade date</div>
-              <div className="mt-2 text-amber-400 font-mono text-[10px]">Reject mismatch + log</div>
-            </div>
-            <div className="p-3 rounded-lg bg-card border border-border/80 flex flex-col justify-between">
-              <div className="font-bold text-foreground">3. Key Integrity</div>
-              <div className="text-muted-foreground text-[11px] mt-1">Unique key: (symbol, expiry_date)</div>
-              <div className="mt-2 text-emerald-400 font-mono text-[10px]">Deduplication gate</div>
-            </div>
-            <div className="p-3 rounded-lg bg-card border border-border/80 flex flex-col justify-between">
-              <div className="font-bold text-foreground">4. Settle Trust Check</div>
-              <div className="text-muted-foreground text-[11px] mt-1">Volume &gt; 50 or flag as THIN_SETTLE</div>
-              <div className="mt-2 text-amber-400 font-mono text-[10px]">Flag artifacts</div>
-            </div>
-            <div className="p-3 rounded-lg bg-card border border-border/80 flex flex-col justify-between">
-              <div className="font-bold text-foreground">5. Signal & Backtest</div>
-              <div className="text-muted-foreground text-[11px] mt-1">Signal at t, fill at t+1 (no look-ahead)</div>
-              <div className="mt-2 text-emerald-400 font-mono text-[10px]">Proceed to X-Ray</div>
-            </div>
-          </div>
-        </Card>
 
-        {/* Provenance & Status Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Pipeline Status</div>
-            <div className="flex items-center gap-2">
-              {ingestionResult.status === 'PASSED' ? (
-                <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 gap-1">
-                  <CheckCircle2 className="w-3 h-3" /> PASSED
-                </Badge>
-              ) : ingestionResult.status === 'FAILED' ? (
-                <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/40 gap-1">
-                  <ShieldAlert className="w-3 h-3" /> FAILED: RUN BLOCKED
-                </Badge>
+            <div className="max-h-72 overflow-auto">
+              {ingestionResult.validatedRecords.length === 0 ? (
+                <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  No validated records in the current dataset.
+                </p>
               ) : (
-                <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/40 gap-1">
-                  <AlertTriangle className="w-3 h-3" /> PARTIAL VERIFICATION
-                </Badge>
+                <table className="gp-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Symbol</th>
+                      <th scope="col">Expiry</th>
+                      <th scope="col" className="gp-num">Quoted</th>
+                      <th scope="col" className="gp-num">Norm ₹/g</th>
+                      <th scope="col" className="gp-num">Volume</th>
+                      <th scope="col">Trust</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ingestionResult.validatedRecords.map((r, i) => (
+                      <tr key={`${r.symbol}-${r.expiryDate}-${i}`}>
+                        <td className="font-medium text-foreground">{r.symbol}</td>
+                        <td className="text-muted-foreground">{r.expiryDate}</td>
+                        <td className="gp-num">{inr(r.settlePrice)}</td>
+                        <td className="gp-num text-foreground">{inrPerG(r.normalizedSettlePerG)}</td>
+                        <td className="gp-num text-muted-foreground">{r.volume}</td>
+                        <td>
+                          <span
+                            className={cn(
+                              'gp-tag',
+                              r.trustStatus === 'VERIFIED'
+                                ? 'gp-tag--tradable'
+                                : 'gp-tag--watch'
+                            )}
+                          >
+                            {r.trustStatus === 'VERIFIED' ? 'OK' : 'Thin'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               )}
             </div>
-            <div className="text-[11px] text-muted-foreground mt-2 truncate">
-              {ingestionResult.statusSummary}
-            </div>
-          </Card>
+          </div>
 
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Row Counts</div>
-            <div className="text-xl font-bold font-mono">
-              <span className="text-emerald-400">{ingestionResult.totalRowsValidated}</span>
-              <span className="text-muted-foreground text-sm font-normal"> / {ingestionResult.totalRowsRaw}</span>
+          <div className="min-w-0 border border-border">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+              <h3 className="gp-serif text-base">
+                Integrity gate rejected rows ({ingestionResult.rejectedRows.length})
+              </h3>
+              <span className="gp-tag gp-tag--blocked">Execution blocked</span>
             </div>
-            <div className="text-[11px] text-muted-foreground mt-2">
-              Rejected rows: <span className="text-rose-400 font-semibold">{ingestionResult.totalRowsRejected}</span>
-            </div>
-          </Card>
 
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Source Provenance</div>
-            <div className="text-sm font-semibold truncate font-mono text-foreground">
-              {ingestionResult.originalFileName}
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-2 flex items-center gap-1 font-mono">
-              <Hash className="w-3 h-3 text-amber-400 shrink-0" />
-              <span className="truncate">{ingestionResult.sha256Hash}</span>
-            </div>
-          </Card>
-
-          <Card className="p-4 bg-card/60 border-border/80">
-            <div className="text-xs text-muted-foreground mb-1">Data Mode</div>
-            <Badge variant="outline" className="border-amber-500/40 text-amber-300 font-mono text-[11px]">
-              {ingestionResult.dataMode}
-            </Badge>
-            <AuditTimestamp ts={ingestionResult.retrievalTimestamp} />
-          </Card>
-        </div>
-
-        {/* Detailed Table: Validated vs Rejected */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Validated Records */}
-          <Card className="min-w-0 border-border/80 bg-card/60">
-            <CardHeader className="py-3 px-4 border-b border-border/60 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                Validated & Normalized Records ({ingestionResult.validatedRecords.length})
-              </CardTitle>
-              <span className="text-xs text-muted-foreground font-mono">₹/g (999 Fine)</span>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-64 overflow-auto">
-                {ingestionResult.validatedRecords.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-muted-foreground">
-                    No validated records in current dataset.
-                  </div>
-                ) : (
-                  <div className="overflow-x-auto">
-                    <table className="min-w-[560px] text-xs">
-                      <thead>
-                        <tr className="border-b border-border/40 text-muted-foreground bg-muted/20">
-                          <th className="py-2 px-3 text-left">Symbol</th>
-                          <th className="py-2 px-3 text-left">Expiry</th>
-                          <th className="py-2 px-3 text-right">Quoted Settle</th>
-                          <th className="py-2 px-3 text-right">Norm Settle (₹/g)</th>
-                          <th className="py-2 px-3 text-right">Volume</th>
-                          <th className="py-2 px-3 text-center">Trust</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ingestionResult.validatedRecords.map((r, i) => (
-                          <tr key={i} className="border-b border-border/20 hover:bg-muted/30">
-                            <td className="py-2 px-3 font-semibold text-foreground">{r.symbol}</td>
-                            <td className="py-2 px-3 font-mono text-muted-foreground">{r.expiryDate}</td>
-                            <td className="py-2 px-3 text-right font-mono tabular-nums">₹{r.settlePrice.toFixed(2)}</td>
-                            <td className="py-2 px-3 text-right font-mono tabular-nums text-amber-300 font-semibold">
-                              ₹{r.normalizedSettlePerG.toFixed(2)}
-                            </td>
-                            <td className="py-2 px-3 text-right font-mono tabular-nums text-muted-foreground">{r.volume}</td>
-                            <td className="py-2 px-3 text-center">
-                              {r.trustStatus === 'VERIFIED' ? (
-                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 font-mono">
-                                  OK
-                                </span>
-                              ) : (
-                                <span className="inline-block px-1.5 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 font-mono">
-                                  THIN
-                                </span>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Rejected Rows Audit */}
-          <Card className="min-w-0 border-border/80 bg-card/60">
-            <CardHeader className="py-3 px-4 border-b border-border/60 flex flex-row items-center justify-between">
-              <CardTitle className="text-sm font-bold flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4 text-rose-400" />
-                Integrity Gate Rejected Rows ({ingestionResult.rejectedRows.length})
-              </CardTitle>
-              <span className="text-xs text-rose-400 font-mono">Execution Blocked</span>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="h-64 overflow-auto">
-                {ingestionResult.rejectedRows.length === 0 ? (
-                  <div className="p-6 text-center text-sm text-emerald-400 flex flex-col items-center justify-center gap-2">
-                    <CheckCircle2 className="w-6 h-6" />
-                    <span>Zero rejection anomalies. All rows passed data integrity gates.</span>
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/20 text-xs">
-                    {ingestionResult.rejectedRows.map((r, i) => (
-                      <div key={i} className="p-3 hover:bg-rose-500/5">
-                        <div className="flex items-center justify-between font-mono mb-1">
-                          <span className="font-bold text-rose-400">Row #{r.lineIndex}: {r.symbol}</span>
-                          <span className="px-1.5 py-0.5 rounded bg-rose-500/10 text-rose-400 text-[10px]">
-                            {r.reasonCode}
-                          </span>
-                        </div>
-                        <p className="text-muted-foreground text-[11px] mb-1">
-                          {r.reasonDescription}
+            <div className="max-h-72 overflow-auto">
+              {ingestionResult.rejectedRows.length === 0 ? (
+                <p className="px-4 py-10 text-center text-sm text-muted-foreground">
+                  Zero rejection anomalies. All rows passed the integrity gates.
+                </p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {ingestionResult.rejectedRows.map((r, i) => (
+                    <li key={`${r.lineIndex}-${i}`} className="px-4 py-3">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="font-mono text-xs text-foreground">
+                          Row #{r.lineIndex} · {r.symbol}
                         </p>
-                        <div className="p-1 rounded bg-black/40 text-[10px] font-mono text-muted-foreground/80 truncate">
-                          {r.rawRow}
-                        </div>
+                        <span className="gp-tag gp-tag--blocked">{r.reasonCode}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+                      <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                        {r.reasonDescription}
+                      </p>
+                      <p className="mt-2 truncate border border-border bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                        {r.rawRow}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
         </div>
-
       </div>
     </section>
   )

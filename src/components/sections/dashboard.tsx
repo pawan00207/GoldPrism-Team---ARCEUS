@@ -47,8 +47,8 @@ import {
 import { Sparkline } from '@/components/sparkline'
 
 const SENTIMENT_COLORS = {
-  bullish: 'text-emerald-500 bg-emerald-500/10',
-  bearish: 'text-rose-500 bg-rose-500/10',
+  bullish: 'gp-pos gp-tint-pos',
+  bearish: 'gp-neg gp-tint-neg',
   neutral: 'text-muted-foreground bg-muted',
 }
 
@@ -71,7 +71,7 @@ function MiniStat({
       <div
         className={cn(
           'flex items-center gap-1 text-xs mt-0.5 tabular-nums',
-          up ? 'text-emerald-500' : 'text-rose-500'
+          up ? 'gp-pos' : 'gp-neg'
         )}
       >
         {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -127,7 +127,7 @@ export function Dashboard() {
                 <div
                   className={cn(
                     'flex items-center gap-0.5 text-xs mt-0.5 tabular-nums',
-                    up ? 'text-emerald-500' : 'text-rose-500'
+                    up ? 'gp-pos' : 'gp-neg'
                   )}
                 >
                   {up ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -155,7 +155,7 @@ export function Dashboard() {
                 <div
                   className={cn(
                     'text-lg font-semibold tabular-nums',
-                    PORTFOLIO_STATS.dayChange >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                    PORTFOLIO_STATS.dayChange >= 0 ? 'gp-pos' : 'gp-neg'
                   )}
                 >
                   {PORTFOLIO_STATS.dayChange >= 0 ? '+' : ''}${Math.abs(PORTFOLIO_STATS.dayChange).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -163,7 +163,7 @@ export function Dashboard() {
                 <div
                   className={cn(
                     'text-xs tabular-nums',
-                    PORTFOLIO_STATS.dayChange >= 0 ? 'text-emerald-500' : 'text-rose-500'
+                    PORTFOLIO_STATS.dayChange >= 0 ? 'gp-pos' : 'gp-neg'
                   )}
                 >
                   {PORTFOLIO_STATS.dayChangePct >= 0 ? '+' : ''}{PORTFOLIO_STATS.dayChangePct.toFixed(2)}%
@@ -173,12 +173,6 @@ export function Dashboard() {
             <CardContent>
               <ResponsiveContainer width="100%" height={240}>
                 <AreaChart data={merged} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="grad-portfolio" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.35} />
-                      <stop offset="100%" stopColor="var(--foreground)" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                   <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
                   <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
@@ -186,12 +180,12 @@ export function Dashboard() {
                     contentStyle={{
                       background: 'var(--popover)',
                       border: '1px solid var(--border)',
-                      borderRadius: 8,
+                      borderRadius: 2,
                       fontSize: 12,
                     }}
                     formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
                   />
-                  <Area type="monotone" dataKey="portfolio" stroke="var(--foreground)" strokeWidth={2} fill="url(#grad-portfolio)" name="Portfolio" />
+                  <Area type="monotone" dataKey="portfolio" stroke="var(--foreground)" strokeWidth={2} fill="var(--gp-slag-300)" fillOpacity={0.22} name="Portfolio" />
                   <Line type="monotone" dataKey="benchmark" stroke="var(--muted-foreground)" strokeWidth={1.5} strokeDasharray="4 4" name="SPY Benchmark" dot={false} />
                   <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
                 </AreaChart>
@@ -229,7 +223,7 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="max-h-80">
+              <ScrollArea className="h-80">
                 <table className="w-full text-sm">
                   <thead className="text-xs text-muted-foreground sticky top-0 bg-card">
                     <tr>
@@ -251,7 +245,7 @@ export function Dashboard() {
                         <td className="text-right tabular-nums">{p.qty}</td>
                         <td className="text-right tabular-nums text-muted-foreground">${p.avgPrice.toFixed(2)}</td>
                         <td className="text-right tabular-nums">${p.currentPrice.toFixed(2)}</td>
-                        <td className={cn('text-right tabular-nums font-medium', p.pnl >= 0 ? 'text-emerald-500' : 'text-rose-500')}>
+                        <td className={cn('text-right tabular-nums font-medium', p.pnl >= 0 ? 'gp-pos' : 'gp-neg')}>
                           {p.pnl >= 0 ? '+' : ''}${p.pnl.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           <div className="text-xs font-normal">
                             ({p.pnlPct >= 0 ? '+' : ''}{p.pnlPct.toFixed(2)}%)
@@ -276,14 +270,14 @@ export function Dashboard() {
                 {SECTORS.map((s) => {
                   const intensity = Math.min(1, Math.abs(s.change) / 3)
                   const bg = s.change >= 0
-                    ? `oklch(0.96 0.002 240 / ${0.15 + intensity * 0.5})`
-                    : `oklch(0.7 0.22 16 / ${0.15 + intensity * 0.5})`
+                    ? `color-mix(in srgb, var(--gp-tradable-ink) ${Math.round((0.15 + intensity * 0.5) * 100)}%, transparent)`
+                    : `color-mix(in srgb, var(--gp-blocked-ink) ${Math.round((0.15 + intensity * 0.5) * 100)}%, transparent)`
                   return (
                     <div key={s.name} className="flex items-center gap-2">
                       <div className="w-28 text-xs truncate">{s.name}</div>
-                      <div className="flex-1 h-6 rounded relative overflow-hidden" style={{ background: 'var(--muted)' }}>
+                      <div className="flex-1 h-6 rounded-[2px] relative overflow-hidden" style={{ background: 'var(--muted)' }}>
                         <div
-                          className="absolute inset-y-0 left-0 rounded flex items-center justify-end px-2 text-xs font-medium"
+                          className="absolute inset-y-0 left-0 rounded-[2px] flex items-center justify-end px-2 text-xs font-medium"
                           style={{
                             width: `${Math.max(8, Math.abs(s.change) * 25)}%`,
                             background: bg,
@@ -310,10 +304,10 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="max-h-80">
+              <ScrollArea className="h-80">
                 <div className="space-y-1">
                   {WATCHLIST.map((w) => (
-                    <div key={w.symbol} className="flex items-center justify-between py-1.5 px-2 rounded hover:bg-muted/40 transition-colors">
+                    <div key={w.symbol} className="flex items-center justify-between py-1.5 px-2 rounded-[2px] hover:bg-muted/40 transition-colors">
                       <div className="flex items-center gap-3 min-w-0">
                         <div className="min-w-0">
                           <div className="font-semibold text-sm">{w.symbol}</div>
@@ -324,7 +318,7 @@ export function Dashboard() {
                         <Sparkline data={w.sparkline} width={48} height={20} showArea={false} />
                         <div className="text-right min-w-[80px]">
                           <div className="text-sm font-medium tabular-nums">${w.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                          <div className={cn('text-xs tabular-nums', w.changePct >= 0 ? 'text-emerald-500' : 'text-rose-500')}>
+                          <div className={cn('text-xs tabular-nums', w.changePct >= 0 ? 'gp-pos' : 'gp-neg')}>
                             {w.changePct >= 0 ? '+' : ''}{w.changePct.toFixed(2)}%
                           </div>
                         </div>
@@ -344,7 +338,7 @@ export function Dashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <ScrollArea className="max-h-80">
+              <ScrollArea className="h-80">
                 <div className="space-y-3">
                   {NEWS_FEED.map((n) => (
                     <div key={n.id} className="pb-3 border-b border-border last:border-0 last:pb-0">
