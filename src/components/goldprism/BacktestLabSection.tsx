@@ -59,7 +59,7 @@ export function BacktestLabSection() {
 
   return (
     <section id="backtest-lab" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="02.6"
           eyebrow="Market structure · Backtest lab"
@@ -189,7 +189,7 @@ export function BacktestLabSection() {
         </div>
 
         {/* ---------------- Charts ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="gp-split mt-10">
           <div className="min-w-0 border border-border bg-card">
             <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-3">
               <div>

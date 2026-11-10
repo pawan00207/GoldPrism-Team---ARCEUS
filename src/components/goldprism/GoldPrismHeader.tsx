@@ -15,9 +15,18 @@ const CONTRACT_CARDS = [
 export function GoldPrismHeader() {
   return (
     <section className="relative overflow-hidden border-b border-border bg-background">
+      {/* Hero atmosphere — the prism sits right, the ledger stays on paper. */}
+      <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.65]"
+          style={{ backgroundImage: "url('/hero-bg.png')" }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
+      </div>
       <div className="gp-register-mark gp-register-mark--top" aria-hidden="true" />
-      <div className="relative z-10 mx-auto max-w-[1200px] px-4 py-16 md:py-24">
-        <div className="grid items-end gap-12 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+      <div className="gp-container relative z-10 py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <div className="gp-split items-end">
           <div>
             <div className="mb-8 flex items-center gap-4">
               <BrandMark className="h-12 w-12" />
@@ -29,7 +38,7 @@ export function GoldPrismHeader() {
               </div>
             </div>
 
-            <p className="gp-ledger text-2xl leading-tight text-foreground md:text-4xl">
+            <p className="gp-ledger-lg mt-4">
               Prism that explains scattered gold.
             </p>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">

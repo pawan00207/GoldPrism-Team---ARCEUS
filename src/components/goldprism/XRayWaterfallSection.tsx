@@ -194,7 +194,7 @@ export function XRayWaterfallSection() {
 
   return (
     <section id="xray-waterfall" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="01"
           eyebrow="Decision surface · X-Ray"
@@ -303,7 +303,7 @@ export function XRayWaterfallSection() {
         </div>
 
         {/* ---------------- Main 61.8 / aside 38.2 ---------------- */}
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="gp-split mt-10">
           <div className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
               <h3 className="gp-serif text-xl">Waterfall · signed components</h3>
@@ -479,7 +479,7 @@ export function XRayWaterfallSection() {
         </div>
 
         {/* ---------------- Cost table ---------------- */}
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="gp-split mt-10">
           <div className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
               <h3 className="gp-serif text-xl">Cost of the round trip</h3>

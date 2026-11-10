@@ -44,8 +44,8 @@ export default function Home() {
     <SiteShell>
       <GoldPrismHeader />
       <section className="border-b border-border bg-background">
-        <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
-          <div className="flex flex-col gap-6 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between">
+        <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+          <div className="flex flex-col gap-[var(--gp-space-3)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
               <p className="gp-kicker">A quiet research interface</p>
               <h2 className="gp-title mt-3 text-balance">
@@ -58,7 +58,7 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="gp-stagger mt-8 grid gap-px border border-border bg-border md:grid-cols-2">
+          <div className="gp-stagger mt-[var(--gp-space-4)] grid gap-px border border-border bg-border md:grid-cols-2">
             {pathways.map((pathway) => {
               const Icon = pathway.icon
               return (
@@ -81,7 +81,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-8">
-                    <h3 className="gp-ledger text-2xl">{pathway.title}</h3>
+                    <h3 className="gp-subhead">{pathway.title}</h3>
                     <p className="mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
                       {pathway.description}
                     </p>

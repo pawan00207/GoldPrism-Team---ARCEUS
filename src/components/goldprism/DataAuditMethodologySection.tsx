@@ -52,7 +52,7 @@ export function DataAuditMethodologySection() {
       id="methodology-audit"
       className="scroll-mt-16 border-b border-border bg-background"
     >
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="03.1"
           eyebrow="Audit trail · Methodology"
@@ -68,7 +68,7 @@ export function DataAuditMethodologySection() {
             <span className="gp-tag gp-tag--tradable">Resolved &amp; verified</span>
           </div>
 
-          <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+          <div className="gp-split--tight p-5">
             <div>
               <h3 className="gp-serif text-2xl">996 or 999?</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">

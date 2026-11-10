@@ -98,7 +98,7 @@ export function ContractLifecycleSection() {
       id="contract-lifecycle"
       className="scroll-mt-16 border-b border-border bg-background"
     >
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="02.5"
           eyebrow="Market structure · Lifecycle"

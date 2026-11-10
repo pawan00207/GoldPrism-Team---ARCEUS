@@ -18,7 +18,7 @@ export function BestVehicleSection() {
 
   return (
     <section id="best-vehicle" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="02.3"
           eyebrow="Market structure · Vehicle match"
@@ -74,7 +74,7 @@ export function BestVehicleSection() {
               <span className="gp-tag gp-tag--gold">Rank 01</span>
             </div>
 
-            <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)] lg:items-center">
+            <div className="gp-split--tight p-5 lg:items-center">
               <div>
                 <div className="flex flex-wrap items-baseline gap-3">
                   <h3 className="gp-serif text-3xl">{winner.contractCode}</h3>

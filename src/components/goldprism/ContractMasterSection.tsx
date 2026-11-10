@@ -27,7 +27,7 @@ export function ContractMasterSection() {
 
   return (
     <section id="contract-master" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
         <SectionHead
           index="02.2"
           eyebrow="Market structure · Contract master"
@@ -104,7 +104,7 @@ export function ContractMasterSection() {
         </div>
 
         {/* ---------------- Audit note + normalizer ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="gp-split mt-10">
           <div className="min-w-0 border border-border bg-card">
             <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
               <p className="gp-label">Contract specification audit</p>

@@ -260,7 +260,7 @@ export function SectionHead({
   return (
     <header
       className={cn(
-        'flex flex-col gap-8 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between',
+        'flex flex-col gap-[var(--gp-space-4)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between',
         className
       )}
     >

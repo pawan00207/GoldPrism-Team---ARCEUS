@@ -51,12 +51,31 @@
 :root {
   --radius: 2px;
 
-  /* Golden ratio */
+  /* Golden ratio — split once, never a third time */
   --gp-phi: 1.618;
-  --gp-phi-fr: 1.618fr;
-  --gp-phi-inverse: 0.618fr;
-  --gp-main: 61.8%;
-  --gp-aside: 38.2%;
+  /* Tracks distribute free space after the gutter in phi proportion. */
+  --gp-phi-main: 1.618fr;
+  --gp-phi-aside: 1fr;
+
+  /* Fibonacci spacing — the only intervals we step on */
+  --gp-space-1: 0.5rem;   /* 8 */
+  --gp-space-2: 0.8125rem; /* 13 */
+  --gp-space-3: 1.3125rem; /* 21 */
+  --gp-space-4: 2.125rem;  /* 34 */
+  --gp-space-5: 3.4375rem; /* 55 */
+  --gp-space-6: 5.5625rem; /* 89 */
+
+  /* Type ladder — 16 / 26 / 42 / 68 / 110 */
+  --gp-text-0: 1rem;
+  --gp-text-1: 1.625rem;
+  --gp-text-2: 2.625rem;
+  --gp-text-3: 4.25rem;
+  --gp-text-4: 6.875rem;
+  --gp-leading-0: 1.6;
+  --gp-leading-1: 1.23;
+  --gp-leading-2: 1.19;
+  --gp-leading-3: 1.13;
+  --gp-leading-4: 1.06;
 
   /* Slag ramp — neutral: text, rules, raw gap, everything explained away */
   --gp-slag-50: #F0EADB;
@@ -148,10 +167,11 @@
   --gp-hard-shadow: 6px 6px 0 var(--gp-slag-900);
   --gp-hard-shadow-press: 4px 4px 0 var(--gp-slag-900);
 
-  /* Type — one family, three voices */
-  --gp-ledger: var(--font-plex-serif), "IBM Plex Serif", Georgia, serif;
-  --gp-clerk: var(--font-plex-sans), "IBM Plex Sans", "Segoe UI", sans-serif;
-  --gp-instrument: var(--font-plex-mono), "IBM Plex Mono", Consolas, monospace;
+  /* Type — one family, three voices. The font stacks are bound on <body>,
+     where next/font exposes --font-plex-*; see the base layer below. */
+  --gp-ledger-fallback: "IBM Plex Serif", Georgia, serif;
+  --gp-clerk-fallback: "IBM Plex Sans", "Segoe UI", sans-serif;
+  --gp-instrument-fallback: "IBM Plex Mono", Consolas, monospace;
 
   /* App surfaces */
   --background: var(--gp-paper);
@@ -260,6 +280,11 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* next/font writes --font-plex-* on this element, so the brand stacks
+       must be declared here rather than on :root. */
+    --gp-ledger: var(--font-plex-serif, "IBM Plex Serif"), var(--gp-ledger-fallback);
+    --gp-clerk: var(--font-plex-sans, "IBM Plex Sans"), var(--gp-clerk-fallback);
+    --gp-instrument: var(--font-plex-mono, "IBM Plex Mono"), var(--gp-instrument-fallback);
     font-family: var(--gp-clerk);
     font-feature-settings: "rlig" 1, "calt" 1, "tnum" 1;
     text-rendering: optimizeLegibility;
@@ -290,7 +315,7 @@
     background: var(--background);
     color: var(--foreground);
     border-bottom: 1px solid var(--border);
-    padding-block: 3.5rem;
+    padding-block: var(--gp-space-5);
   }
   .gp-container {
     width: 100%;
@@ -298,18 +323,34 @@
     margin-inline: auto;
     padding-inline: 1rem;
   }
-  .gp-split {
+  /* The split: main 61.8, aside 38.2. Gap steps on the Fibonacci scale. */
+  .gp-split,
+  .gp-split--tight {
     display: grid;
-    gap: 2rem;
+    gap: var(--gp-space-4);
+  }
+  .gp-split--tight {
+    gap: var(--gp-space-3);
   }
   @media (min-width: 1024px) {
-    .gp-split {
-      grid-template-columns: minmax(0, var(--gp-main)) minmax(0, var(--gp-aside));
-      gap: 3rem;
+    .gp-split,
+    .gp-split--tight {
+      grid-template-columns: minmax(0, var(--gp-phi-main)) minmax(0, var(--gp-phi-aside));
+      gap: var(--gp-space-5);
+    }
+    .gp-split--tight {
+      gap: var(--gp-space-4);
     }
     .gp-split--reverse {
-      grid-template-columns: minmax(0, var(--gp-aside)) minmax(0, var(--gp-main));
+      grid-template-columns: minmax(0, var(--gp-phi-aside)) minmax(0, var(--gp-phi-main));
     }
+  }
+  /* Crops hold the golden rectangle; content cards only when they can afford it. */
+  .gp-phi-frame {
+    aspect-ratio: var(--gp-phi) / 1;
+  }
+  .gp-phi-card {
+    aspect-ratio: 1 / var(--gp-phi);
   }
 
   /* ---------- Type · the ledger, the clerk, the instrument ---------- */
@@ -335,26 +376,40 @@
     font-family: var(--gp-ledger);
     font-weight: 500;
     letter-spacing: -0.025em;
-    line-height: 1.08;
+    line-height: var(--gp-leading-1);
+  }
+  .gp-ledger-lg {
+    font-family: var(--gp-ledger);
+    font-weight: 500;
+    font-size: clamp(var(--gp-text-1), 3.4vw, var(--gp-text-2));
+    letter-spacing: -0.03em;
+    line-height: var(--gp-leading-2);
+  }
+  .gp-subhead {
+    font-family: var(--gp-ledger);
+    font-weight: 500;
+    font-size: var(--gp-text-1);
+    letter-spacing: -0.025em;
+    line-height: var(--gp-leading-1);
   }
   .gp-title {
     font-family: var(--gp-ledger);
     font-weight: 500;
     letter-spacing: -0.025em;
-    line-height: 1.18;
-    font-size: clamp(1.625rem, 2.6vw, 2.625rem);
+    font-size: clamp(var(--gp-text-1), 3.5vw, var(--gp-text-2));
+    line-height: var(--gp-leading-2);
   }
   .gp-display {
     font-family: var(--gp-ledger);
-    font-size: clamp(3.25rem, 8vw, 6.25rem);
-    line-height: 0.95;
+    font-size: clamp(var(--gp-text-2), 7.5vw, var(--gp-text-4));
     letter-spacing: -0.045em;
+    line-height: var(--gp-leading-4);
     font-weight: 500;
   }
   .gp-clerk {
     font-family: var(--gp-clerk);
-    font-size: 0.9375rem;
-    line-height: 1.6;
+    font-size: var(--gp-text-0);
+    line-height: var(--gp-leading-0);
     color: var(--gp-muted-ink);
   }
   .gp-serif {

@@ -26,14 +26,14 @@ export function PageIntro({
   return (
     <section className="relative overflow-hidden border-b border-border bg-background">
       <div className="gp-register-mark gp-register-mark--top" aria-hidden="true" />
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
-        <div className="grid items-end gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+      <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
+        <div className="gp-split items-end">
           <div className="max-w-3xl">
             <div className="flex items-center gap-3">
               <p className="gp-kicker">{eyebrow}</p>
               <DataTag synthetic detail="not live" />
             </div>
-            <h1 className="gp-title mt-4 text-balance text-[2.125rem] md:text-[2.625rem]">
+            <h1 className="gp-title mt-4 text-balance">
               {title}
             </h1>
             <SpectralRule className="mt-6 max-w-md" />
