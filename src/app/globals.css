@@ -1,5 +1,24 @@
+/* Cascade order — declared before any import so Astryx base styles sit above
+   the reset and preflight, and Tailwind utilities stay last. */
+@layer reset, theme, base, astryx-base, astryx-theme, components, utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "@astryxdesign/core/reset.css";
+@import "@astryxdesign/core/astryx.css";
+
+/* next-themes toggles a .dark / .light class on <html> before paint. Map that
+   onto Astryx's color-scheme so light-dark() tokens resolve with the same
+   switch from the first frame — including before the provider hydrates. */
+html.dark,
+html.dark [data-astryx-theme] {
+  color-scheme: dark;
+}
+
+html.light,
+html.light [data-astryx-theme] {
+  color-scheme: light;
+}
 
 @custom-variant dark (&:is(.dark *));
 

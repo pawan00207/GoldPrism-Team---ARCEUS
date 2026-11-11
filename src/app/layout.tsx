@@ -3,6 +3,7 @@ import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
+import { AstryxThemeProvider } from "@/components/astryx-provider";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -71,8 +72,10 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
-          <Toaster />
+          <AstryxThemeProvider>
+            {children}
+            <Toaster />
+          </AstryxThemeProvider>
         </ThemeProvider>
       </body>
     </html>

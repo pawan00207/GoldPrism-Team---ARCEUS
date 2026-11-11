@@ -14,6 +14,10 @@ import {
 import { DataTag, SectionHead } from '@/components/goldprism/brand'
 import { inr, inrPerG } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
+import { Badge } from '@astryxdesign/core/Badge'
+import { Table, pixel, proportional } from '@astryxdesign/core/Table'
+import type { TableColumn } from '@astryxdesign/core/Table'
+import { Text } from '@astryxdesign/core/Text'
 
 // Client-only timestamp to avoid SSR hydration mismatch
 function AuditTimestamp({ ts }: { ts: string }) {
@@ -63,6 +67,66 @@ const GATES = [
     detail: 'Signal at t, fill at t+1. No look-ahead.',
     state: 'Proceed to X-Ray',
     tone: 'tradable' as const,
+  },
+]
+
+interface ValidatedRecordRow extends Record<string, unknown> {
+  id: string
+  symbol: string
+  expiry: string
+  quoted: string
+  normalized: string
+  volume: string
+  trust: 'VERIFIED' | 'THIN_SETTLE'
+}
+
+const VALIDATED_COLUMNS: TableColumn<ValidatedRecordRow>[] = [
+  {
+    key: 'symbol',
+    header: 'Symbol',
+    width: proportional(1, { minWidth: 104 }),
+    renderCell: (row) => (
+      <Text type="inherit" weight="semibold">
+        {row.symbol}
+      </Text>
+    ),
+  },
+  {
+    key: 'expiry',
+    header: 'Expiry',
+    width: pixel(104),
+    renderCell: (row) => (
+      <Text type="inherit" color="secondary">
+        {row.expiry}
+      </Text>
+    ),
+  },
+  { key: 'quoted', header: 'Quoted', width: pixel(100), align: 'end' },
+  {
+    key: 'normalized',
+    header: 'Norm ₹/g',
+    width: pixel(110),
+    align: 'end',
+    renderCell: (row) => (
+      <Text type="inherit" hasTabularNumbers>
+        {row.normalized}
+      </Text>
+    ),
+  },
+  { key: 'volume', header: 'Volume', width: pixel(72), align: 'end' },
+  {
+    key: 'trust',
+    header: 'Trust',
+    width: pixel(62),
+    // Verified is the norm; only the thin settle needs attention.
+    renderCell: (row) =>
+      row.trust === 'VERIFIED' ? (
+        <Text type="inherit" color="secondary">
+          OK
+        </Text>
+      ) : (
+        <Badge variant="warning" label="Thin" />
+      ),
   },
 ]
 
@@ -117,6 +181,18 @@ export function DataHealthSection({
     setIngestionResult(res)
     onDatasetChange?.(res)
   }
+
+  const validatedRows: ValidatedRecordRow[] = ingestionResult.validatedRecords.map(
+    (r, i) => ({
+      id: `${r.symbol}-${r.expiryDate}-${i}`,
+      symbol: r.symbol,
+      expiry: r.expiryDate,
+      quoted: inr(r.settlePrice),
+      normalized: inrPerG(r.normalizedSettlePerG),
+      volume: String(r.volume),
+      trust: r.trustStatus === 'VERIFIED' ? 'VERIFIED' : 'THIN_SETTLE',
+    })
+  )
 
   const statusTone =
     ingestionResult.status === 'PASSED'
@@ -269,41 +345,14 @@ export function DataHealthSection({
                   No validated records in the current dataset.
                 </p>
               ) : (
-                <table className="gp-table">
-                  <thead>
-                    <tr>
-                      <th scope="col">Symbol</th>
-                      <th scope="col">Expiry</th>
-                      <th scope="col" className="gp-num">Quoted</th>
-                      <th scope="col" className="gp-num">Norm ₹/g</th>
-                      <th scope="col" className="gp-num">Volume</th>
-                      <th scope="col">Trust</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ingestionResult.validatedRecords.map((r, i) => (
-                      <tr key={`${r.symbol}-${r.expiryDate}-${i}`}>
-                        <td className="font-medium text-foreground">{r.symbol}</td>
-                        <td className="text-muted-foreground">{r.expiryDate}</td>
-                        <td className="gp-num">{inr(r.settlePrice)}</td>
-                        <td className="gp-num text-foreground">{inrPerG(r.normalizedSettlePerG)}</td>
-                        <td className="gp-num text-muted-foreground">{r.volume}</td>
-                        <td>
-                          <span
-                            className={cn(
-                              'gp-tag',
-                              r.trustStatus === 'VERIFIED'
-                                ? 'gp-tag--tradable'
-                                : 'gp-tag--watch'
-                            )}
-                          >
-                            {r.trustStatus === 'VERIFIED' ? 'OK' : 'Thin'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <Table
+                  data={validatedRows}
+                  columns={VALIDATED_COLUMNS}
+                  idKey="id"
+                  density="compact"
+                  dividers="rows"
+                  hasHover
+                />
               )}
             </div>
           </div>

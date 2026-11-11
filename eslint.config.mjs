@@ -45,7 +45,14 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
-  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills/**", "mini-services/**", "scripts/**"]
+  // Astryx discovers a theme descriptor by parsing a bare default-exported
+  // literal; the anonymous-export rule would force a shape it rejects.
+  files: ["src/themes/**/*.doc.mjs"],
+  rules: {
+    "import/no-anonymous-default-export": "off",
+  },
+}, {
+  ignores: ["node_modules/**", ".next/**", "out/**", "build/**", "next-env.d.ts", "examples/**", "skills/**", "mini-services/**", "scripts/**", "theme.template.ts", "src/themes/**/*.js", "src/themes/**/*.d.ts"]
 }];
 
 export default eslintConfig;

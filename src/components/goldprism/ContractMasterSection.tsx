@@ -9,11 +9,95 @@ import {
 } from '@/lib/goldprism/contract-master'
 import { SectionHead } from '@/components/goldprism/brand'
 import { inr, inrPerG } from '@/lib/goldprism/format'
+import { Badge } from '@astryxdesign/core/Badge'
+import { Selector } from '@astryxdesign/core/Selector'
+import { Table, pixel, proportional } from '@astryxdesign/core/Table'
+import type { TableColumn } from '@astryxdesign/core/Table'
+import { Text } from '@astryxdesign/core/Text'
+import { TextInput } from '@astryxdesign/core/TextInput'
+import { VStack } from '@astryxdesign/core/VStack'
+
+interface ContractSpecRow extends Record<string, unknown> {
+  id: string
+  code: string
+  name: string
+  tradingUnit: string
+  quoteUnit: string
+  purity: number
+  tick: string
+  expiry: string
+  status: string
+  source: string
+}
+
+const SPEC_COLUMNS: TableColumn<ContractSpecRow>[] = [
+  {
+    key: 'code',
+    header: 'Contract',
+    width: proportional(2, { minWidth: 150 }),
+    renderCell: (row) => (
+      <VStack gap={0}>
+        <Text type="inherit" weight="semibold">
+          {row.code}
+        </Text>
+        <Text type="inherit" size="2xs" color="secondary">
+          {row.name}
+        </Text>
+      </VStack>
+    ),
+  },
+  { key: 'tradingUnit', header: 'Trading unit', width: pixel(104), align: 'end' },
+  { key: 'quoteUnit', header: 'Quoted per', width: pixel(104), align: 'end' },
+  {
+    key: 'purity',
+    header: 'Purity',
+    width: proportional(1),
+    // Only the exception earns a badge; 999 is the norm.
+    renderCell: (row) =>
+      row.purity === 995 ? (
+        <Badge variant="warning" label="995 · near 24k" />
+      ) : (
+        <Text type="inherit" color="secondary">
+          999 · 24k
+        </Text>
+      ),
+  },
+  { key: 'tick', header: 'Tick size', width: pixel(92), align: 'end' },
+  {
+    key: 'expiry',
+    header: 'Expiry window',
+    width: proportional(1, { minWidth: 120 }),
+  },
+  { key: 'status', header: 'Status', width: pixel(92) },
+  {
+    key: 'source',
+    header: 'Source reference',
+    width: proportional(2, { minWidth: 160 }),
+    renderCell: (row) => (
+      <Text type="inherit" size="2xs" color="secondary" maxLines={1}>
+        {row.source}
+      </Text>
+    ),
+  },
+]
 
 export function ContractMasterSection() {
   const specs = getAllContractSpecs()
   const [selectedContract, setSelectedContract] = React.useState<SupportedContractCode>('GOLDM')
   const [inputPrice, setInputPrice] = React.useState<string>('73500')
+
+  const specRows: ContractSpecRow[] = specs.map((spec) => ({
+    id: spec.contractCode,
+    code: spec.contractCode,
+    name: spec.name,
+    tradingUnit: `${spec.tradingUnitG} g`,
+    quoteUnit: `${spec.quoteUnitG} g`,
+    purity: spec.purityFine,
+    tick: inr(spec.tickSizeInr, 0),
+    expiry: spec.expiryWindow,
+    status: 'Verified',
+    source: spec.sourceReference,
+  }))
 
   const priceNum = parseFloat(inputPrice) || 0
   const normResult = React.useMemo(() => {
@@ -49,58 +133,14 @@ export function ContractMasterSection() {
             </p>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="gp-table">
-              <thead>
-                <tr>
-                  <th scope="col">Contract</th>
-                  <th scope="col" className="gp-num">Trading unit</th>
-                  <th scope="col" className="gp-num">Quoted per</th>
-                  <th scope="col">Purity</th>
-                  <th scope="col" className="gp-num">Tick size</th>
-                  <th scope="col">Expiry window</th>
-                  <th scope="col">Status</th>
-                  <th scope="col">Source reference</th>
-                </tr>
-              </thead>
-              <tbody>
-                {specs.map((spec) => (
-                  <tr key={spec.contractCode}>
-                    <td>
-                      <div className="font-medium text-foreground">{spec.contractCode}</div>
-                      <div className="mt-0.5 text-[10px] uppercase tracking-[0.08em] text-muted-foreground">
-                        {spec.name}
-                      </div>
-                    </td>
-                    <td className="gp-num text-foreground">{spec.tradingUnitG} g</td>
-                    <td className="gp-num text-muted-foreground">{spec.quoteUnitG} g</td>
-                    <td>
-                      <span
-                        className={
-                          spec.purityFine === 995
-                            ? 'gp-tag gp-tag--watch'
-                            : 'gp-tag gp-tag--neutral'
-                        }
-                      >
-                        {spec.purityFine}/1000 · {spec.purityFine === 995 ? 'near 24k' : '24k'}
-                      </span>
-                    </td>
-                    <td className="gp-num">{inr(spec.tickSizeInr, 0)}</td>
-                    <td className="text-muted-foreground">{spec.expiryWindow}</td>
-                    <td>
-                      <span className="gp-tag gp-tag--tradable">Verified</span>
-                    </td>
-                    <td
-                      className="max-w-[18rem] truncate text-[10px] text-muted-foreground"
-                      title={spec.sourceReference}
-                    >
-                      {spec.sourceReference}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table
+            data={specRows}
+            columns={SPEC_COLUMNS}
+            idKey="id"
+            density="compact"
+            dividers="grid"
+            hasHover
+          />
         </div>
 
         {/* ---------------- Audit note + normalizer ---------------- */}
@@ -155,39 +195,27 @@ export function ContractMasterSection() {
 
             <div className="px-4 py-5">
               <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
-                <div>
-                  <label className="gp-label" htmlFor="normalizer-contract">
-                    Contract
-                  </label>
-                  <select
-                    id="normalizer-contract"
-                    value={selectedContract}
-                    onChange={(e) =>
-                      setSelectedContract(e.target.value as SupportedContractCode)
-                    }
-                    className="gp-field gp-select mt-1 text-sm"
-                  >
-                    <option value="GOLDM">GOLDM · 100g · 995</option>
-                    <option value="GOLDTEN">GOLDTEN · 10g · 999</option>
-                    <option value="GOLDGUINEA">GOLDGUINEA · 8g · 999</option>
-                    <option value="GOLDPETAL">GOLDPETAL · 1g · 999</option>
-                  </select>
-                </div>
+                <Selector
+                  label="Contract"
+                  value={selectedContract}
+                  onChange={(value) =>
+                    setSelectedContract(value as SupportedContractCode)
+                  }
+                  options={[
+                    { value: 'GOLDM', label: 'GOLDM · 100g · 995' },
+                    { value: 'GOLDTEN', label: 'GOLDTEN · 10g · 999' },
+                    { value: 'GOLDGUINEA', label: 'GOLDGUINEA · 8g · 999' },
+                    { value: 'GOLDPETAL', label: 'GOLDPETAL · 1g · 999' },
+                  ]}
+                />
 
-                <div>
-                  <label className="gp-label" htmlFor="normalizer-price">
-                    Quoted price
-                  </label>
-                  <input
-                    id="normalizer-price"
-                    type="number"
-                    inputMode="decimal"
-                    value={inputPrice}
-                    onChange={(e) => setInputPrice(e.target.value)}
-                    className="gp-field mt-1 text-sm"
-                    placeholder="e.g. 73500"
-                  />
-                </div>
+                <TextInput
+                  label="Quoted price"
+                  inputMode="decimal"
+                  value={inputPrice}
+                  onChange={setInputPrice}
+                  placeholder="e.g. 73500"
+                />
               </div>
 
               {normResult ? (
