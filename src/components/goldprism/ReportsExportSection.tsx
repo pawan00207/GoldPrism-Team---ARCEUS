@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTag, SectionHead } from '@/components/goldprism/brand'
+import { StatusIsland, type IslandTask } from '@/components/kokonutui/status-island'
 import { CLEAN_MCX_BHAVCOPY_CSV, generateWalkForwardHistory } from '@/lib/goldprism/fixtures'
 import { rankBestVehicleForExposure } from '@/lib/goldprism/signal'
 
@@ -43,6 +44,9 @@ const EXPORTS = [
 ] as const
 
 export function ReportsExportSection() {
+  const [tasks, setTasks] = React.useState<IslandTask[]>([])
+  const counter = React.useRef(0)
+
   const triggerDownload = (filename: string, content: string, contentType: string) => {
     const blob = new Blob([content], { type: contentType })
     const url = URL.createObjectURL(blob)
@@ -111,6 +115,21 @@ export function ReportsExportSection() {
     manifest: exportManifest,
   }
 
+  const runExport = (item: (typeof EXPORTS)[number]) => {
+    actions[item.id]()
+    counter.current += 1
+    const id = `${item.id}-${counter.current}`
+    setTasks((list) => [
+      ...list.slice(-2),
+      {
+        id,
+        label: item.title,
+        detail: `${item.type} downloaded`,
+        status: 'done',
+      },
+    ])
+  }
+
   return (
     <section id="reports" className="scroll-mt-16 border-b border-border bg-background">
       <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
@@ -145,7 +164,7 @@ export function ReportsExportSection() {
               <Button
                 size="sm"
                 variant="outline"
-                onClick={actions[item.id]}
+                onClick={() => runExport(item)}
                 className="mt-6 w-full"
               >
                 <Download className="h-3.5 w-3.5" aria-hidden="true" />
@@ -164,6 +183,13 @@ export function ReportsExportSection() {
           </p>
         </div>
       </div>
+
+      <StatusIsland
+        className="fixed bottom-6 right-4 z-40 sm:right-6"
+        dismissAfter={4200}
+        onDismiss={(id) => setTasks((list) => list.filter((task) => task.id !== id))}
+        tasks={tasks}
+      />
     </section>
   )
 }

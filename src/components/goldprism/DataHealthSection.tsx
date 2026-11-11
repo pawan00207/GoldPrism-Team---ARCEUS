@@ -12,6 +12,7 @@ import {
   SEEDED_ERROR_BHAVCOPY_CSV,
 } from '@/lib/goldprism/fixtures'
 import { DataTag, SectionHead } from '@/components/goldprism/brand'
+import InlineAlert from '@/components/kokonutui/inline-alert'
 import { inr, inrPerG } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
 import { Badge } from '@astryxdesign/core/Badge'
@@ -208,6 +209,26 @@ export function DataHealthSection({
         ? 'Failed · run blocked'
         : 'Partial verification'
 
+  const rejectedChecks = React.useMemo(() => {
+    const byReason = new Map<string, { description: string; count: number }>()
+    for (const row of ingestionResult.rejectedRows) {
+      const entry = byReason.get(row.reasonCode)
+      if (entry) {
+        entry.count += 1
+      } else {
+        byReason.set(row.reasonCode, {
+          description: row.reasonDescription,
+          count: 1,
+        })
+      }
+    }
+    return [...byReason.entries()].map(([code, entry]) => ({
+      name: code,
+      detail: `${entry.count} ${entry.count === 1 ? 'row' : 'rows'} · ${entry.description}`,
+      ok: false,
+    }))
+  }, [ingestionResult])
+
   return (
     <section id="data-health" className="scroll-mt-16 border-b border-border bg-background">
       <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
@@ -236,6 +257,22 @@ export function DataHealthSection({
             </div>
           }
         />
+
+        {ingestionResult.status !== 'PASSED' ? (
+          <InlineAlert
+            action={{ label: 'Reload clean bhavcopy', onClick: loadCleanData }}
+            checks={rejectedChecks}
+            className="mt-8"
+            key={`${ingestionResult.sha256Hash}-${ingestionResult.status}-${ingestionResult.totalRowsRaw}`}
+            message={ingestionResult.statusSummary}
+            title={
+              ingestionResult.status === 'FAILED'
+                ? 'The run stopped at the gate.'
+                : 'The run proceeds with rejected rows.'
+            }
+            tone={ingestionResult.status === 'FAILED' ? 'error' : 'warning'}
+          />
+        ) : null}
 
         {/* ---------------- Integrity gates ---------------- */}
         <div className="mt-10 border border-border">

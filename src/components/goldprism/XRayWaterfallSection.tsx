@@ -17,6 +17,7 @@ import {
   normalizeVerdict,
 } from '@/components/goldprism/brand'
 import { WaterfallChart, type WaterfallBar } from '@/components/goldprism/waterfall'
+import SplitFlapText from '@/components/kokonutui/split-flap-text'
 import { bps, inr, inrPerG, signed } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
 
@@ -455,13 +456,20 @@ export function XRayWaterfallSection() {
             <dl className="grid shrink-0 grid-cols-2 gap-x-8 gap-y-4 md:text-right">
               <div>
                 <dt className="gp-label">Net edge</dt>
-                <dd
-                  className={cn(
-                    'gp-figure mt-2 text-2xl',
-                    tradable && result.netEdgeBps > 0 ? 'gp-gold-text' : 'text-foreground'
-                  )}
-                >
-                  {bps(result.netEdgeBps)}
+                <dd className="mt-2 flex items-baseline justify-end gap-1.5">
+                  <SplitFlapText
+                    className="font-mono text-2xl"
+                    length={5}
+                    text={signed(result.netEdgeBps)}
+                    tileClassName={
+                      tradable && result.netEdgeBps > 0
+                        ? 'text-[var(--gp-gold-ink)]'
+                        : undefined
+                    }
+                  />
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    bps
+                  </span>
                 </dd>
               </div>
               <div>
