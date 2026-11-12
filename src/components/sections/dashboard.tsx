@@ -3,24 +3,6 @@
 import * as React from 'react'
 import { motion } from 'motion/react'
 import {
-  Area,
-  AreaChart,
-  Bar,
-  BarChart,
-  CartesianGrid,
-  Cell,
-  Legend,
-  Line,
-  LineChart,
-  PolarAngleAxis,
-  RadialBar,
-  RadialBarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
-import {
   Activity,
   ArrowDownRight,
   ArrowUpRight,
@@ -44,7 +26,19 @@ import {
   WATCHLIST,
   genCandles,
 } from '@/lib/mock-data'
-import { Sparkline } from '@/components/sparkline'
+import { Area, AreaChart } from '@/components/charts/area-chart'
+import { Grid } from '@/components/charts/grid'
+import { Line } from '@/components/charts/line-chart'
+import { XAxis } from '@/components/charts/x-axis'
+import { YAxis } from '@/components/charts/y-axis'
+import { ChartTooltip } from '@/components/charts/tooltip'
+import {
+  Legend,
+  LegendItem,
+  LegendLabel,
+  LegendMarker,
+} from '@/components/charts/legend'
+import { LineSparkline } from '@/components/charts/sparkline'
 
 const SENTIMENT_COLORS = {
   bullish: 'gp-pos gp-tint-pos',
@@ -171,25 +165,66 @@ export function Dashboard() {
               </div>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={240}>
-                <AreaChart data={merged} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                  <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                  <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                  <Tooltip
-                    contentStyle={{
-                      background: 'var(--popover)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 2,
-                      fontSize: 12,
-                    }}
-                    formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
-                  />
-                  <Area type="monotone" dataKey="portfolio" stroke="var(--foreground)" strokeWidth={2} fill="var(--gp-slag-300)" fillOpacity={0.22} name="Portfolio" />
-                  <Line type="monotone" dataKey="benchmark" stroke="var(--muted-foreground)" strokeWidth={1.5} strokeDasharray="4 4" name="SPY Benchmark" dot={false} />
-                  <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
-                </AreaChart>
-              </ResponsiveContainer>
+              <AreaChart
+                data={merged.map((m) => ({
+                  date: new Date(`${m.date}-01T00:00:00`),
+                  portfolio: m.portfolio,
+                  benchmark: m.benchmark,
+                }))}
+                margin={{ top: 8, right: 12, bottom: 24, left: 48 }}
+                aspectRatio=""
+                className="h-[240px] w-full"
+              >
+                <Grid horizontal stroke="var(--border)" strokeDasharray="3 3" fadeHorizontal={false} />
+                <XAxis numTicks={6} />
+                <YAxis formatValue={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                <ChartTooltip
+                  indicatorColor="var(--gp-slag-500)"
+                  indicatorFadeEdges="none"
+                  rows={(point) => [
+                    {
+                      color: 'var(--foreground)',
+                      label: 'Portfolio',
+                      value: `$${Number(point.portfolio).toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
+                    },
+                    {
+                      color: 'var(--muted-foreground)',
+                      label: 'SPY Benchmark',
+                      value: `$${Number(point.benchmark).toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
+                    },
+                  ]}
+                />
+                <Area
+                  dataKey="portfolio"
+                  stroke="var(--foreground)"
+                  strokeWidth={2}
+                  fill="var(--gp-slag-300)"
+                  fillOpacity={0.22}
+                  gradientToOpacity={0.22}
+                  fadeEdges={false}
+                />
+                <Line
+                  dataKey="benchmark"
+                  stroke="var(--muted-foreground)"
+                  strokeWidth={1.5}
+                  dashFromIndex={0}
+                  dashArray="4,4"
+                  showHighlight={false}
+                  fadeEdges={false}
+                />
+              </AreaChart>
+              <Legend
+                className="mt-2 flex-row justify-center gap-4"
+                items={[
+                  { label: 'Portfolio', value: 0, color: 'var(--foreground)' },
+                  { label: 'SPY Benchmark', value: 0, color: 'var(--muted-foreground)' },
+                ]}
+              >
+                <LegendItem className="rounded-[2px] px-1 py-0.5">
+                  <LegendMarker className="h-2 w-2 rounded-[2px]" />
+                  <LegendLabel className="text-xs font-normal" />
+                </LegendItem>
+              </Legend>
             </CardContent>
           </Card>
 
@@ -315,7 +350,21 @@ export function Dashboard() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Sparkline data={w.sparkline} width={48} height={20} showArea={false} />
+                        <LineSparkline
+                          data={w.sparkline}
+                          dataKey={(d) => d}
+                          width={48}
+                          height={20}
+                          curve="linear"
+                          strokeWidth={1.5}
+                          color={
+                            w.sparkline[w.sparkline.length - 1] >= w.sparkline[0]
+                              ? 'var(--gp-tradable-ink)'
+                              : 'var(--gp-blocked-ink)'
+                          }
+                          endDot={false}
+                          interactive={false}
+                        />
                         <div className="text-right min-w-[80px]">
                           <div className="text-sm font-medium tabular-nums">${w.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                           <div className={cn('text-xs tabular-nums', w.changePct >= 0 ? 'gp-pos' : 'gp-neg')}>

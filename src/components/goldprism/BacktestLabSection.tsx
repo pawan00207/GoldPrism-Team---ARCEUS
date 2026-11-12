@@ -2,10 +2,7 @@
 
 import * as React from 'react'
 import {
-  Bar,
-  BarChart,
   CartesianGrid,
-  Cell,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -13,6 +10,12 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import { BarChart } from '@/components/charts/bar-chart'
+import { Bar } from '@/components/charts/bar'
+import { BarYAxis } from '@/components/charts/bar-y-axis'
+import { Grid } from '@/components/charts/grid'
+import { ChartTooltip } from '@/components/charts/tooltip'
+import { LineSparkline } from '@/components/charts/sparkline'
 import { DataTag, SectionHead, VerdictTag } from '@/components/goldprism/brand'
 import { bps, inr, signed } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
@@ -81,6 +84,19 @@ export function BacktestLabSection() {
           <div className="bg-card p-4">
             <p className="gp-label">Mean net edge</p>
             <p className="gp-figure mt-3 text-2xl">{bps(-1.2)}</p>
+            <div className="mt-3">
+              <LineSparkline
+                data={pipelineEquityCurve}
+                dataKey="net_equity"
+                height={28}
+                curve="monotone"
+                strokeWidth={1.5}
+                color="var(--foreground)"
+                endDot
+                interactive={false}
+                aria-label="Net equity trend, in-sample"
+              />
+            </div>
             <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
               Gold beta excluded. Pure calendar spread.
             </p>
@@ -270,62 +286,37 @@ export function BacktestLabSection() {
             </div>
 
             <div className="h-72 w-full px-2 py-4 sm:px-4">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={attributionData}
-                  layout="vertical"
-                  margin={{ top: 4, right: 12, bottom: 0, left: 8 }}
-                >
-                  <defs>
-                    <pattern
-                      id="gp-cost-hatch"
-                      width="5"
-                      height="5"
-                      patternUnits="userSpaceOnUse"
-                      patternTransform="rotate(135)"
-                    >
-                      <rect width="5" height="5" fill="transparent" />
-                      <line x1="0" y1="0" x2="0" y2="5" stroke="#A23A24" strokeWidth="1" />
-                    </pattern>
-                  </defs>
-                  <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" horizontal={false} />
-                  <XAxis
-                    type="number"
-                    stroke="var(--gp-slag-500)"
-                    tick={axisTick}
-                    tickLine={false}
-                    axisLine={{ stroke: 'var(--gp-slag-500)' }}
-                  />
-                  <YAxis
-                    dataKey="component"
-                    type="category"
-                    stroke="var(--gp-slag-500)"
-                    tick={axisTick}
-                    tickLine={false}
-                    axisLine={false}
-                    width={92}
-                  />
-                  <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="bps" name="Basis points">
-                    {attributionData.map((entry) => (
-                      <Cell
-                        key={entry.component}
-                        fill={
-                          entry.tone === 'net'
-                            ? 'var(--gp-slag-900)'
-                            : entry.tone === 'structural'
-                              ? 'var(--gp-slag-600)'
-                              : 'url(#gp-cost-hatch)'
-                        }
-                      />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
+              <BarChart
+                data={attributionData}
+                xDataKey="component"
+                orientation="horizontal"
+                margin={{ top: 4, right: 16, bottom: 8, left: 100 }}
+                aspectRatio=""
+                className="h-full w-full"
+              >
+                <Grid
+                  vertical
+                  stroke="var(--border)"
+                  strokeDasharray="1 4"
+                  hideVerticalEdgeLines
+                />
+                <BarYAxis />
+                <ChartTooltip
+                  rows={(point) => [
+                    {
+                      color: 'var(--foreground)',
+                      label: String(point.component),
+                      value: `${Number(point.bps).toFixed(1)} bps`,
+                    },
+                  ]}
+                />
+                <Bar dataKey="bps" fill="var(--foreground)" lineCap={2} />
+              </BarChart>
             </div>
 
             <p className="border-t border-border px-4 py-3 text-[11px] leading-relaxed text-muted-foreground">
-              Hatched bars are cost drag. The gross residual never reaches the gold band.
+              Bars left of the zero line are cost drag. The gross residual never reaches
+              the gold band.
             </p>
           </div>
         </div>

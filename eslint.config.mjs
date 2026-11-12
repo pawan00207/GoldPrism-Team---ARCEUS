@@ -45,6 +45,14 @@ const eslintConfig = [...nextCoreWebVitals, ...nextTypescript, {
     "no-useless-escape": "off",
   },
 }, {
+  // Vendored Bklit chart source intentionally syncs refs during render
+  // (tooltip / marker / sparkline hover state); the app's react-hooks/refs
+  // rule doesn't apply to registry code.
+  files: ["src/components/charts/**"],
+  rules: {
+    "react-hooks/refs": "off",
+  },
+}, {
   // Astryx discovers a theme descriptor by parsing a bare default-exported
   // literal; the anonymous-export rule would force a shape it rejects.
   files: ["src/themes/**/*.doc.mjs"],

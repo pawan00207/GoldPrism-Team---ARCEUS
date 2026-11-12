@@ -2,7 +2,12 @@
 
 import * as React from 'react'
 import { motion } from 'motion/react'
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { BarChart } from '@/components/charts/bar-chart'
+import { Bar } from '@/components/charts/bar'
+import { BarXAxis } from '@/components/charts/bar-x-axis'
+import { Grid } from '@/components/charts/grid'
+import { YAxis } from '@/components/charts/y-axis'
+import { ChartTooltip } from '@/components/charts/tooltip'
 import { Atom, FlaskConical, GraduationCap, Layers, Search } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -46,7 +51,6 @@ export function AlphaZoo() {
 
   const famStats = familyStats()
   const catStats = categoryStats()
-  const maxCategoryCount = Math.max(...catStats.map((c) => c.count), 1)
 
   return (
     <section id="alphas" className="py-16 md:py-24 scroll-mt-16">
@@ -104,25 +108,32 @@ export function AlphaZoo() {
             <CardTitle className="text-base">Distribution by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={catStats} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="category" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} axisLine={false} angle={-15} textAnchor="end" height={50} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} allowDecimals={false} />
-                <Tooltip
-                  contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 2, fontSize: 12 }}
-                  cursor={{ fill: 'var(--muted)', opacity: 0.4 }}
-                />
-                <Bar dataKey="count" radius={[2, 2, 0, 0]}>
-                  {catStats.map((c, i) => {
-                    // Slag ramp: heavier categories hold more ink.
-                    const intensity = c.count / maxCategoryCount
-                    const fill = `color-mix(in srgb, var(--foreground) ${Math.round(22 + intensity * 58)}%, var(--muted))`
-                    return <Cell key={i} fill={fill} />
-                  })}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            <BarChart
+              data={catStats}
+              xDataKey="category"
+              margin={{ top: 8, right: 8, bottom: 28, left: 8 }}
+              aspectRatio=""
+              className="h-[180px] w-full"
+            >
+              <Grid horizontal stroke="var(--border)" strokeDasharray="3 3" fadeHorizontal={false} />
+              <BarXAxis showAllLabels />
+              <YAxis numTicks={4} />
+              <ChartTooltip
+                rows={(point) => [
+                  {
+                    color: 'color-mix(in srgb, var(--foreground) 62%, var(--muted))',
+                    label: String(point.category),
+                    value: Number(point.count),
+                  },
+                ]}
+              />
+              {/* Slag ink, uniform — counts read on hover and the y-axis. */}
+              <Bar
+                dataKey="count"
+                fill="color-mix(in srgb, var(--foreground) 62%, var(--muted))"
+                lineCap={2}
+              />
+            </BarChart>
           </CardContent>
         </Card>
 

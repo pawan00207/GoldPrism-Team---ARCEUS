@@ -1,22 +1,37 @@
 'use client'
 
 import * as React from 'react'
+import { curveMonotoneX } from 'd3-shape'
+import { ComposedChart } from '@/components/charts/composed-chart'
+import { Line } from '@/components/charts/line-chart'
+import { Grid } from '@/components/charts/grid'
+import { XAxis } from '@/components/charts/x-axis'
+import { YAxis } from '@/components/charts/y-axis'
+import { ChartTooltip } from '@/components/charts/tooltip'
 import {
-  CartesianGrid,
   Legend,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+  LegendItem,
+  LegendLabel,
+  LegendMarker,
+} from '@/components/charts/legend'
 import { Slider } from '@/components/ui/slider'
 import { SectionHead } from '@/components/goldprism/brand'
 import { inr, pctAbs } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
 
 const FAMILIES = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'] as const
+
+const EXPIRY_MONTHS: Record<string, number> = {
+  Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5,
+  Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11,
+}
+
+// '05 Apr 2026' → local calendar date. Bklit time charts need real dates,
+// which also gives the curve its true (uneven) expiry spacing.
+function parseExpiryDate(label: string): Date {
+  const [day, mon, year] = label.split(' ')
+  return new Date(Number(year), EXPIRY_MONTHS[mon ?? ''] ?? 0, Number(day))
+}
 
 export function TermStructureSection() {
   const [repoRate, setRepoRate] = React.useState<number>(6.5)
@@ -55,6 +70,22 @@ export function TermStructureSection() {
       }
     })
   }, [repoRate])
+
+  // Bklit time axis rows + per-axis domains (price axis pads ±10 like the
+  // previous `['dataMin - 10', 'dataMax + 10']`; carry starts at zero).
+  const curveRows = React.useMemo(
+    () => termStructureCurves.map((row) => ({ ...row, x: parseExpiryDate(row.date) })),
+    [termStructureCurves]
+  )
+
+  const curveDomains = React.useMemo(() => {
+    const prices = curveRows.flatMap((r) => [r.futuresPrice, r.spotPrice])
+    const carries = curveRows.map((r) => r.impliedAnnualCarryPct)
+    return {
+      left: [Math.min(...prices) - 10, Math.max(...prices) + 10] as [number, number],
+      right: [0, Math.max(...carries) * 1.15] as [number, number],
+    }
+  }, [curveRows])
 
   // Roll-down decomposition calculation (M2 to M1 roll)
   const rollDownDecomp = React.useMemo(() => {
@@ -183,95 +214,95 @@ export function TermStructureSection() {
 
           <div className="px-2 py-5 sm:px-4">
             <div className="h-72 w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={termStructureCurves} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                  <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" vertical={false} />
-                  <XAxis
-                    dataKey="expiry"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={{ stroke: 'var(--gp-slag-500)' }}
-                  />
-                  <YAxis
-                    yAxisId="price"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={false}
-                    domain={['dataMin - 10', 'dataMax + 10']}
-                    width={52}
-                  />
-                  <YAxis
-                    yAxisId="carry"
-                    orientation="right"
-                    stroke="var(--gp-slag-500)"
-                    tick={{ fill: 'var(--gp-slag-500)', fontSize: 10, fontFamily: 'var(--gp-instrument)' }}
-                    tickLine={false}
-                    axisLine={false}
-                    unit="%"
-                    width={44}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'var(--card)',
-                      border: '1px solid var(--border)',
-                      borderRadius: 2,
-                      boxShadow: '4px 4px 0 color-mix(in srgb, var(--gp-slag-900) 30%, transparent)',
-                      fontFamily: 'var(--gp-instrument)',
-                      fontSize: 11,
-                      color: 'var(--foreground)',
-                    }}
-                    labelStyle={{
-                      color: 'var(--gp-slag-500)',
-                      fontSize: 10,
-                      letterSpacing: '0.1em',
-                      textTransform: 'uppercase',
-                    }}
-                    itemStyle={{ color: 'var(--foreground)' }}
-                  />
-                  <Legend
-                    wrapperStyle={{
-                      fontFamily: 'var(--gp-instrument)',
-                      fontSize: 10,
-                      letterSpacing: '0.08em',
-                      textTransform: 'uppercase',
-                      paddingTop: 12,
-                    }}
-                  />
-                  <Line
-                    yAxisId="price"
-                    type="monotone"
-                    dataKey="futuresPrice"
-                    name={`${selectedFamily} futures · ₹/g`}
-                    stroke="var(--gp-slag-900)"
-                    strokeWidth={2}
-                    dot={{ r: 3, fill: 'var(--gp-slag-900)', strokeWidth: 0 }}
-                    activeDot={{ r: 4, fill: 'var(--gp-gold-500)', strokeWidth: 0 }}
-                  />
-                  <Line
-                    yAxisId="price"
-                    type="monotone"
-                    dataKey="spotPrice"
-                    name="Spot baseline · ₹/g"
-                    stroke="var(--gp-slag-600)"
-                    strokeDasharray="4 3"
-                    strokeWidth={1}
-                    dot={false}
-                  />
-                  <Line
-                    yAxisId="carry"
-                    type="monotone"
-                    dataKey="impliedAnnualCarryPct"
-                    name="Implied carry · % p.a."
-                    stroke="var(--gp-slag-300)"
-                    strokeDasharray="1 3"
-                    strokeWidth={2}
-                    dot={{ r: 2, fill: 'var(--gp-slag-300)', strokeWidth: 0 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+              <ComposedChart
+                data={curveRows}
+                xDataKey="x"
+                yDomains={curveDomains}
+                margin={{ top: 8, right: 56, bottom: 36, left: 56 }}
+                aspectRatio=""
+                className="h-full w-full"
+              >
+                <Grid horizontal stroke="var(--border)" strokeDasharray="1 4" fadeHorizontal={false} />
+                <ChartTooltip
+                  indicatorColor="var(--gp-slag-500)"
+                  indicatorFadeEdges="none"
+                  dotVariant="dot"
+                  dotSize={4}
+                  dotColor={(point, line) =>
+                    line.dataKey === 'futuresPrice'
+                      ? 'var(--gp-gold-500)'
+                      : 'var(--gp-slag-500)'
+                  }
+                  rows={(point) => [
+                    {
+                      color: 'var(--chart-line-primary)',
+                      label: `${selectedFamily} futures · ₹/g`,
+                      value: `₹${Number(point.futuresPrice).toFixed(2)}`,
+                    },
+                    {
+                      color: 'var(--chart-line-secondary)',
+                      label: 'Spot baseline · ₹/g',
+                      value: `₹${Number(point.spotPrice).toFixed(2)}`,
+                    },
+                    {
+                      color: 'var(--gp-slag-300)',
+                      label: 'Implied carry · % p.a.',
+                      value: `${Number(point.impliedAnnualCarryPct).toFixed(2)}%`,
+                    },
+                  ]}
+                />
+                <Line
+                  yAxisId="left"
+                  dataKey="futuresPrice"
+                  stroke="var(--chart-line-primary)"
+                  strokeWidth={2}
+                  curve={curveMonotoneX}
+                  fadeEdges={false}
+                  showMarkers
+                  markers={{ fill: 'var(--chart-line-primary)', radius: 3, strokeWidth: 0 }}
+                />
+                <Line
+                  yAxisId="left"
+                  dataKey="spotPrice"
+                  stroke="var(--chart-line-secondary)"
+                  strokeWidth={1}
+                  curve={curveMonotoneX}
+                  dashFromIndex={0}
+                  dashArray="4,3"
+                  showHighlight={false}
+                  fadeEdges={false}
+                />
+                <Line
+                  yAxisId="right"
+                  dataKey="impliedAnnualCarryPct"
+                  stroke="var(--gp-slag-300)"
+                  strokeWidth={2}
+                  curve={curveMonotoneX}
+                  dashFromIndex={0}
+                  dashArray="1,3"
+                  showHighlight={false}
+                  fadeEdges={false}
+                  showMarkers
+                  markers={{ fill: 'var(--gp-slag-300)', radius: 2, strokeWidth: 0 }}
+                />
+                <XAxis numTicks={5} />
+                <YAxis yAxisId="left" numTicks={5} formatValue={(v) => `₹${v.toFixed(0)}`} />
+                <YAxis yAxisId="right" orientation="right" numTicks={5} formatValue={(v) => `${v}%`} />
+              </ComposedChart>
             </div>
+            <Legend
+              className="flex-row justify-center gap-5 pb-1"
+              items={[
+                { label: `${selectedFamily} futures`, value: 0, color: 'var(--chart-line-primary)' },
+                { label: 'Spot baseline', value: 0, color: 'var(--chart-line-secondary)' },
+                { label: 'Implied carry', value: 0, color: 'var(--gp-slag-300)' },
+              ]}
+            >
+              <LegendItem className="rounded-[2px] px-1 py-0.5">
+                <LegendMarker className="h-[2px] w-5 rounded-none" />
+                <LegendLabel className="gp-label" />
+              </LegendItem>
+            </Legend>
           </div>
 
           <div className="border-t border-border px-4 py-3">

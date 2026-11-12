@@ -6,7 +6,8 @@ import { ArrowRight, Bot, Sparkles, TrendingUp, Zap } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { AnimatedNumber, Sparkline } from '@/components/sparkline'
+import { AnimatedNumber } from '@/components/sparkline'
+import { AreaSparkline } from '@/components/charts/sparkline'
 
 const HERO_STATS = [
   { label: 'Alpha Factors', value: 456, suffix: '+', icon: Zap },
@@ -130,7 +131,21 @@ export function Hero() {
                     {s.change.toFixed(2)}%
                   </span>
                 </div>
-                <Sparkline data={s.data} width={260} height={48} strokeWidth={2} />
+                <AreaSparkline
+                  data={s.data}
+                  dataKey={(d) => d}
+                  width={260}
+                  height={48}
+                  strokeWidth={2}
+                  curve="linear"
+                  color={
+                    s.change >= 0 ? 'var(--gp-tradable-ink)' : 'var(--gp-blocked-ink)'
+                  }
+                  fill="solid"
+                  fillOpacity={0.14}
+                  endDot={false}
+                  interactive={false}
+                />
               </Card>
             </motion.div>
           ))}

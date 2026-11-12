@@ -2,7 +2,11 @@
 
 import * as React from 'react'
 import { motion } from 'motion/react'
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart } from '@/components/charts/area-chart'
+import { Grid } from '@/components/charts/grid'
+import { XAxis } from '@/components/charts/x-axis'
+import { YAxis } from '@/components/charts/y-axis'
+import { ChartTooltip } from '@/components/charts/tooltip'
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -320,18 +324,39 @@ export function PaperTrading() {
                 <CardTitle className="text-base">Account Equity Curve</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={220}>
-                  <AreaChart data={history} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                    <XAxis dataKey="date" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip
-                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 2, fontSize: 12 }}
-                      formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={2} fill="var(--gp-slag-300)" fillOpacity={0.22} />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AreaChart
+                  data={history.map((h) => ({
+                    date: new Date(`${h.date}-01T00:00:00`),
+                    value: h.value,
+                  }))}
+                  margin={{ top: 8, right: 12, bottom: 24, left: 48 }}
+                  aspectRatio=""
+                  className="h-[220px] w-full"
+                >
+                  <Grid horizontal stroke="var(--border)" strokeDasharray="3 3" fadeHorizontal={false} />
+                  <XAxis numTicks={6} />
+                  <YAxis formatValue={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <ChartTooltip
+                    indicatorColor="var(--gp-slag-500)"
+                    indicatorFadeEdges="none"
+                    rows={(point) => [
+                      {
+                        color: 'var(--foreground)',
+                        label: 'Equity',
+                        value: `$${Number(point.value).toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
+                      },
+                    ]}
+                  />
+                  <Area
+                    dataKey="value"
+                    stroke="var(--foreground)"
+                    strokeWidth={2}
+                    fill="var(--gp-slag-300)"
+                    fillOpacity={0.22}
+                    gradientToOpacity={0.22}
+                    fadeEdges={false}
+                  />
+                </AreaChart>
               </CardContent>
             </Card>
           </div>

@@ -2,17 +2,11 @@
 
 import * as React from 'react'
 import { motion } from 'motion/react'
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  Line,
-  LineChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from 'recharts'
+import { Area, AreaChart } from '@/components/charts/area-chart'
+import { Grid } from '@/components/charts/grid'
+import { XAxis } from '@/components/charts/x-axis'
+import { YAxis } from '@/components/charts/y-axis'
+import { ChartTooltip } from '@/components/charts/tooltip'
 import {
   ArrowRight,
   Boxes,
@@ -328,24 +322,39 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                 <CardTitle className="text-base">Equity Curve (12 months)</CardTitle>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={240}>
-                  <AreaChart data={result.equityCurve} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="grad-bt" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="var(--foreground)" stopOpacity={0.35} />
-                        <stop offset="100%" stopColor="var(--foreground)" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                    <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
-                    <Tooltip
-                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
-                    />
-                    <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={2} fill="url(#grad-bt)" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AreaChart
+                  data={result.equityCurve.map((e) => ({
+                    date: new Date(`${e.month}-01T00:00:00`),
+                    value: e.value,
+                  }))}
+                  margin={{ top: 8, right: 12, bottom: 24, left: 48 }}
+                  aspectRatio=""
+                  className="h-[240px] w-full"
+                >
+                  <Grid horizontal stroke="var(--border)" strokeDasharray="3 3" fadeHorizontal={false} />
+                  <XAxis numTicks={6} />
+                  <YAxis formatValue={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                  <ChartTooltip
+                    indicatorColor="var(--gp-slag-500)"
+                    indicatorFadeEdges="none"
+                    rows={(point) => [
+                      {
+                        color: 'var(--foreground)',
+                        label: 'Equity',
+                        value: `$${Number(point.value).toLocaleString('en-US', { minimumFractionDigits: 0 })}`,
+                      },
+                    ]}
+                  />
+                  <Area
+                    dataKey="value"
+                    stroke="var(--foreground)"
+                    strokeWidth={2}
+                    fill="var(--foreground)"
+                    fillOpacity={0.35}
+                    gradientToOpacity={0}
+                    fadeEdges={false}
+                  />
+                </AreaChart>
               </CardContent>
             </Card>
 
