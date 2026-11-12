@@ -215,7 +215,7 @@ export function XRayWaterfallSection() {
                   Config · {result.configHash}
                 </span>
               </div>
-              <p className="max-w-[20rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
+              <p className="max-w-[20rem] font-mono text-[11px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
                 Pair · {result.contractA} / {result.contractB}
                 <br />
                 Recon tolerance · {result.reconciliationOk ? 'within 0.01 ₹/g' : 'failed'}
@@ -228,7 +228,7 @@ export function XRayWaterfallSection() {
         <div className="mt-10 border border-border bg-card">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="gp-label">Pair controls · quoted prices normalize to 999 fine</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               Editable · results recompute on change
             </p>
           </div>
@@ -274,7 +274,7 @@ export function XRayWaterfallSection() {
                 className="mt-4"
                 aria-label="Annual carry rate, percent"
               />
-              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 Applied to the average normalized price across the expiry gap
               </p>
             </div>
@@ -296,7 +296,7 @@ export function XRayWaterfallSection() {
                 className="mt-4"
                 aria-label="Settlement artifact, rupees per gram"
               />
-              <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <p className="mt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 Thin or illiquid settle prices, reported per gram of 999-fine exposure
               </p>
             </div>
@@ -308,7 +308,7 @@ export function XRayWaterfallSection() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
               <h3 className="gp-serif text-xl">Waterfall · signed components</h3>
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 bps of leg A normalized price
               </p>
             </div>
@@ -333,7 +333,7 @@ export function XRayWaterfallSection() {
                 <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground">
                   {reconLedger}
                 </pre>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                   <span>
                     Reconciliation error · {result.reconciliationError.toFixed(6)} ₹/g
                   </span>
@@ -353,7 +353,7 @@ export function XRayWaterfallSection() {
                     No. {certificateDate(result.tradeDate)} · {result.contractA}/
                     {result.contractB}
                   </p>
-                  <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                     {result.expiryA} / {result.expiryB}
                   </p>
                 </div>
@@ -467,7 +467,7 @@ export function XRayWaterfallSection() {
                         : undefined
                     }
                   />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                     bps
                   </span>
                 </dd>
@@ -491,7 +491,7 @@ export function XRayWaterfallSection() {
           <div className="min-w-0">
             <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
               <h3 className="gp-serif text-xl">Cost of the round trip</h3>
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 Both legs · one lot each
               </p>
             </div>
@@ -583,7 +583,7 @@ function LegControl({
     <div className="bg-card p-4">
       <div className="flex items-center justify-between gap-3">
         <p className="gp-label">{title}</p>
-        <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+        <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
           {inrPerG(normalized, 2)} · 999
         </span>
       </div>

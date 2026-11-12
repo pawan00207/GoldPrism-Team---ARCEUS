@@ -27,7 +27,7 @@ function AuditTimestamp({ ts }: { ts: string }) {
     setLabel(new Date(ts).toLocaleTimeString())
   }, [ts])
   return (
-    <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+    <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
       {label ? `Audited ${label}` : 'Auditing…'}
     </span>
   )
@@ -278,7 +278,7 @@ export function DataHealthSection({
         <div className="mt-10 border border-border">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="gp-label">MCX bhavcopy · integrity gates</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               DuckDB / Parquet store
             </p>
           </div>
@@ -343,7 +343,7 @@ export function DataHealthSection({
               {ingestionResult.originalFileName}
             </p>
             <p
-              className="mt-2 truncate font-mono text-[10px] text-muted-foreground"
+              className="mt-2 truncate font-mono text-[11px] text-muted-foreground"
               title={ingestionResult.sha256Hash}
             >
               sha256 · {ingestionResult.sha256Hash}
@@ -371,7 +371,7 @@ export function DataHealthSection({
               <h3 className="gp-serif text-base">
                 Validated &amp; normalized records ({ingestionResult.validatedRecords.length})
               </h3>
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 ₹/g · 999 fine
               </span>
             </div>
@@ -420,7 +420,7 @@ export function DataHealthSection({
                       <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
                         {r.reasonDescription}
                       </p>
-                      <p className="mt-2 truncate border border-border bg-muted px-2 py-1 font-mono text-[10px] text-muted-foreground">
+                      <p className="mt-2 truncate border border-border bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
                         {r.rawRow}
                       </p>
                     </li>

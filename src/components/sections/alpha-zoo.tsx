@@ -65,7 +65,7 @@ export function AlphaZoo() {
             <Atom className="w-3 h-3" /> Alpha Zoo
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            456 alpha factors, ready to backtest
+            70 curated factors, ready to backtest
           </h2>
           <p className="text-muted-foreground mt-2 max-w-2xl">
             A curated library of cross-sectional alphas from Qlib158,
@@ -202,11 +202,11 @@ export function AlphaZoo() {
                           <div className="flex items-center gap-2">
                             <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
                             <span className="font-semibold text-sm">{a.name}</span>
-                            <Badge variant="outline" className="text-[10px] h-4 px-1">
+                            <Badge variant="outline" className="text-[11px] h-4 px-1">
                               {a.family}
                             </Badge>
                           </div>
-                          <Badge variant="secondary" className={cn('text-[10px] capitalize', STATUS_COLORS[a.status])}>
+                          <Badge variant="secondary" className={cn('text-[11px] capitalize', STATUS_COLORS[a.status])}>
                             {a.status}
                           </Badge>
                         </div>
@@ -271,7 +271,7 @@ export function AlphaZoo() {
                   </div>
                   <div className="flex flex-wrap gap-1 pt-2">
                     {selected.tags.map((t) => (
-                      <Badge key={t} variant="secondary" className="text-[10px]">
+                      <Badge key={t} variant="secondary" className="text-[11px]">
                         {t}
                       </Badge>
                     ))}

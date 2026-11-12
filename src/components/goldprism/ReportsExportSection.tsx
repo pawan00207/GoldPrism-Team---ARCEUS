@@ -175,10 +175,10 @@ export function ReportsExportSection() {
         </div>
 
         <div className="mt-8 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
             All exports are generated from the frozen fixture run
           </p>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
             No live market feed is used
           </p>
         </div>

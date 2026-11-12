@@ -147,7 +147,7 @@ export function DataAuditMethodologySection() {
                 </div>
               ))}
             </dl>
-            <p className="mt-4 font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+            <p className="mt-4 font-mono text-[11px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
               Fee schedule is applied on both legs before the residual is judged.
             </p>
           </div>

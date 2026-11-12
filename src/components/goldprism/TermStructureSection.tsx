@@ -306,7 +306,7 @@ export function TermStructureSection() {
           </div>
 
           <div className="border-t border-border px-4 py-3">
-            <p className="font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
               All three series are shown in slag grey. Gold is reserved for a residual that
               survives costs, not for a curve.
             </p>

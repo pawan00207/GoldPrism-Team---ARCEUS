@@ -135,10 +135,10 @@ html.light [data-astryx-theme] {
   --gp-text-2: 2.625rem;
   --gp-text-3: 4.25rem;
   --gp-text-4: 6.875rem;
-  --gp-leading-0: 1.6;
-  --gp-leading-1: 1.23;
-  --gp-leading-2: 1.19;
-  --gp-leading-3: 1.13;
+  --gp-leading-0: 1.625;
+  --gp-leading-1: 1.2;
+  --gp-leading-2: 1.2;
+  --gp-leading-3: 1.06;
   --gp-leading-4: 1.06;
 
   /* Slag ramp — neutral: text, rules, raw gap, everything explained away */
@@ -745,6 +745,20 @@ html.light [data-astryx-theme] {
   .gp-foil-band {
     fill: url(#gp-foil-grad);
   }
+  .gp-foil-text {
+    background-image: var(--gp-foil);
+    background-size: 240% 100%;
+    background-position: 55% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: background-position var(--gp-dur-foil) var(--gp-ease-foil);
+  }
+  a:hover > .gp-foil-text,
+  a:focus-visible > .gp-foil-text,
+  .gp-foil-text:hover {
+    background-position: 100% 0;
+  }
 
   /* ---------- Buttons · hover turns gold: the one invitation ---------- */
   .gp-button {
@@ -792,19 +806,21 @@ html.light [data-astryx-theme] {
     color: var(--gp-paper);
   }
   .gp-button--primary {
-    background: var(--gp-slag-900);
-    border-color: var(--gp-slag-900);
-    color: var(--gp-paper);
-  }
-  .gp-button--primary:hover {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
+    background-image: var(--gp-foil);
+    background-size: 240% 100%;
+    background-position: 0% 50%;
+    border: 1px solid #8A5F0B;
     color: var(--gp-slag-900);
+    box-shadow: inset 0 1px 0 #FFF3C4, inset 0 -1px 0 #8A5F0B;
   }
-  .dark .gp-button--primary {
-    background: var(--gp-paper);
-    border-color: var(--gp-paper);
-    color: var(--gp-crucible);
+  .gp-button--primary:hover,
+  .gp-button--primary:focus-visible {
+    background-position: 100% 50%;
+    border-color: #8A5F0B;
+    color: var(--gp-slag-900);
+    transition: background-position var(--gp-dur-foil) var(--gp-ease-foil),
+      transform var(--gp-dur-press) ease,
+      border-color var(--gp-dur-press) ease;
   }
 
   /* ---------- Fields · underline, error turns the rule oxide ---------- */

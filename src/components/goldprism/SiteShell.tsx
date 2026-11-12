@@ -8,7 +8,7 @@ export function SiteShell({ children }: { children: ReactNode }) {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Navbar />
       <TickerTape />
-      <main className="flex-1">{children}</main>
+      <main className="relative z-10 flex-1">{children}</main>
       <Footer />
     </div>
   )

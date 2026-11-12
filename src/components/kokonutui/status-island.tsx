@@ -172,7 +172,7 @@ function TaskTrailing({ task }: { task: IslandTask }) {
     const { label, onClick } = task.action;
     return (
       <button
-        className="-my-1 shrink-0 rounded-sm border border-border bg-muted px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-foreground transition-colors duration-150 hover:bg-accent focus-visible:outline-2 focus-visible:outline-[var(--gp-gold)]"
+        className="-my-1 shrink-0 rounded-sm border border-border bg-muted px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground transition-colors duration-150 hover:bg-accent focus-visible:outline-2 focus-visible:outline-[var(--gp-gold)]"
         onClick={(event) => {
           event.stopPropagation();
           onClick();
@@ -469,7 +469,7 @@ export function StatusIsland({
 function TaskTrailingInert({ task }: { task: IslandTask }) {
   if (task.action) {
     return (
-      <span className="-my-1 inline-block rounded-sm border border-border bg-muted px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-foreground">
+      <span className="-my-1 inline-block rounded-sm border border-border bg-muted px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground">
         {task.action.label}
       </span>
     );

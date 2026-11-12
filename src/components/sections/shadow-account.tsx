@@ -252,7 +252,7 @@ export function ShadowAccount() {
                                   <span className="text-sm font-mono">{m.value}</span>
                                 </div>
                                 <div className="text-xs text-muted-foreground">{m.description}</div>
-                                <div className="text-[10px] text-muted-foreground mt-0.5">Benchmark: {m.benchmark}</div>
+                                <div className="text-[11px] text-muted-foreground mt-0.5">Benchmark: {m.benchmark}</div>
                               </div>
                             </div>
                           )
@@ -310,7 +310,7 @@ export function ShadowAccount() {
                       <div key={b.name} className="p-3 rounded-[2px] border border-border">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-semibold text-sm">{b.name}</span>
-                          <Badge variant="secondary" className={cn('text-[10px] capitalize', SEVERITY_STYLES[b.severity])}>
+                          <Badge variant="secondary" className={cn('text-[11px] capitalize', SEVERITY_STYLES[b.severity])}>
                             {b.severity}
                           </Badge>
                         </div>
@@ -337,7 +337,7 @@ export function ShadowAccount() {
                   <div className="space-y-2">
                     {result.extractedRules.map((r, i) => (
                       <div key={i} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
-                        <Badge variant="secondary" className={cn('text-[10px] capitalize shrink-0', TYPE_COLORS[r.type])}>
+                        <Badge variant="secondary" className={cn('text-[11px] capitalize shrink-0', TYPE_COLORS[r.type])}>
                           {r.type}
                         </Badge>
                         <div className="flex-1 min-w-0">

@@ -78,7 +78,7 @@ export function BestVehicleSection() {
               <div>
                 <div className="flex flex-wrap items-baseline gap-3">
                   <h3 className="gp-serif text-3xl">{winner.contractCode}</h3>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                  <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                     {winner.tradingUnitG} g per lot
                   </span>
                 </div>
@@ -119,7 +119,7 @@ export function BestVehicleSection() {
         {/* ---------------- Full comparison ---------------- */}
         <div className="mt-10 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
           <h3 className="gp-serif text-xl">Every vehicle, every mismatch</h3>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+          <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
             Ranked by exposure fit, then friction
           </p>
         </div>

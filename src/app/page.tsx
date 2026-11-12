@@ -73,7 +73,7 @@ export default function Home() {
                         {pathway.index}
                       </span>
                       <span className="h-px w-8 bg-border" aria-hidden="true" />
-                      <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                      <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                         {pathway.eyebrow}
                       </span>
                     </div>
@@ -86,7 +86,7 @@ export default function Home() {
                       {pathway.description}
                     </p>
                     <SpectralRule className="mt-5" />
-                    <span className="mt-4 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground transition-colors group-hover:text-foreground">
+                    <span className="mt-4 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground transition-colors group-hover:text-foreground">
                       Open surface
                       <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-1" />
                     </span>

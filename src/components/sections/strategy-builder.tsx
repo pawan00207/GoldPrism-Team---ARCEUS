@@ -157,7 +157,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
             Compose a strategy, then backtest instantly
           </h2>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Drag-and-drop building blocks — entries, exits, risk rules,
+            Click-to-add building blocks — entries, exits, risk rules,
             position sizing — and the agent runs a 12-month backtest with
             realistic metrics.
           </p>
@@ -257,7 +257,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-sm font-medium">{b.name}</span>
-                            <Badge variant="outline" className="text-[10px] capitalize">{b.type}</Badge>
+                            <Badge variant="outline" className="text-[11px] capitalize">{b.type}</Badge>
                           </div>
                           <div className="text-xs text-muted-foreground">{b.param}</div>
                         </div>

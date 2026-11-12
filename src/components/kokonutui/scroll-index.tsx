@@ -505,7 +505,7 @@ export default function ScrollIndex({
           />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-0 right-9 max-w-[240px] truncate rounded-sm border border-border bg-card px-2 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-foreground opacity-0 shadow-[2px_2px_0_var(--gp-slag-900)] transition-[opacity,transform] duration-150 ease-out"
+            className="pointer-events-none absolute top-0 right-9 max-w-[240px] truncate rounded-sm border border-border bg-card px-2 py-1 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground opacity-0 shadow-[2px_2px_0_var(--gp-slag-900)] transition-[opacity,transform] duration-150 ease-out"
             ref={labelRef}
           />
         </div>

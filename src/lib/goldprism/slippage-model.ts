@@ -1,1 +1,0 @@
-export const SLIPPAGE_BPS = { GOLDM: 1.5, GOLDTEN: 2.0, GOLDGUINEA: 3.5, GOLDPETAL: 4.0 };

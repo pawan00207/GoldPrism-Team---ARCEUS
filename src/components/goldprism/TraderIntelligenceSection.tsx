@@ -10,6 +10,14 @@ function figure(value: string): string {
   return `${value.replaceAll('-', '−')} bps`
 }
 
+/** Fixture integrity check: net edge must equal gross residual minus the cost hurdle. */
+function reconcileRow(net: string, gross: string, cost: string): boolean {
+  const n = parseFloat(net)
+  const g = parseFloat(gross)
+  const c = parseFloat(cost)
+  return Number.isFinite(n) && Number.isFinite(g) && Number.isFinite(c) && Math.abs(g - c - n) < 0.05
+}
+
 function hurdleValue(value: string): number {
   return parseFloat(value) || 0
 }
@@ -22,10 +30,14 @@ export function TraderIntelligenceSection() {
 
   const handleVerifyReproducibility = () => {
     setReproStatus('VERIFYING')
-    setTimeout(() => {
-      setReproStatus('PASSED')
+    // Re-derive net edge from gross residual minus cost hurdle for every audit row.
+    window.setTimeout(() => {
+      const ok = whyQuietPairs.every((row) =>
+        reconcileRow(row.netEdgeBps, row.grossResidualBps, row.costHurdleBps)
+      )
+      setReproStatus(ok ? 'PASSED' : 'FAILED')
       setReproTimestamp(new Date().toLocaleTimeString())
-    }, 600)
+    }, 350)
   }
 
   // Aggregate fixture results, separate from the interactive X-Ray session.
@@ -127,19 +139,20 @@ export function TraderIntelligenceSection() {
                   variant="outline"
                   size="sm"
                 >
-                  {reproStatus === 'VERIFYING' ? 'Verifying…' : 'Verify pipeline hash'}
+                  {reproStatus === 'VERIFYING' ? 'Verifying…' : 'Verify audit math'}
                 </Button>
                 <span className={cn('gp-tag', reproTone)}>
                   {reproStatus === 'PASSED'
-                    ? 'Hash match · pass'
-                    : reproStatus === 'VERIFYING'
-                      ? 'Checking'
-                      : 'Stored hash'}
+                    ? 'Gross − hurdle = net · pass'
+                    : reproStatus === 'FAILED'
+                      ? 'Fixture mismatch'
+                      : reproStatus === 'VERIFYING'
+                        ? 'Checking'
+                        : 'Not checked'}
                 </span>
               </div>
-              <p className="max-w-[22rem] break-all font-mono text-[10px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground lg:text-right">
-                9c8103c61b2b2137
-                {reproStatus === 'PASSED' && reproTimestamp
+              <p className="max-w-[22rem] font-mono text-[11px] uppercase leading-relaxed tracking-[0.1em] text-muted-foreground lg:text-right">
+                gross − hurdle = net, per row{reproStatus === 'PASSED' && reproTimestamp
                   ? ` · verified ${reproTimestamp}`
                   : ''}
               </p>

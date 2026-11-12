@@ -113,7 +113,7 @@ export default function InlineAlert({
                     <>
                       <button
                         aria-expanded={open}
-                        className="mt-3 flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-[var(--gp-gold)]"
+                        className="mt-3 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground outline-none transition-colors duration-150 hover:text-foreground focus-visible:ring-2 focus-visible:ring-[var(--gp-gold)]"
                         onClick={() => setOpen((value) => !value)}
                         type="button"
                       >
@@ -147,7 +147,7 @@ export default function InlineAlert({
                                 <div className="min-w-0">
                                   <p
                                     className={cn(
-                                      "font-mono text-[10px] uppercase tracking-[0.12em]",
+                                      "font-mono text-[11px] uppercase tracking-[0.12em]",
                                       check.ok
                                         ? "text-[var(--gp-tradable-ink)]"
                                         : "text-[var(--gp-blocked-ink)]"
@@ -174,7 +174,7 @@ export default function InlineAlert({
 
                   {action ? (
                     <button
-                      className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-sm border border-foreground bg-background px-3 font-mono text-[10px] uppercase tracking-[0.12em] text-foreground outline-none transition-colors duration-150 hover:bg-foreground hover:text-background focus-visible:ring-2 focus-visible:ring-[var(--gp-gold)]"
+                      className="mt-3 inline-flex h-8 items-center gap-1.5 rounded-sm border border-foreground bg-background px-3 font-mono text-[11px] uppercase tracking-[0.12em] text-foreground outline-none transition-colors duration-150 hover:bg-foreground hover:text-background focus-visible:ring-2 focus-visible:ring-[var(--gp-gold)]"
                       onClick={action.onClick}
                       type="button"
                     >

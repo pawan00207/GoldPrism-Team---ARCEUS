@@ -12,7 +12,7 @@ export type WaterfallBar = {
   working?: string
 }
 
-function barFill(bar: WaterfallBar, tradable: boolean): React.CSSProperties {
+function barFill(bar: WaterfallBar, tradable: boolean, active = false): React.CSSProperties {
   switch (bar.kind) {
     case 'raw':
       return { background: 'var(--gp-slag-800)' }
@@ -39,7 +39,12 @@ function barFill(bar: WaterfallBar, tradable: boolean): React.CSSProperties {
       // residual has survived the full cost hurdle.
       if (bar.bps <= 0) return { background: 'var(--gp-slag-900)' }
       if (tradable) {
-        return { background: 'var(--gp-foil)', backgroundSize: '240% 100%' }
+        return {
+          background: 'var(--gp-foil)',
+          backgroundSize: '240% 100%',
+          backgroundPosition: active ? '100% 0' : '0% 0',
+          transition: 'background-position 900ms var(--gp-ease-foil)',
+        }
       }
       return { background: 'var(--gp-slag-600)' }
     default:
@@ -147,14 +152,14 @@ export function WaterfallChart({
                     top,
                     height,
                     animationDelay: `${idx * 60}ms`,
-                    ...barFill(bar, tradable),
+                    ...barFill(bar, tradable, isActive),
                   }}
                 />
 
                 {isActive ? (
                   <div
                     role="status"
-                    className="absolute left-1/2 z-20 w-48 -translate-x-1/2 -translate-y-2 border border-[var(--gp-slag-500)] bg-[var(--gp-crucible)] px-3 py-2 text-left font-mono text-[10px] leading-relaxed text-[var(--gp-paper)] shadow-[4px_4px_0_rgba(0,0,0,0.35)]"
+                    className="absolute left-1/2 z-20 w-48 -translate-x-1/2 -translate-y-2 border border-[var(--gp-slag-500)] bg-[var(--gp-crucible)] px-3 py-2 text-left font-mono text-[11px] leading-relaxed text-[var(--gp-paper)] shadow-[4px_4px_0_rgba(0,0,0,0.35)]"
                     style={{ bottom: H - top + 8 }}
                   >
                     <div className="uppercase tracking-widest text-[var(--gp-slag-300)]">
@@ -194,7 +199,7 @@ export function WaterfallChart({
         ))}
       </div>
 
-      <p className="mt-4 flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+      <p className="mt-4 flex items-center gap-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
         <span className="inline-block h-2.5 w-2.5 bg-[var(--gp-gold-500)]" aria-hidden="true" />
         gold marks only the residual that survives costs
       </p>

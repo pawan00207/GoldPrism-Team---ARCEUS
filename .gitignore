@@ -65,3 +65,6 @@ server.log
 # local agent/session config (never commit)
 /opencode.json
 /theme.template.ts
+
+# local design reference (brand kit, never commit)
+/GoldPrism Brand Kit.html

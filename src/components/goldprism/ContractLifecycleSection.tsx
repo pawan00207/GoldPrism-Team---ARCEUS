@@ -107,7 +107,7 @@ export function ContractLifecycleSection() {
           aside={
             <div className="flex flex-col items-start gap-2 lg:items-end">
               <span className="gp-tag gp-tag--watch">Physical tender lock active</span>
-              <p className="max-w-[18rem] text-right font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
+              <p className="max-w-[18rem] text-right font-mono text-[11px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
                 One missed roll is a delivery, not a trade.
               </p>
             </div>
@@ -123,7 +123,7 @@ export function ContractLifecycleSection() {
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <h3 className="gp-serif text-2xl">{contract.symbol}</h3>
-                    <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                    <p className="mt-1 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                       {contract.tradingUnit} · {contract.purity}
                     </p>
                   </div>
@@ -191,7 +191,7 @@ export function ContractLifecycleSection() {
         <div className="mt-10 border border-border">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="gp-label">Strict enforcement rules for quantitative entries</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               Applied before signal evaluation
             </p>
           </div>

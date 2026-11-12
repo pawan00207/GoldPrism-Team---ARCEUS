@@ -101,7 +101,7 @@ export function PaperTrading() {
             Practice with $100K of virtual capital
           </h2>
           <p className="text-muted-foreground mt-2 max-w-xl">
-            Place market and limit orders against live prices. No real money at
+            Place market and limit orders against fixture prices. No real money at
             risk — perfect for testing strategies before going live.
           </p>
         </motion.div>
@@ -302,7 +302,7 @@ export function PaperTrading() {
                             <Badge
                               variant="secondary"
                               className={cn(
-                                'text-[10px] capitalize',
+                                'text-[11px] capitalize',
                                 o.status === 'filled' && 'gp-tint-pos gp-pos',
                                 o.status === 'pending' && 'gp-tint-warn gp-warn',
                                 o.status === 'cancelled' && 'gp-tint-neg gp-neg'

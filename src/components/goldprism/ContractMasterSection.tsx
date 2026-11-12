@@ -118,7 +118,7 @@ export function ContractMasterSection() {
           title="A gram is not a gram until it is 999."
           description="Authoritative lot sizes, quoted units, delivery windows and purity. Every price is normalized to one fine-gold benchmark before any spread is compared."
           aside={
-            <p className="max-w-[19rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
+            <p className="max-w-[19rem] font-mono text-[11px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
               Source · MCX India commodity derivatives contract specifications
             </p>
           }
@@ -128,7 +128,7 @@ export function ContractMasterSection() {
         <div className="mt-10 border border-border">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="gp-label">Verified contract specifications</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               {specs.length} contracts · 999-fine benchmark
             </p>
           </div>
@@ -223,7 +223,7 @@ export function ContractMasterSection() {
                   <p className="gp-label">Normalized 999-fine benchmark</p>
                   <p className="gp-figure mt-2 text-3xl">{inrPerG(normResult.normalizedPrice)}</p>
 
-                  <div className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
+                  <div className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
                     {normResult.trace.stepByStep.map((step, idx) => (
                       <p key={idx}>{step}</p>
                     ))}

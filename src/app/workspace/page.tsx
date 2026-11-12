@@ -6,7 +6,6 @@ import { PaperTrading } from '@/components/sections/paper-trading'
 import { ShadowAccount } from '@/components/sections/shadow-account'
 import { Swarm } from '@/components/sections/swarm'
 import { StrategyBuilder } from '@/components/sections/strategy-builder'
-import { Features } from '@/components/sections/features'
 
 export default function WorkspacePage() {
   return (
@@ -23,7 +22,6 @@ export default function WorkspacePage() {
       <ShadowAccount />
       <Swarm />
       <StrategyBuilder />
-      <Features />
     </SiteShell>
   )
 }

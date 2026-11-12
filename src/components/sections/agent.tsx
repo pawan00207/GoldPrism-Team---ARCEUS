@@ -103,13 +103,13 @@ export function Agent() {
         >
           <div>
             <Badge variant="outline" className="mb-2 gap-1 border-[color-mix(in_srgb,var(--gp-watch-ink)_40%,transparent)] gp-warn">
-              <Bot className="w-3 h-3" /> GoldPrism AI Agent
+              <Bot className="w-3 h-3" /> Gold<span className="gp-foil-text font-normal italic">Prism</span> AI Agent
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-              Chat with <span className="gp-gold-text">GoldPrism</span> Agent
+              Chat with Gold<span className="gp-foil-text font-normal italic">Prism</span> Agent
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              An autonomous ReAct-style agent with 68 tools — MCX gold X-Ray analysis,
+              An autonomous ReAct-style agent — MCX gold X-Ray analysis,
               spread decomposition, factor research, backtesting, and portfolio analytics.
             </p>
           </div>
@@ -135,10 +135,10 @@ export function Agent() {
                   <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-[1px] bg-[var(--gp-tradable-ink)] border-2 border-card animate-pulse" />
                 </div>
                 <div className="min-w-0">
-                  <div>GoldPrism Agent</div>
+                  <div>Gold<span className="gp-foil-text font-normal italic">Prism</span> Agent</div>
                   <div className="text-xs font-normal text-muted-foreground flex items-center gap-1 truncate">
                     <Sparkles className="w-3 h-3 shrink-0" />
-                    <span className="truncate">Online · 68 tools · MCX Gold Research</span>
+                    <span className="truncate">Fixture mode · MCX Gold Research</span>
                   </div>
                 </div>
               </CardTitle>

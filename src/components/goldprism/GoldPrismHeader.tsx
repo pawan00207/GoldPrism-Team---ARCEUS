@@ -26,14 +26,14 @@ export function GoldPrismHeader() {
       </div>
       <div className="gp-register-mark gp-register-mark--top" aria-hidden="true" />
       <div className="gp-container relative z-10 py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
-        <div className="gp-split items-end">
+        <div className="gp-split items-center">
           <div>
             <div className="mb-8 flex items-center gap-4">
               <BrandMark className="h-12 w-12" />
               <div>
                 <p className="gp-kicker">MCX gold / research terminal</p>
                 <h1 className="gp-display mt-2">
-                  Gold<span className="gp-gold-text">Prism</span>
+                  Gold<span className="gp-foil-text font-normal italic">Prism</span>
                 </h1>
               </div>
             </div>
@@ -60,7 +60,7 @@ export function GoldPrismHeader() {
 
             <div className="mt-10 flex flex-wrap items-center gap-3">
               <DataTag synthetic detail="20 Mar 2026" />
-              <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              <span className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
                 Not a live market feed
               </span>
             </div>
@@ -132,7 +132,7 @@ export function GoldPrismHeader() {
         <div className="mt-14 border-t border-border pt-6">
           <div className="mb-4 flex items-center justify-between gap-4">
             <p className="gp-kicker">Contract family · normalized to 999 fine</p>
-            <p className="hidden font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:block">
+            <p className="hidden font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground sm:block">
               ₹/g · fixture
             </p>
           </div>

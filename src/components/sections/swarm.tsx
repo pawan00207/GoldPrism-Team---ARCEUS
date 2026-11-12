@@ -131,7 +131,7 @@ export function Swarm() {
             >
               <div className="flex items-center justify-between mb-1">
                 <Users className="w-4 h-4 text-primary" />
-                <Badge variant="outline" className="text-[10px]">{p.category}</Badge>
+                <Badge variant="outline" className="text-[11px]">{p.category}</Badge>
               </div>
               <div className="font-semibold text-sm">{p.name}</div>
               <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
@@ -244,11 +244,11 @@ export function Swarm() {
                           <div className={cn('w-7 h-7 rounded-[2px] flex items-center justify-center', meta.bg)}>
                             <Icon className={cn('w-3.5 h-3.5', meta.color, meta.spin && 'animate-spin')} />
                           </div>
-                          <span className="text-[10px] text-muted-foreground">#{i + 1}</span>
+                          <span className="text-[11px] text-muted-foreground">#{i + 1}</span>
                         </div>
                         <div className="text-xs font-semibold leading-tight mb-1">{w.name}</div>
-                        <div className="text-[10px] text-muted-foreground leading-tight">{w.role}</div>
-                        <div className={cn('text-[10px] mt-1.5 font-medium', meta.color)}>
+                        <div className="text-[11px] text-muted-foreground leading-tight">{w.role}</div>
+                        <div className={cn('text-[11px] mt-1.5 font-medium', meta.color)}>
                           {meta.label}
                         </div>
                       </motion.button>
@@ -291,7 +291,7 @@ export function Swarm() {
                       <div className="text-xs text-muted-foreground">{selectedWorker.role}</div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge variant="secondary" className={cn('text-[10px]', STATUS_META[selectedWorker.status].bg, STATUS_META[selectedWorker.status].color)}>
+                      <Badge variant="secondary" className={cn('text-[11px]', STATUS_META[selectedWorker.status].bg, STATUS_META[selectedWorker.status].color)}>
                         {STATUS_META[selectedWorker.status].label}
                       </Badge>
                       {selectedWorker.dependencies.length > 0 && (

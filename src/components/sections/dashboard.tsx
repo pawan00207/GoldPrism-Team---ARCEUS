@@ -96,13 +96,13 @@ export function Dashboard() {
         >
           <div>
             <Badge variant="outline" className="mb-2 gap-1">
-              <Gauge className="w-3 h-3" /> Live Market Dashboard
+              <Gauge className="w-3 h-3" /> Portfolio Dashboard
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Your portfolio at a glance
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              Real-time indexes, sector heatmap, news sentiment, and your
+              Index snapshot (fixture data), sector heatmap, news sentiment, and your
               paper-trading P&L — all on one screen.
             </p>
           </div>
@@ -399,13 +399,13 @@ export function Dashboard() {
                             <span>·</span>
                             <span>{n.time}</span>
                             {n.tickers.map((t) => (
-                              <Badge key={t} variant="outline" className="text-[10px] px-1 py-0 h-4">
+                              <Badge key={t} variant="outline" className="text-[11px] px-1 py-0 h-4">
                                 {t}
                               </Badge>
                             ))}
                           </div>
                         </div>
-                        <Badge variant="secondary" className={cn('text-[10px] capitalize shrink-0', SENTIMENT_COLORS[n.sentiment])}>
+                        <Badge variant="secondary" className={cn('text-[11px] capitalize shrink-0', SENTIMENT_COLORS[n.sentiment])}>
                           {n.sentiment}
                         </Badge>
                       </div>

@@ -151,7 +151,7 @@ export function BacktestLabSection() {
                 <dt className="text-muted-foreground">95% CI</dt>
                 <dd>[{signed(-1.77)}, {signed(-0.71)}] bps</dd>
               </div>
-              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <p className="pt-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 CI crosses zero · blocked from tradable
               </p>
             </dl>
@@ -174,7 +174,7 @@ export function BacktestLabSection() {
                 <dt className="text-muted-foreground">Observed residual</dt>
                 <dd>4.00 bps</dd>
               </div>
-              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <p className="pt-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 Power sufficient to reject false alpha
               </p>
             </dl>
@@ -197,7 +197,7 @@ export function BacktestLabSection() {
                 <dt className="text-muted-foreground">Bonferroni hurdle</dt>
                 <dd>12.25 bps</dd>
               </div>
-              <p className="pt-1 text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <p className="pt-1 text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 Zero pairs pass the corrected threshold
               </p>
             </dl>
@@ -214,7 +214,7 @@ export function BacktestLabSection() {
                   {inr(1000000, 0)} initial capital · in-sample training partition
                 </p>
               </div>
-              <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              <div className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.1em] text-muted-foreground">
                 <span className="flex items-center gap-1.5">
                   <span className="inline-block h-px w-5 border-t-2 border-dashed border-[var(--gp-slag-500)]" />
                   Gross
@@ -340,7 +340,7 @@ export function BacktestLabSection() {
             <VerdictTag verdict="NO EDGE" />
             <span
               className={cn(
-                'font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground'
+                'font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground'
               )}
             >
               A quiet result is still a result.

@@ -13,7 +13,7 @@ export function Footer() {
             <div className="flex items-center gap-2.5">
               <BrandMark className="h-8 w-8" />
               <span className="font-serif text-lg font-medium tracking-tight">
-                Gold<span className="gp-gold-text">Prism</span>
+                Gold<span className="gp-foil-text font-normal italic">Prism</span>
               </span>
             </div>
             <p className="gp-serif mt-4 text-base text-foreground">
@@ -38,7 +38,7 @@ export function Footer() {
           </div>
 
           <div>
-            <div className="gp-kicker">GoldPrism research</div>
+            <div className="gp-kicker">Gold<span className="gp-foil-text font-normal italic">Prism</span> research</div>
             <ul className="mt-4 space-y-2.5 font-mono text-[11px] text-muted-foreground">
               <li><a href="/research#data-health" className="hover:text-foreground hover:underline hover:decoration-[var(--gp-gold-500)] hover:decoration-2 hover:underline-offset-4">Data health &amp; ingestion</a></li>
               <li><a href="/research#contract-master" className="hover:text-foreground hover:underline hover:decoration-[var(--gp-gold-500)] hover:decoration-2 hover:underline-offset-4">MCX contract master</a></li>
@@ -63,7 +63,7 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-5 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground sm:flex-row sm:items-center">
+        <div className="mt-10 flex flex-col items-start justify-between gap-2 border-t border-border pt-5 font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground sm:flex-row sm:items-center">
           <div>© {new Date().getFullYear()} GoldPrism · MIT License</div>
           <div>Hack in Hills '26 · Track 03 · Team ARCEUS</div>
         </div>
