@@ -1,5 +1,6 @@
 import * as React from 'react'
 import { cn } from '@/lib/utils'
+import { Reveal } from '@/components/goldprism/Reveal'
 
 export type Verdict = 'TRADABLE' | 'WATCH' | 'NO EDGE' | 'BLOCKED'
 
@@ -258,22 +259,21 @@ export function SectionHead({
   className?: string
 }) {
   return (
-    <header
-      className={cn(
-        'flex flex-col gap-[var(--gp-space-4)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between',
-        className
-      )}
-    >
-      <div className="min-w-0 max-w-3xl">
-        <p className="gp-kicker">
-          {index ? <span className="mr-3">{index}</span> : null}
-          {eyebrow}
-        </p>
-        <h2 className="gp-title mt-3 text-balance">{title}</h2>
-        {description ? <p className="gp-clerk mt-4 max-w-2xl">{description}</p> : null}
-      </div>
-      {aside ? <div className="shrink-0 lg:pb-1">{aside}</div> : null}
-    </header>
+    <Reveal className={className}>
+      <header
+        className="flex flex-col gap-[var(--gp-space-4)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between"
+      >
+        <div className="min-w-0 max-w-3xl">
+          <p className="gp-kicker">
+            {index ? <span className="mr-3">{index}</span> : null}
+            {eyebrow}
+          </p>
+          <h2 className="gp-title mt-3 text-balance">{title}</h2>
+          {description ? <p className="gp-clerk mt-4 max-w-2xl">{description}</p> : null}
+        </div>
+        {aside ? <div className="shrink-0 lg:pb-1">{aside}</div> : null}
+      </header>
+    </Reveal>
   )
 }
 

@@ -3,6 +3,7 @@ import { ArrowRight, BookOpen, FlaskConical, Layers3, Wrench } from 'lucide-reac
 import { GoldPrismHeader } from '@/components/goldprism/GoldPrismHeader'
 import { SiteShell } from '@/components/goldprism/SiteShell'
 import { SpectralRule } from '@/components/goldprism/brand'
+import { Reveal } from '@/components/goldprism/Reveal'
 
 const pathways = [
   {
@@ -45,28 +46,30 @@ export default function Home() {
       <GoldPrismHeader />
       <section className="border-b border-border bg-background">
         <div className="gp-container py-[var(--gp-space-5)] md:py-[var(--gp-space-6)]">
-          <div className="flex flex-col gap-[var(--gp-space-3)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="gp-kicker">A quiet research interface</p>
-              <h2 className="gp-title mt-3 text-balance">
-                Start with the question, not the dashboard.
-              </h2>
+          <Reveal y={6}>
+            <div className="flex flex-col gap-[var(--gp-space-3)] border-b border-border pb-[var(--gp-space-4)] lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <p className="gp-kicker">A quiet research interface</p>
+                <h2 className="gp-title mt-3 text-balance">
+                  Start with the question, not the dashboard.
+                </h2>
+              </div>
+              <p className="max-w-sm text-sm leading-relaxed text-muted-foreground lg:text-right">
+                GoldPrism is organized as a sequence of evidence surfaces so each decision has a
+                clear place to live.
+              </p>
             </div>
-            <p className="max-w-sm text-sm leading-relaxed text-muted-foreground lg:text-right">
-              GoldPrism is organized as a sequence of evidence surfaces so each decision has a
-              clear place to live.
-            </p>
-          </div>
+          </Reveal>
 
-          <div className="gp-stagger mt-[var(--gp-space-4)] grid gap-px border border-border bg-border md:grid-cols-2">
-            {pathways.map((pathway) => {
+          <div className="mt-[var(--gp-space-4)] grid gap-px border border-border bg-border md:grid-cols-2">
+            {pathways.map((pathway, index) => {
               const Icon = pathway.icon
               return (
-                <Link
-                  key={pathway.href}
-                  href={pathway.href}
-                  className="group relative flex min-h-[15rem] flex-col justify-between bg-card p-6 transition-colors hover:bg-[var(--gp-gold-50)] dark:hover:bg-[var(--gp-gold-900)]"
-                >
+                <Reveal key={pathway.href} className="h-full" delay={index * 0.07}>
+                  <Link
+                    href={pathway.href}
+                    className="group relative flex h-full min-h-[15rem] flex-col justify-between bg-card p-6 transition-colors hover:bg-[var(--gp-gold-50)] dark:hover:bg-[var(--gp-gold-900)]"
+                  >
                   <div className="flex items-start justify-between gap-5">
                     <div className="flex items-center gap-3">
                       <span className="font-mono text-[11px] tracking-[0.14em] text-muted-foreground">
@@ -92,6 +95,7 @@ export default function Home() {
                     </span>
                   </div>
                 </Link>
+                </Reveal>
               )
             })}
           </div>
