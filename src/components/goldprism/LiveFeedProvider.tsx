@@ -16,6 +16,7 @@ import {
 } from '@/lib/firebase/client'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
 import type { LiveFeedResponse } from '@/lib/goldprism/live-feed'
+import type { McxSnapshotResponse } from '@/lib/goldprism/mcx-snapshot'
 import {
   ClosedPaperTrade,
   evaluateTradePlan,
@@ -51,6 +52,10 @@ export interface LiveFeedContextValue {
   tickCount: number
   lastUpdatedAtMs: number | null
   livePricesMap: Partial<Record<SupportedContractCode, number>>
+  /** Real MCX bhavcopy snapshot (results/mcx-live-snapshot.json via scripts/fetch_mcx_snapshot.py). */
+  mcxSnapshot: McxSnapshotResponse | null
+  /** Where the active contract prices come from. Parity is a model; MCX is recorded settle. */
+  pricesSource: 'mcx_bhavcopy' | 'parity' | 'none'
 
   // Firebase Auth & Cloud Sync State
   user: User | null
@@ -81,6 +86,8 @@ const LiveFeedContext = React.createContext<LiveFeedContextValue | null>(null)
 
 export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
   const [feed, setFeed] = React.useState<LiveFeedResponse | null>(null)
+  const [mcxSnapshot, setMcxSnapshot] = React.useState<McxSnapshotResponse | null>(null)
+  const [pricesSource, setPricesSource] = React.useState<'mcx_bhavcopy' | 'parity' | 'none'>('none')
   const [loading, setLoading] = React.useState<boolean>(true)
   const [refreshing, setRefreshing] = React.useState<boolean>(false)
   const [autoRefresh, setAutoRefresh] = React.useState<boolean>(true)
@@ -302,19 +309,54 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  const refreshMcxSnapshot = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/goldprism/mcx-snapshot', { cache: 'no-store' })
+      if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      const data = (await res.json()) as McxSnapshotResponse
+      setMcxSnapshot(data)
+    } catch {
+      // Keep prior snapshot; pricesSource derivation handles missing data
+      setMcxSnapshot((prev) => prev)
+    }
+  }, [])
+
   React.useEffect(() => {
     refreshFeed(false)
-  }, [refreshFeed])
+    refreshMcxSnapshot()
+  }, [refreshFeed, refreshMcxSnapshot])
 
   React.useEffect(() => {
     if (!autoRefresh) return
     const timer = window.setInterval(() => {
       refreshFeed(true)
+      refreshMcxSnapshot()
     }, POLL_INTERVAL_MS)
     return () => window.clearInterval(timer)
-  }, [autoRefresh, refreshFeed])
+  }, [autoRefresh, refreshFeed, refreshMcxSnapshot])
 
   const livePricesMap = React.useMemo<Partial<Record<SupportedContractCode, number>>>(() => {
+    // Prefer real recorded MCX settles when a snapshot exists; fall back to the
+    // import-parity model. pricesSource records which one won.
+    if (mcxSnapshot && mcxSnapshot.status !== 'UNAVAILABLE') {
+      const pick = (code: SupportedContractCode) => {
+        const rows = mcxSnapshot.contracts[code]
+        const first = rows?.[0]
+        const px = first?.close ?? first?.previousClose ?? null
+        return px && px > 0 ? px : null
+      }
+      const mcxMap: Partial<Record<SupportedContractCode, number>> = {}
+      const codes: SupportedContractCode[] = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL']
+      let any = false
+      for (const code of codes) {
+        const px = pick(code)
+        if (px !== null) {
+          mcxMap[code] = px
+          any = true
+        }
+      }
+      if (any) return mcxMap
+    }
     if (!feed?.contracts) return {}
     return {
       GOLDM: feed.contracts.GOLDM.quotedPrice,
@@ -322,7 +364,18 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       GOLDGUINEA: feed.contracts.GOLDGUINEA.quotedPrice,
       GOLDPETAL: feed.contracts.GOLDPETAL.quotedPrice,
     }
-  }, [feed])
+  }, [feed, mcxSnapshot])
+
+  React.useEffect(() => {
+    if (mcxSnapshot && mcxSnapshot.status !== 'UNAVAILABLE') {
+      const hasAny = (['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'] as SupportedContractCode[]).some(
+        (code) => mcxSnapshot.contracts[code]?.[0]?.close != null
+      )
+      setPricesSource(hasAny ? 'mcx_bhavcopy' : feed?.contracts ? 'parity' : 'none')
+      return
+    }
+    setPricesSource(feed?.contracts ? 'parity' : 'none')
+  }, [mcxSnapshot, feed])
 
   const executeOneClickTrade = React.useCallback(
     (
@@ -510,6 +563,8 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     tickCount,
     lastUpdatedAtMs,
     livePricesMap,
+    mcxSnapshot,
+    pricesSource,
     user,
     authReady,
     authBusy,

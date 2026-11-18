@@ -6,8 +6,8 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-plex-sans);
-  --font-serif: var(--font-plex-serif);
+  --font-sans: var(--font-albert-sans);
+  --font-serif: var(--font-fraunces);
   --font-mono: var(--font-plex-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -38,10 +38,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: 3px;
-  --radius-md: 4px;
-  --radius-lg: 6px;
-  --radius-xl: 8px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 18px;
 }
 
 /* ============================================================
@@ -58,17 +58,17 @@
   --gp-main: 61.8%;
   --gp-aside: 38.2%;
 
-  /* Neutral ramp — Deep Charcoal to Warm Ivory & Stone Grey */
-  --gp-slag-50: #F7F4EC;
-  --gp-slag-100: #EFECE3;
-  --gp-slag-200: #E0DBD0;
-  --gp-slag-300: #C8C2B5;
-  --gp-slag-400: #A49E91;
-  --gp-slag-500: #8C877B;
-  --gp-slag-600: #5A564D;
-  --gp-slag-700: #3E3B35;
-  --gp-slag-800: #282621;
-  --gp-slag-900: #171613;
+  /* Neutral ramp — Warm Vault (parchment → deep cocoa) */
+  --gp-slag-50: #FFFCF7;
+  --gp-slag-100: #F7F1E5;
+  --gp-slag-200: #EDE4D4;
+  --gp-slag-300: #D9CFBB;
+  --gp-slag-400: #B9AE97;
+  --gp-slag-500: #8A8170;
+  --gp-slag-600: #63594B;
+  --gp-slag-700: #463F34;
+  --gp-slag-800: #322B24;
+  --gp-slag-900: #211C17;
 
   /* Gold ramp — Muted Metallic Gold #A77B24 accent */
   --gp-gold-50: #FAF5E8;
@@ -104,15 +104,23 @@
   --gp-oxide-400: #BE5648;
   --gp-oxide-600: #84281B;
 
-  /* Named institutional palette */
-  --gp-crucible: #171613;
-  --gp-paper: #F7F4EC;
-  --gp-vellum: #EFECE3;
-  --gp-card-surface: #FCFBF7;
-  --gp-rule: #E0DBD0;
-  --gp-gold: #A77B24;
-  --gp-gold-text: #7D5B14;
+  /* Named institutional palette — Warm Vault
+   * 60–30–10 colour system:
+   *   60% dominant  → surfaces & backgrounds (`--gp-paper`, `--card`, linen)
+   *   30% secondary → structure: panels, rails, tonal bands, borders (`--gp-vellum`, `--gp-rule`)
+   *   10% accent    → caramel `--gp-caramel` — links, focus, indices, glyphs
+   *   Gold stays on verdict/identity surfaces only; green/red carry meaning.
+   */
+  --gp-crucible: #211C17;
+  --gp-paper: #FFFCF7;
+  --gp-vellum: #F5EFDF;
+  --gp-card-surface: #FDFCF7;
+  --gp-rule: #E4DECD;
+  --gp-gold: #B98A3E;
+  --gp-gold-text: #8C5927;
   --gp-gold-deep: #735213;
+  --gp-caramel: #8C5927;
+  --gp-caramel-bright: #A86B30;
   --gp-tradable: #1C6E48;
   --gp-tradable-d: #48B07F;
   --gp-watch: #9C6514;
@@ -143,18 +151,18 @@
   --gp-dur-slow: 480ms;
   --gp-dur-scan: 2400ms;
 
-  /* Shape — subtle hairline borders & restrained elevation */
-  --gp-radius: 4px;
+  /* Shape — soft warm elevation */
+  --gp-radius: 8px;
   --gp-rule-width: 1px;
-  --gp-hard-shadow: 0 1px 3px rgba(23, 22, 19, 0.05), 0 8px 24px rgba(23, 22, 19, 0.04);
-  --gp-hard-shadow-press: 0 1px 2px rgba(23, 22, 19, 0.06), 0 4px 12px rgba(23, 22, 19, 0.05);
+  --gp-hard-shadow: 0 1px 2px rgba(33, 28, 23, 0.05), 0 12px 32px rgba(33, 28, 23, 0.08);
+  --gp-hard-shadow-press: 0 1px 2px rgba(33, 28, 23, 0.06), 0 5px 14px rgba(33, 28, 23, 0.06);
 
-  /* Type — clean editorial + instrument monospace */
-  --gp-ledger: var(--font-plex-serif), "IBM Plex Serif", Georgia, serif;
-  --gp-clerk: var(--font-plex-sans), "IBM Plex Sans", "Segoe UI", sans-serif;
+  /* Type — Fraunces display serif + Albert Sans clerk + instrument monospace */
+  --gp-ledger: var(--font-fraunces), "Fraunces", Georgia, serif;
+  --gp-clerk: var(--font-albert-sans), "Albert Sans", system-ui, sans-serif;
   --gp-instrument: var(--font-plex-mono), "IBM Plex Mono", Consolas, monospace;
 
-  /* App surfaces */
+  /* App surfaces — 60/30/10 */
   --background: var(--gp-paper);
   --foreground: var(--gp-slag-900);
   --card: var(--gp-card-surface);
@@ -165,15 +173,15 @@
   --primary-foreground: var(--gp-paper);
   --secondary: var(--gp-vellum);
   --secondary-foreground: var(--gp-slag-900);
-  --muted: var(--gp-vellum);
+  --muted: #EDE8DA;
   --muted-foreground: var(--gp-slag-600);
-  --accent: var(--gp-gold-100);
+  --accent: #EDE3CF;
   --accent-foreground: var(--gp-slag-900);
   --destructive: var(--gp-blocked);
   --border: var(--gp-rule);
   --input: var(--gp-slag-300);
-  --ring: var(--gp-gold-500);
-  --chart-1: var(--gp-gold-500);
+  --ring: var(--gp-caramel);
+  --chart-1: var(--gp-gold);
   --chart-2: var(--gp-slag-900);
   --chart-3: var(--gp-slag-500);
   --chart-4: var(--gp-blocked);
@@ -185,57 +193,59 @@
   --sidebar-accent: var(--gp-card-surface);
   --sidebar-accent-foreground: var(--gp-slag-900);
   --sidebar-border: var(--gp-rule);
-  --sidebar-ring: var(--gp-gold-500);
+  --sidebar-ring: var(--gp-caramel);
 }
 
-/* Dark ground — Deep Charcoal Terminal (#171613) */
+/* Dark ground — Vault grain (#12100D) */
 .dark {
-  --gp-ink: #F7F4EC;
-  --gp-muted-ink: #B7B1A4;
-  --gp-meta-ink: #9A9488;
-  --gp-surface: #1E1D19;
-  --gp-card-surface: #1E1D19;
-  --gp-vellum: #25231E;
-  --gp-hairline: rgba(247, 244, 236, 0.13);
-  --gp-gold-ink: #D4A64A;
+  --gp-ink: #EDE4D4;
+  --gp-muted-ink: #c9b18d;
+  --gp-meta-ink: #98876a;
+  --gp-surface: #1F1B16;
+  --gp-card-surface: #1F1B16;
+  --gp-vellum: #181411;
+  --gp-hairline: rgba(237, 228, 212, 0.14);
+  --gp-gold-ink: #E2B274;
   --gp-tradable-ink: var(--gp-tradable-d);
   --gp-watch-ink: var(--gp-watch-d);
   --gp-blocked-ink: var(--gp-blocked-d);
-  --gp-gold-deep: #D4A64A;
-  --gp-hard-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), 0 10px 28px rgba(0, 0, 0, 0.25);
-  --gp-hard-shadow-press: 0 1px 4px rgba(0, 0, 0, 0.4);
+  --gp-gold-deep: #E2B274;
+  --gp-caramel: #E2B274;
+  --gp-caramel-bright: #EFCB95;
+  --gp-hard-shadow: 0 2px 6px rgba(0, 0, 0, 0.4), 0 16px 40px rgba(0, 0, 0, 0.34);
+  --gp-hard-shadow-press: 0 1px 4px rgba(0, 0, 0, 0.45);
 
-  --background: #171613;
-  --foreground: #F7F4EC;
-  --card: #1E1D19;
-  --card-foreground: #F7F4EC;
-  --popover: #22201C;
-  --popover-foreground: #F7F4EC;
-  --primary: #F7F4EC;
-  --primary-foreground: #171613;
-  --secondary: #282621;
-  --secondary-foreground: #F7F4EC;
-  --muted: #24221D;
-  --muted-foreground: #B7B1A4;
-  --accent: #332914;
-  --accent-foreground: #F7F4EC;
+  --background: #12100D;
+  --foreground: #EDE4D4;
+  --card: #1F1B16;
+  --card-foreground: #EDE4D4;
+  --popover: #23201B;
+  --popover-foreground: #EDE4D4;
+  --primary: #EDE4D4;
+  --primary-foreground: #141010;
+  --secondary: #181411;
+  --secondary-foreground: #EDE4D4;
+  --muted: #1D1A15;
+  --muted-foreground: #c9b18d;
+  --accent: #2A241C;
+  --accent-foreground: #EDE4D4;
   --destructive: var(--gp-blocked-d);
   --border: var(--gp-hairline);
-  --input: rgba(247, 244, 236, 0.2);
-  --ring: #C89B3C;
-  --chart-1: #C89B3C;
-  --chart-2: #F7F4EC;
-  --chart-3: #8C877B;
+  --input: rgba(237, 228, 212, 0.22);
+  --ring: #E2B274;
+  --chart-1: #E2B274;
+  --chart-2: #EDE4D4;
+  --chart-3: #8A8170;
   --chart-4: var(--gp-blocked-d);
   --chart-5: var(--gp-tradable-d);
-  --sidebar: #1E1D19;
-  --sidebar-foreground: #F7F4EC;
-  --sidebar-primary: #F7F4EC;
-  --sidebar-primary-foreground: #171613;
-  --sidebar-accent: #282621;
-  --sidebar-accent-foreground: #F7F4EC;
+  --sidebar: #181411;
+  --sidebar-foreground: #EDE4D4;
+  --sidebar-primary: #EDE4D4;
+  --sidebar-primary-foreground: #141010;
+  --sidebar-accent: #1F1B16;
+  --sidebar-accent-foreground: #EDE4D4;
   --sidebar-border: var(--gp-hairline);
-  --sidebar-ring: #C89B3C;
+  --sidebar-ring: #E2B274;
 }
 
 @layer base {
@@ -314,15 +324,15 @@
     }
   }
 
-  /* ---------- Type · restrained terminal hierarchy ---------- */
+  /* ---------- Type · refined vault hierarchy ---------- */
   .gp-kicker {
     font-family: var(--gp-instrument);
     font-size: 0.6875rem;
     font-weight: 500;
-    letter-spacing: 0.11em;
+    letter-spacing: 0.14em;
     line-height: 1.3;
     text-transform: uppercase;
-    color: var(--gp-meta-ink);
+    color: var(--gp-caramel);
   }
   .gp-label {
     font-family: var(--gp-instrument);
@@ -336,22 +346,24 @@
   .gp-ledger {
     font-family: var(--gp-ledger);
     font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1.15;
+    letter-spacing: -0.018em;
+    line-height: 1.12;
   }
   .gp-title {
     font-family: var(--gp-ledger);
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1.18;
-    font-size: clamp(1.375rem, 2.2vw, 2rem);
+    font-weight: 520;
+    letter-spacing: -0.024em;
+    line-height: 1.15;
+    font-size: clamp(1.5rem, 2.4vw, 2.15rem);
+    font-variation-settings: "SOFT" 40, "opsz" 60;
   }
   .gp-display {
     font-family: var(--gp-ledger);
-    font-size: clamp(1.85rem, 3vw, 2.65rem);
-    line-height: 1.08;
-    letter-spacing: -0.028em;
-    font-weight: 600;
+    font-size: clamp(2.1rem, 3.6vw, 2.9rem);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
+    font-weight: 560;
+    font-variation-settings: "SOFT" 40, "opsz" 100;
   }
   .gp-clerk {
     font-family: var(--gp-clerk);
@@ -422,7 +434,7 @@
   }
   .gp-certificate:hover,
   .gp-data-card:hover {
-    border-color: color-mix(in srgb, var(--gp-gold-500) 55%, var(--border));
+    border-color: color-mix(in srgb, var(--gp-caramel) 55%, var(--border));
     box-shadow: var(--gp-hard-shadow-press);
   }
   .gp-certificate--flat {
@@ -562,30 +574,35 @@
   }
   .gp-button:hover,
   .gp-button:focus-visible {
-    background: var(--gp-gold-50);
-    border-color: var(--gp-gold-500);
+    background: color-mix(in srgb, var(--gp-caramel) 10%, var(--card));
+    border-color: var(--gp-caramel);
     color: var(--foreground);
   }
   .dark .gp-button:hover,
   .dark .gp-button:focus-visible {
-    background: color-mix(in srgb, var(--gp-gold-500) 18%, var(--card));
-    border-color: var(--gp-gold-500);
-    color: #F7F4EC;
+    background: color-mix(in srgb, var(--gp-caramel) 22%, var(--card));
+    border-color: var(--gp-caramel);
+    color: #EDE4D4;
+  }
+  .gp-button:focus-visible {
+    outline: 2px solid var(--gp-caramel);
+    outline-offset: 2px;
   }
   .gp-button:active {
-    opacity: 0.9;
+    opacity: 0.88;
+    transform: translateY(1px);
   }
   .gp-button[aria-pressed="true"],
   .gp-button--selected {
-    background: var(--gp-slag-900);
-    border-color: var(--gp-slag-900);
-    color: #F7F4EC;
+    background: var(--gp-caramel);
+    border-color: var(--gp-caramel);
+    color: var(--gp-paper);
   }
   .dark .gp-button[aria-pressed="true"],
   .dark .gp-button--selected {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: #171613;
+    background: var(--gp-caramel);
+    border-color: var(--gp-caramel);
+    color: #141010;
   }
   .gp-button--quiet {
     background: transparent;
@@ -600,22 +617,22 @@
   .gp-button--primary {
     background: var(--gp-slag-900);
     border-color: var(--gp-slag-900);
-    color: #F7F4EC;
+    color: var(--gp-paper);
   }
   .gp-button--primary:hover {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: #FCFBF7;
+    background: var(--gp-caramel);
+    border-color: var(--gp-caramel-bright);
+    color: #FFFCF7;
   }
   .dark .gp-button--primary {
-    background: var(--gp-gold-500);
-    border-color: var(--gp-gold-500);
-    color: #171613;
+    background: var(--gp-caramel);
+    border-color: var(--gp-caramel);
+    color: #141010;
   }
   .dark .gp-button--primary:hover {
-    background: var(--gp-gold-400);
-    border-color: var(--gp-gold-400);
-    color: #171613;
+    background: var(--gp-caramel-bright);
+    border-color: var(--gp-caramel-bright);
+    color: #141010;
   }
 
   /* ---------- Fields · crisp terminal inputs ---------- */
