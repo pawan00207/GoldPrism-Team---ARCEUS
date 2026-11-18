@@ -18,10 +18,10 @@ interface Message {
 const SUGGESTED_PROMPTS = [
   'Explain the X-Ray waterfall for MCX GOLDM vs GOLDGUINEA spread',
   'What is expiry carry and how does GoldPrism flag it?',
-  'Analyze NVDA — should I trim my position?',
-  'Design a momentum strategy for large-cap tech',
-  'What alpha factors work best in high-vol regimes?',
-  'Stress-test my portfolio for a 2008-style scenario',
+  'Compare 10g normalized purity across GOLDM, GOLDTEN, GOLDGUINEA, GOLDPETAL',
+  'Which MCX Gold contract best matches a 50g physical hedge?',
+  'What is the statutory cost hurdle for 1-lot GOLDPETAL vs GOLDM?',
+  'Why does GoldPrism reject spreads on quiet trading days?',
 ]
 
 export function Agent() {
@@ -109,8 +109,8 @@ export function Agent() {
               Chat with <span className="gp-gold-text">GoldPrism</span> Agent
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              An autonomous ReAct-style agent with 68 tools — MCX gold X-Ray analysis,
-              spread decomposition, factor research, backtesting, and portfolio analytics.
+              Deterministic MCX gold intelligence engine for spread decomposition,
+              normalization, best-vehicle selection, and cost hurdle analytics.
             </p>
           </div>
           <Button
@@ -132,7 +132,6 @@ export function Agent() {
                   <div className="w-8 h-8 rounded-[2px] bg-[color-mix(in_srgb,var(--gp-gold-500)_10%,transparent)] border border-[color-mix(in_srgb,var(--gp-gold-500)_30%,transparent)] flex items-center justify-center">
                     <Bot className="w-4 h-4 gp-gold-text" />
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-[1px] bg-[var(--gp-tradable-ink)] border-2 border-card animate-pulse" />
                 </div>
                 <div className="min-w-0">
                   <div>GoldPrism Agent</div>

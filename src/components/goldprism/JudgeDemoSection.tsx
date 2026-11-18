@@ -4,24 +4,16 @@ import * as React from 'react'
 import {
   ArrowLeft,
   ArrowRight,
-  CheckCircle2,
-  Clock,
   Layers,
   RotateCcw,
-  Scale,
   ShieldAlert,
-  ShieldCheck,
-  Sparkles,
   Trophy,
   XCircle,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  initializeJudgeDemo,
-  JudgeDemoState,
-} from '@/lib/goldprism/demo-script'
+import { SectionHead, VerdictTag } from '@/components/goldprism/brand'
+import { initializeJudgeDemo, JudgeDemoState } from '@/lib/goldprism/demo-script'
+import { cn } from '@/lib/utils'
 
 export function JudgeDemoSection() {
   const [demoState, setDemoState] = React.useState<JudgeDemoState>(() => initializeJudgeDemo())
@@ -34,308 +26,296 @@ export function JudgeDemoSection() {
     setDemoState((prev) => ({ ...prev, currentStep: step }))
   }
 
-  return (
-    <section id="judge-demo" className="py-12 scroll-mt-16 border-b border-border/40 bg-gradient-to-b from-card/30 to-background">
-      <div className="container mx-auto px-4 max-w-7xl">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <Badge className="bg-amber-500 text-black font-bold gap-1 text-xs">
-                <Sparkles className="w-3.5 h-3.5" /> 5-Minute Judge Demo
-              </Badge>
-              <Badge variant="outline" className="border-amber-500/40 text-amber-300 text-xs">
-                DEMO SCRIPT · SLIDE 7 SPECIFICATION
-              </Badge>
-            </div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight">
-              5 Minutes to Truth
-            </h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              Deterministic 4-step live walkthrough: from caught data faults to disciplined inaction and optimal vehicle selection.
-            </p>
-          </div>
+  const steps: Array<{
+    step: 1 | 2 | 3 | 4
+    title: string
+    subtitle: string
+    icon: React.ReactNode
+  }> = [
+    {
+      step: 1,
+      title: 'Caught Fault',
+      subtitle: 'Integrity Gate Block',
+      icon: <ShieldAlert className="h-4 w-4 text-[var(--gp-blocked-ink)]" />,
+    },
+    {
+      step: 2,
+      title: 'X-Ray Waterfall',
+      subtitle: 'Component Decomposition',
+      icon: <Layers className="h-4 w-4 text-[var(--gp-gold-ink)]" />,
+    },
+    {
+      step: 3,
+      title: 'Inaction Verdict',
+      subtitle: 'NO EDGE Discipline',
+      icon: <XCircle className="h-4 w-4 text-muted-foreground" />,
+    },
+    {
+      step: 4,
+      title: 'Best Vehicle',
+      subtitle: '50g Hedge Selection',
+      icon: <Trophy className="h-4 w-4 text-[var(--gp-tradable-ink)]" />,
+    },
+  ]
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={resetDemo}
-            className="gap-1.5 border-border/80 self-start md:self-auto"
-          >
-            <RotateCcw className="w-3.5 h-3.5" />
-            Reset Demo Script
-          </Button>
-        </div>
+  return (
+    <section id="judge-demo" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
+        <SectionHead
+          index="01.0"
+          eyebrow="5-Minute Demo · Slide 7 Spec"
+          title="5 Minutes to Truth."
+          description="Deterministic 4-step walkthrough: from caught data faults to disciplined inaction and optimal vehicle selection."
+          aside={
+            <Button variant="outline" size="sm" onClick={resetDemo} className="gap-1.5">
+              <RotateCcw className="h-3.5 w-3.5" />
+              Reset Script
+            </Button>
+          }
+        />
 
         {/* 4 Step Navigation Tabs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-6">
-          <button
-            onClick={() => setStep(1)}
-            className={`p-3 rounded-xl border text-left transition-all ${
-              demoState.currentStep === 1
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
-                : 'bg-card/40 border-border/60 text-muted-foreground hover:bg-muted/40'
-            }`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-mono">Step 1</div>
-            <div className="text-sm font-semibold flex items-center justify-between mt-1">
-              <span>Caught Fault</span>
-              <ShieldAlert className="w-4 h-4 text-rose-400" />
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Integrity Gate Block</div>
-          </button>
-
-          <button
-            onClick={() => setStep(2)}
-            className={`p-3 rounded-xl border text-left transition-all ${
-              demoState.currentStep === 2
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
-                : 'bg-card/40 border-border/60 text-muted-foreground hover:bg-muted/40'
-            }`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-mono">Step 2</div>
-            <div className="text-sm font-semibold flex items-center justify-between mt-1">
-              <span>X-Ray Waterfall</span>
-              <Layers className="w-4 h-4 text-blue-400" />
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">Component Decomposition</div>
-          </button>
-
-          <button
-            onClick={() => setStep(3)}
-            className={`p-3 rounded-xl border text-left transition-all ${
-              demoState.currentStep === 3
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
-                : 'bg-card/40 border-border/60 text-muted-foreground hover:bg-muted/40'
-            }`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-mono">Step 3</div>
-            <div className="text-sm font-semibold flex items-center justify-between mt-1">
-              <span>Inaction Verdict</span>
-              <XCircle className="w-4 h-4 text-zinc-400" />
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">NO EDGE Discipline</div>
-          </button>
-
-          <button
-            onClick={() => setStep(4)}
-            className={`p-3 rounded-xl border text-left transition-all ${
-              demoState.currentStep === 4
-                ? 'bg-amber-500/10 border-amber-500 text-amber-300 font-bold shadow-md shadow-amber-500/10'
-                : 'bg-card/40 border-border/60 text-muted-foreground hover:bg-muted/40'
-            }`}
-          >
-            <div className="text-[10px] uppercase tracking-wider font-mono">Step 4</div>
-            <div className="text-sm font-semibold flex items-center justify-between mt-1">
-              <span>Best Vehicle</span>
-              <Trophy className="w-4 h-4 text-amber-400" />
-            </div>
-            <div className="text-[11px] text-muted-foreground mt-0.5">50g Hedge Selection</div>
-          </button>
+        <div className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] md:grid-cols-4">
+          {steps.map((item) => {
+            const active = demoState.currentStep === item.step
+            return (
+              <button
+                key={item.step}
+                type="button"
+                onClick={() => setStep(item.step)}
+                aria-pressed={active}
+                className={cn(
+                  'bg-card p-4 text-left transition-colors',
+                  active
+                    ? 'bg-[var(--gp-gold-50)] text-foreground dark:bg-[var(--gp-gold-900)]'
+                    : 'text-muted-foreground hover:bg-background hover:text-foreground'
+                )}
+              >
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em]">
+                  Step 0{item.step}
+                </div>
+                <div className="mt-1.5 flex items-center justify-between gap-2 font-serif text-base font-medium text-foreground">
+                  <span>{item.title}</span>
+                  {item.icon}
+                </div>
+                <div className="mt-0.5 text-[11px] text-muted-foreground">{item.subtitle}</div>
+              </button>
+            )
+          })}
         </div>
 
         {/* Dynamic Step Content Container */}
-        <Card className="p-6 border-border/80 bg-card/60">
+        <div className="mt-6 rounded-[4px] border border-border bg-card p-6 shadow-[var(--gp-hard-shadow)]">
           {demoState.currentStep === 1 && (
-            <div className="space-y-4">
-              <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-border/40">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/40 text-xs font-mono">
-                    CAUGHT ERROR (SEEDED)
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div>
+                  <p className="gp-label text-[var(--gp-blocked-ink)]">
+                    Caught error (seeded) · Integrity gate
+                  </p>
+                  <h3 className="gp-serif mt-1 text-xl text-foreground">
                     Integrity Gates Reject Corrupted Records
-                  </span>
+                  </h3>
                 </div>
-                <Badge variant="outline" className="whitespace-normal break-words text-rose-400 border-rose-500/30 text-xs font-mono">
-                  Status: Failed: run blocked
-                </Badge>
+                <VerdictTag verdict="BLOCKED" />
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Missing Values</div>
-                  <div className="text-lg font-bold text-rose-400 mt-1">2.31%</div>
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-border bg-border md:grid-cols-4">
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Missing Values</dt>
+                  <dd className="gp-figure mt-2 text-lg text-[var(--gp-blocked-ink)]">2.31%</dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Outliers Detected</div>
-                  <div className="text-lg font-bold text-rose-400 mt-1">YES</div>
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Outliers Detected</dt>
+                  <dd className="gp-figure mt-2 text-lg text-[var(--gp-blocked-ink)]">YES</dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Date Mismatch Rejected</div>
-                  <div className="text-lg font-bold text-rose-400 mt-1">1 row</div>
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Date Mismatch</dt>
+                  <dd className="gp-figure mt-2 text-lg text-[var(--gp-blocked-ink)]">1 row</dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">System Reaction</div>
-                  <div className="text-xs font-bold text-emerald-400 mt-1">Trading Blocked</div>
+                <div className="bg-background p-4">
+                  <dt className="gp-label">System Reaction</dt>
+                  <dd className="gp-figure mt-2 text-sm text-[var(--gp-tradable-ink)]">
+                    Trading Blocked
+                  </dd>
                 </div>
-              </div>
+              </dl>
 
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/30 text-xs leading-relaxed text-foreground">
-                <strong>Why this matters to judges:</strong> Most trading platforms silently ingest bad broker quotes or calculate signals on bad dates. GoldPrism immediately locks execution when a single date mismatch or outlier occurs, ensuring institutional auditability.
-              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">Why this matters:</strong> Most platforms silently
+                ingest bad broker quotes or misdated rows. GoldPrism immediately locks execution
+                when a single date mismatch or outlier occurs.
+              </p>
             </div>
           )}
 
           {demoState.currentStep === 2 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border/40">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/40 text-xs font-mono">
-                    CLEAN WATERFALL
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground">
-                    Decomposing GOLDTEN (Apr '26) vs GOLDM (Apr '26)
-                  </span>
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div>
+                  <p className="gp-label gp-gold-text">Clean waterfall · Structural decomposition</p>
+                  <h3 className="gp-serif mt-1 text-xl text-foreground">
+                    Decomposing GOLDTEN vs GOLDM
+                  </h3>
                 </div>
-                <span className="text-xs font-mono text-emerald-400">
-                  Reconciliation Error: {demoState.step2Data.reconciliationError.toFixed(6)} ₹/g
+                <span className="font-mono text-xs text-[var(--gp-tradable-ink)]">
+                  Recon error: {demoState.step2Data.reconciliationError.toFixed(6)} ₹/g
                 </span>
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs font-mono">
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Raw Spread Gap</div>
-                  <div className="text-lg font-bold text-blue-400 mt-1">
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-border bg-border md:grid-cols-4">
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Raw Spread Gap</dt>
+                  <dd className="gp-figure mt-2 text-lg text-foreground">
                     +{demoState.step2Data.rawSpreadBps.toFixed(1)} bps
-                  </div>
+                  </dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Structural Basis</div>
-                  <div className="text-lg font-bold text-amber-400 mt-1">
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Structural Basis</dt>
+                  <dd className="gp-figure mt-2 text-lg text-[var(--gp-watch-ink)]">
                     {demoState.step2Data.structuralBasisBps.toFixed(1)} bps
-                  </div>
+                  </dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Expiry Carry</div>
-                  <div className="text-lg font-bold text-amber-500 mt-1">
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Expiry Carry</dt>
+                  <dd className="gp-figure mt-2 text-lg text-[var(--gp-watch-ink)]">
                     {demoState.step2Data.expiryCarryBps.toFixed(1)} bps
-                  </div>
+                  </dd>
                 </div>
-                <div className="p-3 rounded-lg bg-black/40 border border-border/40">
-                  <div className="text-muted-foreground">Gross Residual</div>
-                  <div className="text-lg font-bold text-cyan-400 mt-1">
+                <div className="bg-background p-4">
+                  <dt className="gp-label">Gross Residual</dt>
+                  <dd className="gp-figure mt-2 text-lg gp-gold-text">
                     +{demoState.step2Data.grossResidualBps.toFixed(1)} bps
-                  </div>
+                  </dd>
                 </div>
-              </div>
+              </dl>
 
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                Notice how the massive raw spread is almost entirely explained by the 995 vs 999 purity difference and the 3rd-5th vs 27th-31st delivery window carry.
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                The large raw gap is mostly explained by GOLDM&apos;s 995 vs 999 purity and the
+                staggered delivery window carry (3rd–5th vs 27th–31st).
               </p>
             </div>
           )}
 
           {demoState.currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border/40">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-zinc-500/20 text-zinc-300 border-zinc-500/40 text-xs font-mono">
-                    INACTION VERDICT
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div>
+                  <p className="gp-label">Inaction verdict · Cost hurdle check</p>
+                  <h3 className="gp-serif mt-1 text-xl text-foreground">
                     Gross Residual Below Transaction Cost Hurdle
-                  </span>
+                  </h3>
                 </div>
-                <Badge className="bg-zinc-600 text-white font-mono text-xs">
-                  VERDICT: NO EDGE
-                </Badge>
+                <VerdictTag verdict="NO EDGE" />
               </div>
 
-              <div className="p-4 rounded-xl bg-black/50 border border-border/60 flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-4 rounded-[4px] border border-border bg-background p-4">
                 <div>
-                  <div className="text-xs text-muted-foreground mb-1">Spread Residual vs Total Transaction Hurdle</div>
-                  <div className="text-sm font-semibold text-foreground">
-                    Gross Residual: <span className="text-cyan-400">+{demoState.step3Data.grossResidualBps.toFixed(1)} bps</span> · Paired Costs: <span className="text-rose-400">-{demoState.step3Data.transactionCostsBps.toFixed(1)} bps</span>
-                  </div>
+                  <p className="gp-label">Spread Residual vs Total Statutory Hurdle</p>
+                  <p className="mt-1.5 font-mono text-sm text-foreground">
+                    Gross Residual: +{demoState.step3Data.grossResidualBps.toFixed(1)} bps · Paired
+                    Costs: −{demoState.step3Data.transactionCostsBps.toFixed(1)} bps
+                  </p>
                 </div>
                 <div className="text-right font-mono">
-                  <div className="text-xs text-muted-foreground">Net Actionable Edge</div>
-                  <div className="text-xl font-bold text-rose-400">
+                  <p className="gp-label">Net Actionable Edge</p>
+                  <p className="gp-figure mt-1 text-xl text-[var(--gp-blocked-ink)]">
                     {demoState.step3Data.netEdgeBps.toFixed(1)} bps
-                  </div>
+                  </p>
                 </div>
               </div>
 
-              <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs leading-relaxed text-foreground">
-                <strong>Core Pitch to Judges:</strong> A generic bot would trade this spread and bleed capital through brokerage, CTT, and slippage. GoldPrism proves that trading here would produce a guaranteed loss. <strong>Capital preserved: ₹0 lost to churn.</strong>
-              </div>
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                <strong className="text-foreground">Discipline over churn:</strong> Where a naive bot
+                bleeds brokerage, CTT, GST, and slippage on a false gap, GoldPrism proves trading
+                here locks in a loss and keeps ₹0 at risk.
+              </p>
             </div>
           )}
 
           {demoState.currentStep === 4 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-border/40">
-                <div className="flex items-center gap-2">
-                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs font-mono">
-                    BEST VEHICLE SELECTION
-                  </Badge>
-                  <span className="text-sm font-bold text-foreground">
+            <div className="space-y-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
+                <div>
+                  <p className="gp-label gp-gold-text">Best vehicle selection</p>
+                  <h3 className="gp-serif mt-1 text-xl text-foreground">
                     Cheapest Contract for 50g Target Physical Exposure
-                  </span>
+                  </h3>
                 </div>
-                <span className="text-xs font-mono text-emerald-400 font-bold">
+                <span className="font-mono text-xs font-semibold text-[var(--gp-tradable-ink)]">
                   WINNER: {demoState.step4Data[0].contractCode}
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
+              <div className="grid grid-cols-1 gap-px overflow-hidden rounded-[4px] border border-border bg-border md:grid-cols-4">
                 {demoState.step4Data.map((v) => (
                   <div
                     key={v.contractCode}
-                    className={`p-3 rounded-lg border ${
+                    className={cn(
+                      'p-4 font-mono text-xs',
                       v.isWinner
-                        ? 'border-amber-500/60 bg-amber-500/10'
-                        : 'border-border/40 bg-black/40'
-                    }`}
+                        ? 'bg-[var(--gp-gold-50)] dark:bg-[var(--gp-gold-900)]'
+                        : 'bg-background'
+                    )}
                   >
-                    <div className="flex justify-between font-bold mb-1">
-                      <span>#{v.rank} {v.contractCode}</span>
-                      <span className={v.isWinner ? 'text-amber-400' : 'text-muted-foreground'}>
+                    <div className="flex justify-between font-semibold text-foreground">
+                      <span>
+                        #{v.rank} {v.contractCode}
+                      </span>
+                      <span className={v.isWinner ? 'gp-gold-text' : 'text-muted-foreground'}>
                         {v.compositeScore} pts
                       </span>
                     </div>
-                    <div className="text-[11px] text-muted-foreground">
+                    <p className="mt-1.5 text-[11px] text-muted-foreground">
                       Lots: {v.lotsRequired} ({v.actualExposureG}g)
-                    </div>
-                    <div className={`text-[11px] mt-1 ${v.exposureMismatchPct === 0 ? 'text-emerald-400 font-bold' : 'text-rose-400'}`}>
+                    </p>
+                    <p
+                      className={cn(
+                        'mt-1 text-[11px] font-medium',
+                        v.exposureMismatchPct === 0
+                          ? 'text-[var(--gp-tradable-ink)]'
+                          : 'text-[var(--gp-blocked-ink)]'
+                      )}
+                    >
                       Mismatch: {v.exposureMismatchPct}%
-                    </div>
+                    </p>
                   </div>
                 ))}
               </div>
 
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                GOLDTEN is selected because 5 lots provide an exact 50g hedge with 0.0% mismatch, whereas GOLDM has a 100g minimum lot causing a 100% mismatch penalty.
+              <p className="text-xs leading-relaxed text-muted-foreground">
+                GOLDTEN is selected because 5 lots provide an exact 50g hedge with 0.0% mismatch,
+                whereas GOLDM has a 100g minimum lot causing a 100% mismatch penalty.
               </p>
             </div>
           )}
 
           {/* Wizard Next / Prev Buttons */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/40 mt-6">
+          <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
             <Button
               variant="outline"
               size="sm"
               disabled={demoState.currentStep === 1}
-              onClick={() => setStep((demoState.currentStep - 1) as any)}
+              onClick={() => setStep((demoState.currentStep - 1) as 1 | 2 | 3 | 4)}
               className="gap-1.5"
             >
-              <ArrowLeft className="w-3.5 h-3.5" /> Previous Step
+              <ArrowLeft className="h-3.5 w-3.5" /> Previous Step
             </Button>
 
-            <span className="text-xs text-muted-foreground font-mono">
+            <span className="font-mono text-xs text-muted-foreground">
               Step {demoState.currentStep} of 4
             </span>
 
             <Button
               size="sm"
               disabled={demoState.currentStep === 4}
-              onClick={() => setStep((demoState.currentStep + 1) as any)}
-              className="gap-1.5 bg-amber-500 hover:bg-amber-600 text-black font-semibold"
+              onClick={() => setStep((demoState.currentStep + 1) as 1 | 2 | 3 | 4)}
+              className="gap-1.5"
             >
-              Next Step <ArrowRight className="w-3.5 h-3.5" />
+              Next Step <ArrowRight className="h-3.5 w-3.5" />
             </Button>
           </div>
-        </Card>
+        </div>
       </div>
     </section>
   )

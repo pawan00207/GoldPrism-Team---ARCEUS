@@ -1,24 +1,55 @@
 'use client'
 
 import * as React from 'react'
+import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
+import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
 import { rankBestVehicleForExposure, VehicleRank } from '@/lib/goldprism/signal'
 import { SectionHead } from '@/components/goldprism/brand'
 import { bps, inrPerG, pctAbs } from '@/lib/goldprism/format'
+import { TradeIntentInput } from '@/lib/goldprism/trade-engine'
 import { cn } from '@/lib/utils'
 
 export function BestVehicleSection() {
+  const { feed, loading, refreshFeed } = useLiveFeed()
   const [exposureG, setExposureG] = React.useState<number>(50)
   const presets = [8, 10, 50, 100, 500, 1000]
 
+  const isLive = feed?.status === 'LIVE_PARITY' && Boolean(feed.contracts)
+
   const rankings: VehicleRank[] = React.useMemo(() => {
-    return rankBestVehicleForExposure(exposureG)
-  }, [exposureG])
+    if (isLive && feed?.contracts) {
+      return rankBestVehicleForExposure(exposureG, {
+        GOLDM: feed.contracts.GOLDM.quotedPrice,
+        GOLDTEN: feed.contracts.GOLDTEN.quotedPrice,
+        GOLDGUINEA: feed.contracts.GOLDGUINEA.quotedPrice,
+        GOLDPETAL: feed.contracts.GOLDPETAL.quotedPrice,
+      })
+    }
+    return []
+  }, [exposureG, feed, isLive])
 
   const winner = rankings[0]
 
+  const hedgeIntent: TradeIntentInput | null = React.useMemo(() => {
+    if (!winner || !isLive || !feed?.contracts) return null
+    const liveContract = feed.contracts[winner.contractCode]
+    if (!liveContract) return null
+    return {
+      kind: 'SINGLE',
+      side: 'BUY',
+      contractA: winner.contractCode,
+      priceA: liveContract.quotedPrice,
+      lotsA: winner.lotsRequired,
+      expiryA: liveContract.expiryDate,
+      rationale: winner.rationale,
+      sourceLabel: liveContract.source,
+      asOf: liveContract.asOf,
+    }
+  }, [winner, feed, isLive])
+
   return (
     <section id="best-vehicle" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="02.3"
           eyebrow="Market structure · Vehicle match"
@@ -66,18 +97,40 @@ export function BestVehicleSection() {
           }
         />
 
+        {!isLive ? (
+          <div className="mt-8 rounded-[4px] border border-border bg-card p-5 font-mono text-xs text-muted-foreground shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <span>
+                {loading
+                  ? 'Fetching live contract quotes to score friction per gram…'
+                  : `Live quotes offline (${feed?.error ?? 'upstream unavailable'}). Retry to score vehicles against real-time prices.`}
+              </span>
+              <button
+                type="button"
+                onClick={() => void refreshFeed(true)}
+                className="gp-button min-h-0 px-3 py-1.5 text-[10px]"
+              >
+                Retry Live Feed
+              </button>
+            </div>
+          </div>
+        ) : null}
+
         {/* ---------------- Winner certificate ---------------- */}
         {winner ? (
-          <div className="mt-10 border border-border bg-card shadow-[var(--gp-hard-shadow)]">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-              <p className="gp-label">Optimal vehicle · {exposureG} g exposure</p>
+          <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+              <p className="gp-label">
+                Optimal vehicle · {exposureG} g exposure · as_of{' '}
+                {feed?.asOf.slice(0, 19).replace('T', ' ')} UTC
+              </p>
               <span className="gp-tag gp-tag--gold">Rank 01</span>
             </div>
 
             <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)] lg:items-center">
               <div>
                 <div className="flex flex-wrap items-baseline gap-3">
-                  <h3 className="gp-serif text-3xl">{winner.contractCode}</h3>
+                  <h3 className="gp-serif text-2xl">{winner.contractCode}</h3>
                   <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                     {winner.tradingUnitG} g per lot
                   </span>
@@ -87,7 +140,7 @@ export function BestVehicleSection() {
                 </p>
               </div>
 
-              <dl className="grid grid-cols-2 gap-px border border-border bg-border sm:grid-cols-4 lg:grid-cols-2">
+              <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-[4px] border border-border bg-border sm:grid-cols-4 lg:grid-cols-2">
                 <div className="bg-card p-3">
                   <dt className="gp-label">Lots required</dt>
                   <dd className="gp-figure mt-2 text-lg">{winner.lotsRequired}</dd>
@@ -116,23 +169,35 @@ export function BestVehicleSection() {
           </div>
         ) : null}
 
-        {/* ---------------- Full comparison ---------------- */}
-        <div className="mt-10 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
-          <h3 className="gp-serif text-xl">Every vehicle, every mismatch</h3>
-          <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            Ranked by exposure fit, then friction
-          </p>
-        </div>
+        {hedgeIntent ? (
+          <div className="mt-6">
+            <OneClickTradeBar
+              intent={hedgeIntent}
+              compact
+              title={`1-Click Hedge Execution · ${exposureG}g Target`}
+            />
+          </div>
+        ) : null}
 
-        <div className="mt-5 grid gap-px border border-border bg-border md:grid-cols-2 xl:grid-cols-4">
-          {rankings.map((r) => (
-            <article
-              key={r.contractCode}
-              className={cn(
-                'relative flex flex-col bg-card p-4',
-                r.isWinner && 'shadow-[inset_4px_0_0_var(--gp-gold-500)]'
-              )}
-            >
+        {/* ---------------- Full comparison ---------------- */}
+        {rankings.length > 0 ? (
+          <>
+            <div className="mt-8 flex flex-wrap items-end justify-between gap-3 border-b border-border pb-3">
+              <h3 className="gp-serif text-lg">Every vehicle, every mismatch</h3>
+              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                Ranked by exposure fit, then friction
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] md:grid-cols-2 xl:grid-cols-4">
+              {rankings.map((r) => (
+                <article
+                  key={r.contractCode}
+                  className={cn(
+                    'relative flex flex-col bg-card p-4',
+                    r.isWinner && 'ring-1 ring-inset ring-[var(--gp-gold-500)]'
+                  )}
+                >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex items-baseline gap-2">
                   <span className="font-mono text-[11px] text-muted-foreground">
@@ -182,6 +247,8 @@ export function BestVehicleSection() {
             </article>
           ))}
         </div>
+          </>
+        ) : null}
 
         <p className="mt-5 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
           Exposure mismatch is a physical constraint, not a verdict. A zero mismatch is a clean

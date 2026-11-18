@@ -113,7 +113,7 @@ export function ReportsExportSection() {
 
   return (
     <section id="reports" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="03.2"
           eyebrow="Audit trail · Reports"
@@ -122,7 +122,7 @@ export function ReportsExportSection() {
           aside={<DataTag synthetic detail="fixture run" />}
         />
 
-        <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] sm:grid-cols-2 xl:grid-cols-4">
           {EXPORTS.map((item) => (
             <article key={item.id} className="flex flex-col justify-between bg-card p-4">
               <div>

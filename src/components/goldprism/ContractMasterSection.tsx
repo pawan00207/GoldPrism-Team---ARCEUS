@@ -7,15 +7,27 @@ import {
   normalizePriceTo999,
   SupportedContractCode,
 } from '@/lib/goldprism/contract-master'
-import { SectionHead } from '@/components/goldprism/brand'
+import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
+import { DataTag, SectionHead } from '@/components/goldprism/brand'
 import { inr, inrPerG } from '@/lib/goldprism/format'
 
 export function ContractMasterSection() {
+  const { feed, loading } = useLiveFeed()
   const specs = getAllContractSpecs()
   const [selectedContract, setSelectedContract] = React.useState<SupportedContractCode>('GOLDM')
-  const [inputPrice, setInputPrice] = React.useState<string>('73500')
+  const [manualPrice, setManualPrice] = React.useState<string>('')
+  const [manualOverride, setManualOverride] = React.useState<boolean>(false)
 
-  const priceNum = parseFloat(inputPrice) || 0
+  const liveQuote = feed?.contracts?.[selectedContract] ?? null
+  const isLive = feed?.status === 'LIVE_PARITY' && liveQuote !== null
+
+  const activePriceStr = manualOverride
+    ? manualPrice
+    : liveQuote
+      ? String(Math.round(liveQuote.quotedPrice))
+      : ''
+
+  const priceNum = parseFloat(activePriceStr) || 0
   const normResult = React.useMemo(() => {
     if (priceNum <= 0) return null
     try {
@@ -27,22 +39,37 @@ export function ContractMasterSection() {
 
   return (
     <section id="contract-master" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="02.2"
           eyebrow="Market structure · Contract master"
           title="A gram is not a gram until it is 999."
           description="Authoritative lot sizes, quoted units, delivery windows and purity. Every price is normalized to one fine-gold benchmark before any spread is compared."
           aside={
-            <p className="max-w-[19rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
-              Source · MCX India commodity derivatives contract specifications
-            </p>
+            <div className="flex flex-col items-start gap-2 lg:items-end">
+              <DataTag
+                live={isLive && !manualOverride}
+                synthetic={manualOverride || !isLive}
+                detail={
+                  manualOverride
+                    ? 'User what-if override'
+                    : isLive && feed?.asOf
+                      ? `Live ${feed.asOf.slice(0, 19).replace('T', ' ')} UTC`
+                      : loading
+                        ? 'syncing'
+                        : 'offline'
+                }
+              />
+              <p className="max-w-[19rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
+                Source · MCX India commodity derivatives contract specifications
+              </p>
+            </div>
           }
         />
 
         {/* ---------------- Specification table ---------------- */}
-        <div className="mt-10 border border-border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
             <p className="gp-label">Verified contract specifications</p>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
               {specs.length} contracts · 999-fine benchmark
@@ -104,15 +131,15 @@ export function ContractMasterSection() {
         </div>
 
         {/* ---------------- Audit note + normalizer ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
-          <div className="min-w-0 border border-border bg-card">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
               <p className="gp-label">Contract specification audit</p>
               <span className="gp-tag gp-tag--watch">Resolved</span>
             </div>
 
             <div className="px-4 py-5">
-              <h3 className="gp-serif text-2xl">
+              <h3 className="gp-serif text-xl">
                 GOLDGUINEA purity: 996 or 999?
               </h3>
               <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -121,22 +148,22 @@ export function ContractMasterSection() {
                 derivatives contract specifications circular.
               </p>
 
-              <dl className="mt-6 grid gap-px border border-border bg-border sm:grid-cols-3">
-                <div className="bg-card p-4">
+              <dl className="mt-5 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border sm:grid-cols-3">
+                <div className="bg-card p-3.5">
                   <dt className="gp-label">Official standard</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">999 fine · 24 carat</dd>
+                  <dd className="mt-1.5 font-mono text-sm text-foreground">999 fine · 24 carat</dd>
                 </div>
-                <div className="bg-card p-4">
+                <div className="bg-card p-3.5">
                   <dt className="gp-label">Trading unit</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">8 g · 1 guinea lot</dd>
+                  <dd className="mt-1.5 font-mono text-sm text-foreground">8 g · 1 guinea lot</dd>
                 </div>
-                <div className="bg-card p-4">
+                <div className="bg-card p-3.5">
                   <dt className="gp-label">Quotation</dt>
-                  <dd className="mt-2 font-mono text-sm text-foreground">Per 8 g</dd>
+                  <dd className="mt-1.5 font-mono text-sm text-foreground">Per 8 g</dd>
                 </div>
               </dl>
 
-              <div className="mt-5 border-l-2 border-[var(--gp-gold-500)] pl-4">
+              <div className="mt-5 rounded-[4px] border border-[var(--gp-gold-500)]/40 bg-background/70 p-4">
                 <p className="gp-label">Resolution</p>
                 <p className="mt-2 text-sm leading-relaxed text-foreground">
                   999.0 purity is enforced in the contract master. This prevents cross-contract
@@ -147,10 +174,24 @@ export function ContractMasterSection() {
             </div>
           </div>
 
-          <div className="min-w-0 border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
-              <p className="gp-label">Fine-gold normalizer</p>
-              <h3 className="gp-serif mt-1 text-xl">Convert to ₹/g at 999.</h3>
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+              <div>
+                <p className="gp-label">Fine-gold normalizer</p>
+                <h3 className="gp-serif mt-0.5 text-lg">Convert to ₹/g at 999.</h3>
+              </div>
+              {manualOverride ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setManualOverride(false)
+                    setManualPrice('')
+                  }}
+                  className="gp-button min-h-0 px-2.5 py-1 text-[10px]"
+                >
+                  Use Live Quote
+                </button>
+              ) : null}
             </div>
 
             <div className="px-4 py-5">
@@ -162,9 +203,10 @@ export function ContractMasterSection() {
                   <select
                     id="normalizer-contract"
                     value={selectedContract}
-                    onChange={(e) =>
+                    onChange={(e) => {
                       setSelectedContract(e.target.value as SupportedContractCode)
-                    }
+                      setManualOverride(false)
+                    }}
                     className="gp-field gp-select mt-1 text-sm"
                   >
                     <option value="GOLDM">GOLDM · 100g · 995</option>
@@ -175,17 +217,37 @@ export function ContractMasterSection() {
                 </div>
 
                 <div>
-                  <label className="gp-label" htmlFor="normalizer-price">
-                    Quoted price
-                  </label>
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="gp-label" htmlFor="normalizer-price">
+                      Quoted price {manualOverride ? '(what-if)' : '(live)'}
+                    </label>
+                    <label className="flex items-center gap-1.5 font-mono text-[10px] text-muted-foreground">
+                      <input
+                        type="checkbox"
+                        checked={manualOverride}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                          setManualOverride(next)
+                          if (next && liveQuote && !manualPrice) {
+                            setManualPrice(String(Math.round(liveQuote.quotedPrice)))
+                          }
+                        }}
+                      />
+                      Manual what-if
+                    </label>
+                  </div>
                   <input
                     id="normalizer-price"
                     type="number"
                     inputMode="decimal"
-                    value={inputPrice}
-                    onChange={(e) => setInputPrice(e.target.value)}
+                    readOnly={!manualOverride}
+                    value={activePriceStr}
+                    onChange={(e) => {
+                      setManualOverride(true)
+                      setManualPrice(e.target.value)
+                    }}
                     className="gp-field mt-1 text-sm"
-                    placeholder="e.g. 73500"
+                    placeholder={loading ? 'Syncing live price…' : 'Enter what-if quote'}
                   />
                 </div>
               </div>
@@ -193,17 +255,24 @@ export function ContractMasterSection() {
               {normResult ? (
                 <div className="mt-6 border-t border-border pt-4">
                   <p className="gp-label">Normalized 999-fine benchmark</p>
-                  <p className="gp-figure mt-2 text-3xl">{inrPerG(normResult.normalizedPrice)}</p>
+                  <p className="gp-figure mt-2 text-2xl">{inrPerG(normResult.normalizedPrice)}</p>
 
                   <div className="mt-4 space-y-1.5 border-t border-border pt-3 font-mono text-[10px] leading-relaxed text-muted-foreground">
                     {normResult.trace.stepByStep.map((step, idx) => (
                       <p key={idx}>{step}</p>
                     ))}
                   </div>
+                  {liveQuote && !manualOverride ? (
+                    <p className="mt-3 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">
+                      Source · {liveQuote.source} · as_of {liveQuote.asOf.slice(0, 19).replace('T', ' ')} UTC
+                    </p>
+                  ) : null}
                 </div>
               ) : (
                 <p className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
-                  Enter a positive quoted price to normalize it.
+                  {loading
+                    ? 'Connecting to live MCX parity feed…'
+                    : 'Live quote unavailable. Toggle "Manual what-if" above to run a hypothetical calculation.'}
                 </p>
               )}
             </div>

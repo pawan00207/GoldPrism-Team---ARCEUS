@@ -76,7 +76,7 @@ export function Swarm() {
       }
       fresh[i] = { ...w, status: 'running' }
       setWorkers([...fresh])
-      await sleep(900 + Math.random() * 800)
+      await sleep(900)
       fresh[i] = { ...w, status: 'done', output: w.output ?? '(no output captured)' }
       setWorkers([...fresh])
       await sleep(200)

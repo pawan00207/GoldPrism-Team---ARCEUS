@@ -43,9 +43,7 @@ flowchart TB
 
     GPUI --> Engine[TypeScript research engine<br/>src/lib/goldprism<br/>normalization · integrity gates<br/>costs · waterfall · verdicts]
     Workspace --> Routes[Next.js route handlers<br/>/api/agent<br/>/api/backtest<br/>/api/analyze-trades]
-    Routes --> AI{Z.AI key configured?}
-    AI -->|Yes| ZAI[Z.AI service]
-    AI -->|No| Demo[Deterministic demo responses]
+    Routes --> Deterministic[Deterministic TypeScript quant handlers]
     Routes -. "not used by current app flows" .-> Prisma[Prisma schema and client utility<br/>persistence not wired]
 
     CSV[Bhavcopy CSV / sample data] --> Python[Separate Python research pipeline<br/>research/]
@@ -56,8 +54,8 @@ flowchart TB
 
 **Runtime boundary:** The web UI uses the TypeScript engine. The Python pipeline
 is a separate research workflow and produces files in `results/`; it is not
-currently invoked by the web app. The API routes use deterministic demo
-responses when Z.AI credentials are not configured. There is no live MCX feed,
+currently invoked by the web app. All API routes execute deterministic server-side
+quantitative logic without external LLM dependencies. There is no live MCX feed,
 broker order routing, or connected user-data persistence in the current app.
 
 For the problem statement, delivered features, limitations, and proposed next
@@ -146,6 +144,43 @@ As a robust quant workspace, the terminal preserves existing foundation capabili
 
 ---
 
+## 🧩 Additive Quant & Research Modules
+
+Three additive, zero-mock modules extend GoldPrism on top of the verified 18-month MCX Bhavcopy snapshot (`research/data/mcx_bhavcopy_18m_cached.csv`) and sealed holdout manifest (`results/holdout.json`):
+
+```mermaid
+flowchart LR
+    CSV["research/data/mcx_bhavcopy_18m_cached.csv\n+ results/manifest.json + results/holdout.json"]
+    Specs["contract-specs.ts\nP_10g = (P_q × 10) / (q × p)"]
+    Store["historical-store.ts\ngetSnapshotAsOf(as_of) (row.tradeDate ≤ as_of)"]
+    Tools["analyst-tools.ts\ncompareContracts · liquidityRanking\nexplainVerdict · costSensitivity\nstrongestSurvivingOpportunity"]
+    Guard["number-grounding.ts\nArtifact ID + Numeric Grounding Validator"]
+
+    CSV --> Store
+    Specs --> Store
+    Specs --> XRayUI["/xray (Trace Layer)\n& /normalization"]
+    Store --> ReplayAPI["/api/goldprism/replay\n& /replay (7 Panels + Gated Reveal)"]
+    Store --> MarketAPI["/api/goldprism/market-snapshot"]
+    MarketAPI --> XRayUI
+    Store --> Tools
+    Specs --> Tools
+    Tools --> AnalystAPI["/api/goldprism/analyst (SSE)"]
+    Guard --> AnalystAPI
+    AnalystAPI --> AnalystUI["/analyst (Chat + Citations + MD/PDF Report)"]
+```
+
+- **`/normalization` — Contract Normalization Lab**: Single typed `contractSpecs` source of truth (`GOLDM`, `GOLDTEN`, `GOLDGUINEA`, `GOLDPETAL`), consistency cross-check against `CONTRACT_MASTER`, pure `normalizeTo10gPureGold()` engine (`P_10g = (P_q × 10) / (q × p)`), 4-contract live/official snapshot side-by-side comparison, optional clearly-labeled manual what-if mode, and an additive step-trace inside `/xray`.
+- **`/replay` — Point-in-Time Backtest Replay**: Enforces `tradeDate <= as_of` across every query (`getSnapshotAsOf`), exposes 7 audit panels (data availability, eligibility, normalized spread, model window & parameters, existing verdict engine, gated forward outcome behind explicit "Reveal outcome", and itemized transaction cost survival), plus Training (`2024-01-01`–`2025-02-20`) vs Sealed Holdout (`2025-02-21`–`2025-06-30`) equity curves.
+- **`/analyst` — Gold Research Analyst**: Specialist SSE chat + Markdown/Print-PDF report builder backed by 5 deterministic TypeScript quant tools (`ART-*` artifact IDs) and strict server-side number-grounding validation.
+
+### Environment Variables (Server-Side Only)
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `DATABASE_URL` | Optional Prisma PostgreSQL URL | *(unset)* |
+
+---
+
 ## 🚀 5-Minute Quick Start
 
 ### 1. Web Application (Next.js 16 + React 19)
@@ -157,8 +192,14 @@ cd GoldPrism-Team---ARCEUS
 # Install dependencies
 npm install
 
-# Run TypeScript unit & acceptance tests (15/15 passed)
+# Run TypeScript acceptance tests (15/15 passed)
 npm test
+
+# Run additive module unit tests (normalization, anti-lookahead, cost sensitivity, grounding)
+npx tsx tests/unit/normalization-specs.test.ts
+npx tsx tests/unit/no-lookahead.test.ts
+npx tsx tests/unit/cost-sensitivity.test.ts
+npx tsx tests/unit/grounding-validator.test.ts
 
 # Launch development server
 npm run dev

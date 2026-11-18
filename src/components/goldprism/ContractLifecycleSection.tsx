@@ -98,7 +98,7 @@ export function ContractLifecycleSection() {
       id="contract-lifecycle"
       className="scroll-mt-16 border-b border-border bg-background"
     >
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="02.5"
           eyebrow="Market structure · Lifecycle"
@@ -115,14 +115,14 @@ export function ContractLifecycleSection() {
         />
 
         {/* ---------------- Contract cards ---------------- */}
-        <div className="mt-10 grid gap-px border border-border bg-border md:grid-cols-2">
+        <div className="mt-8 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] md:grid-cols-2">
           {CONTRACTS.map((contract) => {
             const status = STATUS[contract.status]
             return (
               <article key={contract.symbol} className="flex flex-col bg-card p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <h3 className="gp-serif text-2xl">{contract.symbol}</h3>
+                    <h3 className="gp-serif text-xl">{contract.symbol}</h3>
                     <p className="mt-1 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
                       {contract.tradingUnit} · {contract.purity}
                     </p>
@@ -166,10 +166,10 @@ export function ContractLifecycleSection() {
                 {contract.warningMessage ? (
                   <div
                     className={cn(
-                      'mt-5 border-l-2 pl-3',
+                      'mt-5 rounded-[4px] border p-3',
                       contract.status === 'EARLY_EXPIRY_WARNING'
-                        ? 'border-[var(--gp-watch-ink)]'
-                        : 'border-border'
+                        ? 'border-[var(--gp-watch-ink)]/50 bg-[var(--gp-watch-bg)]/40'
+                        : 'border-border bg-background/50'
                     )}
                   >
                     <p className="gp-label">
@@ -188,8 +188,8 @@ export function ContractLifecycleSection() {
         </div>
 
         {/* ---------------- Enforcement ---------------- */}
-        <div className="mt-10 border border-border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
             <p className="gp-label">Strict enforcement rules for quantitative entries</p>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
               Applied before signal evaluation

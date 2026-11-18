@@ -98,8 +98,8 @@ export function StrategyBuilder() {
     { id: 'b4', type: 'risk', name: 'Take Profit', param: '% gain', value: '15' },
     { id: 'b5', type: 'position', name: 'Volatility Target', param: 'target vol', value: '15' },
   ])
-  const [universe, setUniverse] = React.useState('AAPL, NVDA, MSFT, GOOGL, AMZN, META, TSLA')
-  const [capital, setCapital] = React.useState('100000')
+  const [universe, setUniverse] = React.useState('GOLDM, GOLDTEN, GOLDGUINEA, GOLDPETAL')
+  const [capital, setCapital] = React.useState('1000000')
   const [result, setResult] = React.useState<BacktestResult | null>(null)
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -254,8 +254,7 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 10 }}
-                        className="flex items-center gap-2 p-3 rounded-[2px] border-2 border-border bg-card hover:border-primary/30 transition-colors"
-                        style={{ borderLeftColor: meta.color, borderLeftWidth: 4 }}
+                        className="flex items-center gap-2 p-3 rounded-[2px] border border-border bg-card hover:border-primary/30 transition-colors"
                       >
                         <div className="w-7 h-7 rounded-[2px] flex items-center justify-center shrink-0" style={{ background: `color-mix(in srgb, ${meta.color} 15%, transparent)` }}>
                           <Icon className="w-3.5 h-3.5" style={{ color: meta.color }} />
@@ -338,10 +337,10 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis dataKey="month" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
-                    <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`} />
                     <Tooltip
-                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }}
-                      formatter={(v: number) => `$${v.toLocaleString('en-US', { minimumFractionDigits: 0 })}`}
+                      contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 2, fontSize: 12 }}
+                      formatter={(v: number) => `₹${v.toLocaleString('en-IN', { minimumFractionDigits: 0 })}`}
                     />
                     <Area type="monotone" dataKey="value" stroke="var(--foreground)" strokeWidth={2} fill="url(#grad-bt)" />
                   </AreaChart>
@@ -422,9 +421,9 @@ ${blocks.map((b) => `  • [${b.type.toUpperCase()}] ${b.name} (${b.param} = ${b
                             </span>
                           </td>
                           <td className="py-2 text-right tabular-nums">{t.qty}</td>
-                          <td className="py-2 text-right tabular-nums">${t.price.toFixed(2)}</td>
+                          <td className="py-2 text-right tabular-nums">₹{t.price.toFixed(0)}</td>
                           <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'gp-pos' : t.pnl < 0 ? 'gp-neg' : 'text-muted-foreground')}>
-                            {t.pnl === 0 ? '—' : `${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}`}
+                            {t.pnl === 0 ? '—' : `${t.pnl >= 0 ? '+' : ''}₹${t.pnl.toFixed(2)}`}
                           </td>
                           <td className="py-2 text-right tabular-nums text-muted-foreground">{t.holdingDays || '—'}</td>
                         </tr>

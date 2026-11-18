@@ -75,7 +75,7 @@ const FEATURES = [
   },
 ]
 
-const TECH = ['Next.js 16', 'TypeScript 5', 'Tailwind CSS 4', 'shadcn/ui', 'Recharts', 'Framer Motion', 'z-ai-web-dev-sdk', 'Vercel Edge']
+const TECH = ['Next.js 16', 'TypeScript 5', 'Tailwind CSS 4', 'shadcn/ui', 'Recharts', 'Framer Motion', 'Vercel Edge']
 
 export function Features() {
   return (

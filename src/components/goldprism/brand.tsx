@@ -40,8 +40,8 @@ export function BrandMark({
 }) {
   const bands =
     tone === 'dark'
-      ? ['#D9D2BF', '#A89F8C', '#6F6859', '#D09A1C']
-      : ['#3A352C', '#6F6859', '#A89F8C', '#D09A1C']
+      ? ['#E8E3D5', '#A49E91', '#5A564D', '#A77B24']
+      : ['#171613', '#5A564D', '#8C877B', '#A77B24']
 
   return (
     <svg
@@ -210,27 +210,34 @@ export function VerdictTag({
 
 export function DataTag({
   synthetic = false,
+  live = false,
   detail,
   className,
 }: {
   synthetic?: boolean
+  live?: boolean
   detail?: string
   className?: string
 }) {
+  const modeLabel = live ? 'Live Parity' : synthetic ? 'Synthetic' : 'Real'
   return (
     <span
       className={cn(
         'gp-tag',
-        synthetic ? 'gp-hatch gp-tag--neutral' : 'gp-tag--neutral',
+        live
+          ? 'gp-tag--tradable'
+          : synthetic
+            ? 'gp-hatch gp-tag--neutral'
+            : 'gp-tag--neutral',
         className
       )}
     >
       <span
         aria-hidden="true"
         className="inline-block h-2 w-2 border border-current"
-        style={{ background: synthetic ? 'transparent' : 'currentColor' }}
+        style={{ background: synthetic && !live ? 'transparent' : 'currentColor' }}
       />
-      {synthetic ? 'Synthetic' : 'Real'}
+      {modeLabel}
       {detail ? (
         <span className="normal-case tracking-normal opacity-80">· {detail}</span>
       ) : null}
@@ -260,19 +267,19 @@ export function SectionHead({
   return (
     <header
       className={cn(
-        'flex flex-col gap-8 border-b border-border pb-8 lg:flex-row lg:items-end lg:justify-between',
+        'flex flex-col gap-5 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between',
         className
       )}
     >
       <div className="min-w-0 max-w-3xl">
         <p className="gp-kicker">
-          {index ? <span className="mr-3">{index}</span> : null}
+          {index ? <span className="mr-2.5 text-[var(--gp-gold-ink)]">{index}</span> : null}
           {eyebrow}
         </p>
-        <h2 className="gp-title mt-3 text-balance">{title}</h2>
-        {description ? <p className="gp-clerk mt-4 max-w-2xl">{description}</p> : null}
+        <h2 className="gp-title mt-2 text-balance">{title}</h2>
+        {description ? <p className="gp-clerk mt-2.5 max-w-2xl">{description}</p> : null}
       </div>
-      {aside ? <div className="shrink-0 lg:pb-1">{aside}</div> : null}
+      {aside ? <div className="shrink-0 lg:pb-0.5">{aside}</div> : null}
     </header>
   )
 }
@@ -301,16 +308,16 @@ export function Metric({
     muted: 'gp-watch-text',
   }
   return (
-    <div className={cn('border-t border-border pt-3', className)}>
+    <div className={cn('pt-0.5', className)}>
       <p className="gp-label">{label}</p>
-      <p className={cn('gp-figure mt-2 text-2xl leading-none', tones[tone])}>
+      <p className={cn('gp-figure mt-1.5 text-xl leading-none md:text-2xl', tones[tone])}>
         {value}
         {unit ? (
           <span className="ml-1 text-xs font-normal text-muted-foreground">{unit}</span>
         ) : null}
       </p>
       {note ? (
-        <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">{note}</p>
+        <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">{note}</p>
       ) : null}
     </div>
   )

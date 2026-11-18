@@ -1,0 +1,202 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Pillar 4.1: Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Pillar 3: Reusable primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+    function incoming() {
+      return request.resource.data;
+    }
+    function existing() {
+      return resource.data;
+    }
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isVerifiedOwner(userId) {
+      return isSignedIn() && request.auth.token.email_verified == true && request.auth.uid == userId;
+    }
+
+    // Startup connection check path required by SDK health validation
+    match /test/connection {
+      allow get: if true;
+    }
+
+    // Validation Helpers (Anti-Update-Gap)
+    function isValidWorkspace(data, userId) {
+      return data.keys().hasAll(['uid', 'displayName', 'cashInr', 'defaultExposureG', 'createdAt', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'displayName', 'cashInr', 'defaultExposureG', 'createdAt', 'updatedAt']) &&
+        data.uid is string && data.uid == userId && data.uid.size() <= 128 &&
+        data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 120 &&
+        data.cashInr is number && data.cashInr >= 0 && data.cashInr <= 1000000000 &&
+        data.defaultExposureG is number && data.defaultExposureG >= 1 && data.defaultExposureG <= 100000 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidPrivateInfo(data, userId) {
+      return data.keys().hasAll(['uid', 'email', 'updatedAt']) &&
+        data.keys().hasOnly(['uid', 'email', 'photoURL', 'updatedAt']) &&
+        data.uid is string && data.uid == userId && data.uid.size() <= 128 &&
+        data.email is string && data.email.size() <= 180 &&
+        (!data.keys().hasAny(['photoURL']) || (data.photoURL is string && data.photoURL.size() <= 512)) &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidContract(sym) {
+      return sym in ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'];
+    }
+
+    function isValidTrade(data, userId, tradeId) {
+      return data.keys().hasAll([
+          'id', 'ownerId', 'status', 'kind', 'side', 'headline',
+          'verdictAtEntry', 'disciplineOverridden', 'contractA',
+          'entryPriceA', 'lotsA', 'gramsA', 'expiryA',
+          'marginBlockedInr', 'entryFeeInr', 'sourceLabel',
+          'asOfPrice', 'rationale', 'openedAt', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'id', 'ownerId', 'status', 'kind', 'side', 'headline',
+          'verdictAtEntry', 'disciplineOverridden', 'contractA',
+          'entryPriceA', 'lotsA', 'gramsA', 'expiryA',
+          'contractB', 'entryPriceB', 'lotsB', 'gramsB', 'expiryB',
+          'marginBlockedInr', 'entryFeeInr',
+          'exitPriceA', 'exitPriceB', 'exitFeeInr', 'grossPnlInr', 'netPnlInr', 'returnOnMarginPct', 'closedAt',
+          'sourceLabel', 'asOfPrice', 'rationale', 'openedAt', 'createdAt', 'updatedAt'
+        ]) &&
+        data.id is string && data.id == tradeId && data.id.size() <= 64 &&
+        data.ownerId is string && data.ownerId == userId && data.ownerId.size() <= 128 &&
+        data.status in ['OPEN', 'CLOSED'] &&
+        data.kind in ['SPREAD', 'SINGLE'] &&
+        data.side in ['BUY', 'SELL', 'SHORT_A_LONG_B', 'LONG_A_SHORT_B'] &&
+        data.headline is string && data.headline.size() >= 1 && data.headline.size() <= 160 &&
+        data.verdictAtEntry in ['TRADABLE', 'WATCH', 'NO EDGE', 'BLOCKED', 'DIRECT_HEDGE'] &&
+        data.disciplineOverridden is bool &&
+        isValidContract(data.contractA) &&
+        data.entryPriceA is number && data.entryPriceA > 0 &&
+        data.lotsA is number && data.lotsA >= 1 && data.lotsA <= 1000 &&
+        data.gramsA is number && data.gramsA > 0 &&
+        data.expiryA is string && data.expiryA.size() <= 24 &&
+        (!data.keys().hasAny(['contractB']) || isValidContract(data.contractB)) &&
+        (!data.keys().hasAny(['entryPriceB']) || (data.entryPriceB is number && data.entryPriceB > 0)) &&
+        (!data.keys().hasAny(['lotsB']) || (data.lotsB is number && data.lotsB >= 1 && data.lotsB <= 1000)) &&
+        (!data.keys().hasAny(['gramsB']) || (data.gramsB is number && data.gramsB > 0)) &&
+        (!data.keys().hasAny(['expiryB']) || (data.expiryB is string && data.expiryB.size() <= 24)) &&
+        data.marginBlockedInr is number && data.marginBlockedInr >= 0 &&
+        data.entryFeeInr is number && data.entryFeeInr >= 0 &&
+        (!data.keys().hasAny(['exitPriceA']) || (data.exitPriceA is number && data.exitPriceA > 0)) &&
+        (!data.keys().hasAny(['exitPriceB']) || (data.exitPriceB is number && data.exitPriceB > 0)) &&
+        (!data.keys().hasAny(['exitFeeInr']) || (data.exitFeeInr is number && data.exitFeeInr >= 0)) &&
+        (!data.keys().hasAny(['grossPnlInr']) || data.grossPnlInr is number) &&
+        (!data.keys().hasAny(['netPnlInr']) || data.netPnlInr is number) &&
+        (!data.keys().hasAny(['returnOnMarginPct']) || data.returnOnMarginPct is number) &&
+        (!data.keys().hasAny(['closedAt']) || (data.closedAt is string && data.closedAt.size() <= 48)) &&
+        data.sourceLabel is string && data.sourceLabel.size() <= 120 &&
+        data.asOfPrice is string && data.asOfPrice.size() <= 48 &&
+        data.rationale is string && data.rationale.size() <= 600 &&
+        data.openedAt is string && data.openedAt.size() <= 48 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidCopilotLog(data, userId, logId) {
+      return data.keys().hasAll(['id', 'ownerId', 'prompt', 'reply', 'createdAt']) &&
+        data.keys().hasOnly(['id', 'ownerId', 'prompt', 'reply', 'createdAt']) &&
+        data.id is string && data.id == logId && data.id.size() <= 64 &&
+        data.ownerId is string && data.ownerId == userId && data.ownerId.size() <= 128 &&
+        data.prompt is string && data.prompt.size() >= 1 && data.prompt.size() <= 600 &&
+        data.reply is string && data.reply.size() >= 1 && data.reply.size() <= 2400 &&
+        data.createdAt is timestamp;
+    }
+
+    // Collection: /users/{userId}
+    match /users/{userId} {
+      allow get: if isValidId(userId) && isVerifiedOwner(userId);
+      allow list: if false;
+      allow create: if isValidId(userId) &&
+        isVerifiedOwner(userId) &&
+        isValidWorkspace(incoming(), userId) &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time;
+      allow update: if isValidId(userId) &&
+        isVerifiedOwner(userId) &&
+        isValidWorkspace(incoming(), userId) &&
+        incoming().uid == existing().uid &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'cashInr', 'defaultExposureG', 'updatedAt']);
+      allow delete: if false;
+
+      // Subcollection: /users/{userId}/private/{docId} (PII isolation)
+      match /private/{docId} {
+        allow get: if isValidId(userId) && isValidId(docId) && docId == 'info' && isVerifiedOwner(userId);
+        allow list: if false;
+        allow create: if isValidId(userId) &&
+          isValidId(docId) &&
+          docId == 'info' &&
+          isVerifiedOwner(userId) &&
+          isValidPrivateInfo(incoming(), userId) &&
+          incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) &&
+          isValidId(docId) &&
+          docId == 'info' &&
+          isVerifiedOwner(userId) &&
+          isValidPrivateInfo(incoming(), userId) &&
+          incoming().uid == existing().uid &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly(['email', 'photoURL', 'updatedAt']);
+        allow delete: if false;
+      }
+
+      // Subcollection: /users/{userId}/trades/{tradeId}
+      match /trades/{tradeId} {
+        allow get: if isValidId(userId) && isValidId(tradeId) && isVerifiedOwner(userId);
+        allow list: if isValidId(userId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+        allow create: if isValidId(userId) &&
+          isValidId(tradeId) &&
+          isVerifiedOwner(userId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          isValidTrade(incoming(), userId, tradeId) &&
+          incoming().status == 'OPEN' &&
+          incoming().createdAt == request.time &&
+          incoming().updatedAt == request.time;
+        allow update: if isValidId(userId) &&
+          isValidId(tradeId) &&
+          isVerifiedOwner(userId) &&
+          isValidTrade(incoming(), userId, tradeId) &&
+          existing().status == 'OPEN' &&
+          incoming().status == 'CLOSED' &&
+          incoming().id == existing().id &&
+          incoming().ownerId == existing().ownerId &&
+          incoming().createdAt == existing().createdAt &&
+          incoming().openedAt == existing().openedAt &&
+          incoming().updatedAt == request.time &&
+          incoming().diff(existing()).affectedKeys().hasOnly([
+            'status', 'exitPriceA', 'exitPriceB', 'exitFeeInr',
+            'grossPnlInr', 'netPnlInr', 'returnOnMarginPct', 'closedAt', 'updatedAt'
+          ]);
+        allow delete: if isValidId(userId) && isValidId(tradeId) && isVerifiedOwner(userId);
+      }
+
+      // Subcollection: /users/{userId}/copilotLogs/{logId}
+      match /copilotLogs/{logId} {
+        allow get: if isValidId(userId) && isValidId(logId) && isVerifiedOwner(userId);
+        allow list: if isValidId(userId) && isVerifiedOwner(userId) && existing().ownerId == request.auth.uid;
+        allow create: if isValidId(userId) &&
+          isValidId(logId) &&
+          isVerifiedOwner(userId) &&
+          exists(/databases/$(database)/documents/users/$(userId)) &&
+          isValidCopilotLog(incoming(), userId, logId) &&
+          incoming().createdAt == request.time;
+        allow update: if false;
+        allow delete: if isValidId(userId) && isValidId(logId) && isVerifiedOwner(userId);
+      }
+    }
+  }
+}

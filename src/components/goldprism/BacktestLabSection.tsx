@@ -44,8 +44,8 @@ export function BacktestLabSection() {
   const tooltipStyle = {
     backgroundColor: 'var(--card)',
     border: '1px solid var(--border)',
-    borderRadius: 2,
-    boxShadow: '4px 4px 0 color-mix(in srgb, var(--gp-slag-900) 30%, transparent)',
+    borderRadius: 4,
+    boxShadow: 'var(--gp-hard-shadow)',
     fontFamily: 'var(--gp-instrument)',
     fontSize: 11,
     color: 'var(--foreground)',
@@ -59,7 +59,7 @@ export function BacktestLabSection() {
 
   return (
     <section id="backtest-lab" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="02.6"
           eyebrow="Market structure · Backtest lab"
@@ -77,7 +77,7 @@ export function BacktestLabSection() {
         />
 
         {/* ---------------- Headline metrics ---------------- */}
-        <div className="mt-10 grid gap-px border border-border bg-border sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-8 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] sm:grid-cols-2 xl:grid-cols-4">
           <div className="bg-card p-4">
             <p className="gp-label">Mean net edge</p>
             <p className="gp-figure mt-3 text-2xl">{bps(-1.2)}</p>
@@ -117,7 +117,7 @@ export function BacktestLabSection() {
         </div>
 
         {/* ---------------- Statistical rigour ---------------- */}
-        <div className="mt-10 grid gap-8 md:grid-cols-3">
+        <div className="mt-8 grid gap-6 rounded-[4px] border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)] md:grid-cols-3">
           <div className="border-t-2 border-border pt-3">
             <div className="flex items-center justify-between gap-2">
               <p className="gp-label">Block bootstrap uncertainty</p>
@@ -189,9 +189,9 @@ export function BacktestLabSection() {
         </div>
 
         {/* ---------------- Charts ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
-          <div className="min-w-0 border border-border bg-card">
-            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-3">
               <div>
                 <p className="gp-label">Gross vs net equity</p>
                 <p className="mt-1 text-[11px] text-muted-foreground">
@@ -261,8 +261,8 @@ export function BacktestLabSection() {
             </p>
           </div>
 
-          <div className="min-w-0 border border-border bg-card">
-            <div className="border-b border-border px-4 py-3">
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-3">
               <p className="gp-label">Cost drag decomposition</p>
               <p className="mt-1 text-[11px] text-muted-foreground">
                 Itemized erosion of gross alpha, in bps.
@@ -285,7 +285,7 @@ export function BacktestLabSection() {
                       patternTransform="rotate(135)"
                     >
                       <rect width="5" height="5" fill="transparent" />
-                      <line x1="0" y1="0" x2="0" y2="5" stroke="#A23A24" strokeWidth="1" />
+                      <line x1="0" y1="0" x2="0" y2="5" stroke="var(--gp-blocked)" strokeWidth="1.2" />
                     </pattern>
                   </defs>
                   <CartesianGrid stroke="var(--border)" strokeDasharray="1 4" horizontal={false} />
@@ -331,11 +331,11 @@ export function BacktestLabSection() {
         </div>
 
         {/* ---------------- Holdout ---------------- */}
-        <div className="gp-double-rule mt-10 pt-4">
+        <div className="gp-double-rule mt-8 rounded-[4px] border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="gp-label">Sealed holdout · uncontaminated</p>
-              <h3 className="gp-serif mt-1 text-xl">21 Feb 2025 to 04 Jun 2025</h3>
+              <h3 className="gp-serif mt-1 text-lg">21 Feb 2025 to 04 Jun 2025</h3>
             </div>
             <span className="gp-tag gp-tag--neutral">Single evaluation only</span>
           </div>

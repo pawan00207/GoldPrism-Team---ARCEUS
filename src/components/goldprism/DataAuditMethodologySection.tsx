@@ -52,7 +52,7 @@ export function DataAuditMethodologySection() {
       id="methodology-audit"
       className="scroll-mt-16 border-b border-border bg-background"
     >
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="03.1"
           eyebrow="Audit trail · Methodology"
@@ -62,15 +62,15 @@ export function DataAuditMethodologySection() {
         />
 
         {/* ---------------- Case study ---------------- */}
-        <div className="mt-10 border border-border bg-card">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
             <p className="gp-label">Case study · GOLDGUINEA purity</p>
             <span className="gp-tag gp-tag--tradable">Resolved &amp; verified</span>
           </div>
 
           <div className="grid gap-6 p-5 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
             <div>
-              <h3 className="gp-serif text-2xl">996 or 999?</h3>
+              <h3 className="gp-serif text-xl">996 or 999?</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                 Earlier test drafts and unofficial third-party tables listed GOLDGUINEA, an 8 g
                 trading unit, as having 996 purity. An audit of official MCX circulars
@@ -79,7 +79,7 @@ export function DataAuditMethodologySection() {
                 999 purity, 0.999 fine.
               </p>
 
-              <div className="mt-5 border-l-2 border-[var(--gp-gold-500)] pl-4">
+              <div className="mt-5 rounded-[4px] border border-[var(--gp-gold-500)]/40 bg-background/70 p-4">
                 <p className="gp-label">Impact if left at 996</p>
                 <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
                   The purity ratio 996/999 = 0.996997 falsely penalizes GOLDGUINEA by roughly 30.0
@@ -88,7 +88,7 @@ export function DataAuditMethodologySection() {
               </div>
             </div>
 
-            <dl className="grid gap-px self-start border border-border bg-border">
+            <dl className="grid gap-px self-start overflow-hidden rounded-[4px] border border-border bg-border">
               <div className="bg-card p-4">
                 <dt className="gp-label">Official purity</dt>
                 <dd className="mt-2 font-mono text-lg text-foreground">999 fine · 24 carat</dd>
@@ -110,8 +110,8 @@ export function DataAuditMethodologySection() {
         </div>
 
         {/* ---------------- Method + fees ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-2">
-          <div className="min-w-0">
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="min-w-0 rounded-[4px] border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)]">
             <div className="border-b border-border pb-3">
               <p className="gp-label">Core methodology &amp; assumptions</p>
             </div>
@@ -132,7 +132,7 @@ export function DataAuditMethodologySection() {
             </ol>
           </div>
 
-          <div className="min-w-0">
+          <div className="min-w-0 rounded-[4px] border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)]">
             <div className="border-b border-border pb-3">
               <p className="gp-label">Statutory fee schedule &amp; cost model</p>
             </div>
@@ -154,8 +154,8 @@ export function DataAuditMethodologySection() {
         </div>
 
         {/* ---------------- Limitations ---------------- */}
-        <div className="mt-10 border border-border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
             <p className="gp-label">Explicit limitations &amp; known gaps</p>
             <span className="gp-tag gp-tag--neutral">Honesty over polish</span>
           </div>

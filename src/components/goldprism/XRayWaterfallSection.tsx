@@ -1,7 +1,10 @@
 'use client'
 
 import * as React from 'react'
+import { History, Radio, RefreshCw } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
+import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
+import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
 import {
   computeXRayWaterfall,
   DEFAULT_COST_HURDLE_BPS,
@@ -17,7 +20,9 @@ import {
   normalizeVerdict,
 } from '@/components/goldprism/brand'
 import { WaterfallChart, type WaterfallBar } from '@/components/goldprism/waterfall'
+import { NormalizationStepTrace } from '@/components/goldprism/NormalizationStepTrace'
 import { bps, inr, inrPerG, signed } from '@/lib/goldprism/format'
+import { TradeIntentInput } from '@/lib/goldprism/trade-engine'
 import { cn } from '@/lib/utils'
 
 const CONTRACTS: Array<{ code: SupportedContractCode; label: string }> = [
@@ -50,6 +55,10 @@ function workLine(
 }
 
 export function XRayWaterfallSection() {
+  const { feed, loading, refreshFeed, refreshing } = useLiveFeed()
+  const [sourceMode, setSourceMode] = React.useState<'LIVE' | 'FIXTURE'>('LIVE')
+  const [userEdited, setUserEdited] = React.useState<boolean>(false)
+
   const [contractA, setContractA] = React.useState<SupportedContractCode>('GOLDTEN')
   const [priceA, setPriceA] = React.useState<number>(74080.0)
   const [expiryA, setExpiryA] = React.useState<string>('2026-04-28')
@@ -58,8 +67,59 @@ export function XRayWaterfallSection() {
   const [priceB, setPriceB] = React.useState<number>(73510.0)
   const [expiryB, setExpiryB] = React.useState<string>('2026-04-05')
 
+  const [tradeDate, setTradeDate] = React.useState<string>('2026-03-20')
   const [carryRate, setCarryRate] = React.useState<number>(0.065)
-  const [settlementArtifact, setSettlementArtifact] = React.useState<number>(14.8)
+  const [settlementArtifact, setSettlementArtifact] = React.useState<number>(0)
+
+  const syncFromLiveFeed = React.useCallback(
+    (legACode: SupportedContractCode, legBCode: SupportedContractCode) => {
+      if (feed?.status !== 'LIVE_PARITY' || !feed.contracts) return
+      const qA = feed.contracts[legACode]
+      const qB = feed.contracts[legBCode]
+      if (qA) {
+        setPriceA(qA.quotedPrice)
+        setExpiryA(qA.expiryDate)
+      }
+      if (qB) {
+        setPriceB(qB.quotedPrice)
+        setExpiryB(qB.expiryDate)
+      }
+      setTradeDate(feed.asOf.slice(0, 10))
+      if (
+        typeof feed.benchmarks.comexBasisAnnualizedPct === 'number' &&
+        feed.benchmarks.comexBasisAnnualizedPct > 0 &&
+        feed.benchmarks.comexBasisAnnualizedPct < 20
+      ) {
+        setCarryRate(Number((feed.benchmarks.comexBasisAnnualizedPct / 100).toFixed(3)))
+      }
+      setSettlementArtifact(0)
+      setUserEdited(false)
+    },
+    [feed]
+  )
+
+  React.useEffect(() => {
+    if (sourceMode === 'LIVE' && !userEdited && feed?.status === 'LIVE_PARITY' && feed.contracts) {
+      syncFromLiveFeed(contractA, contractB)
+    }
+  }, [sourceMode, userEdited, feed, contractA, contractB, syncFromLiveFeed])
+
+  const loadFixturePreset = () => {
+    setSourceMode('FIXTURE')
+    setUserEdited(false)
+    setContractA('GOLDTEN')
+    setPriceA(74080.0)
+    setExpiryA('2026-04-28')
+    setContractB('GOLDM')
+    setPriceB(73510.0)
+    setExpiryB('2026-04-05')
+    setTradeDate('2026-03-20')
+    setCarryRate(0.065)
+    setSettlementArtifact(14.8)
+  }
+
+  const awaitingLiveSync =
+    sourceMode === 'LIVE' && !userEdited && (feed?.status !== 'LIVE_PARITY' || !feed?.contracts)
 
   const result: XRayWaterfallResult = React.useMemo(() => {
     return computeXRayWaterfall({
@@ -69,11 +129,49 @@ export function XRayWaterfallSection() {
       contractB,
       priceBQuoted: priceB,
       expiryB,
-      tradeDate: '2026-03-20',
+      tradeDate,
       annualCarryRate: carryRate,
       settlementArtifactInrPerG: settlementArtifact,
     })
-  }, [contractA, priceA, expiryA, contractB, priceB, expiryB, carryRate, settlementArtifact])
+  }, [contractA, priceA, expiryA, contractB, priceB, expiryB, tradeDate, carryRate, settlementArtifact])
+
+  const isLiveUnedited =
+    sourceMode === 'LIVE' && !userEdited && feed?.status === 'LIVE_PARITY'
+
+  const spreadDirection = result.netEdgeInrPerG >= 0 ? 'SHORT_A_LONG_B' : 'LONG_A_SHORT_B'
+  const tradeIntent: TradeIntentInput = React.useMemo(
+    () => ({
+      kind: 'SPREAD',
+      side: spreadDirection,
+      contractA,
+      priceA,
+      lotsA: 1,
+      expiryA,
+      contractB,
+      priceB,
+      lotsB: 1,
+      expiryB,
+      verdict: result.verdict,
+      netEdgeBps: result.netEdgeBps,
+      netEdgeInrPerG: result.netEdgeInrPerG,
+      rationale: result.verdictMessage,
+      sourceLabel: isLiveUnedited ? 'Live Global-to-MCX Parity' : 'X-Ray Pair Simulation',
+      asOf: isLiveUnedited && feed?.asOf ? feed.asOf : tradeDate,
+    }),
+    [
+      spreadDirection,
+      contractA,
+      priceA,
+      expiryA,
+      contractB,
+      priceB,
+      expiryB,
+      result,
+      isLiveUnedited,
+      feed?.asOf,
+      tradeDate,
+    ]
+  )
 
   /*
    * Deductions are shown as negative movements so the waterfall reconciles:
@@ -194,7 +292,7 @@ export function XRayWaterfallSection() {
 
   return (
     <section id="xray-waterfall" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="01"
           eyebrow="Decision surface · X-Ray"
@@ -207,50 +305,127 @@ export function XRayWaterfallSection() {
           }
           description="Every MCX gold spread is opened into structural basis, expiry carry and settlement artifact. The residual is then charged the full round-trip cost of trading it."
           aside={
-            <div className="flex flex-col items-start gap-3 lg:items-end">
+            <div className="flex flex-col items-start gap-2.5 lg:items-end">
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <DataTag synthetic detail="20 Mar 2026" />
+                <DataTag
+                  live={isLiveUnedited}
+                  synthetic={!isLiveUnedited}
+                  detail={
+                    isLiveUnedited && feed?.asOf
+                      ? `${feed.asOf.slice(0, 16).replace('T', ' ')} UTC`
+                      : userEdited
+                        ? 'what-if edit'
+                        : awaitingLiveSync
+                          ? loading
+                            ? 'syncing live parity'
+                            : 'live offline · fixture fallback'
+                          : '20 Mar 2026 fixture'
+                  }
+                />
                 <span className="gp-tag gp-tag--neutral">
                   Config · {result.configHash}
                 </span>
               </div>
-              <p className="max-w-[20rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground lg:text-right">
-                Pair · {result.contractA} / {result.contractB}
-                <br />
-                Recon tolerance · {result.reconciliationOk ? 'within 0.01 ₹/g' : 'failed'}
+              <p className="max-w-[20rem] font-mono text-[10px] uppercase leading-relaxed tracking-[0.09em] text-muted-foreground lg:text-right">
+                Pair · {result.contractA} / {result.contractB} · Recon{' '}
+                {result.reconciliationOk ? 'within 0.01 ₹/g' : 'failed'}
               </p>
             </div>
           }
         />
 
+        {awaitingLiveSync ? (
+          <div className="mt-5 rounded-[4px] border border-[var(--gp-watch-ink)]/50 bg-card px-4 py-2.5 font-mono text-xs text-muted-foreground">
+            {loading
+              ? 'Connecting to live Global-to-MCX parity feed… currently showing baseline 20 Mar 2026 audit fixture until live prices arrive.'
+              : `Live parity feed offline (${feed?.error ?? 'upstream unavailable'}). Showing 20 Mar 2026 audit fixture explicitly until Sync Live Parity succeeds.`}
+          </div>
+        ) : null}
+
         {/* ---------------- Pair controls ---------------- */}
-        <div className="mt-10 border border-border bg-card">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-            <p className="gp-label">Pair controls · quoted prices normalize to 999 fine</p>
-            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-              Editable · results recompute on change
-            </p>
+        <div className="mt-6 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+            <p className="gp-label text-foreground">Pair controls · quoted prices normalize to 999 fine</p>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSourceMode('LIVE')
+                  setUserEdited(false)
+                  refreshFeed(true)
+                  syncFromLiveFeed(contractA, contractB)
+                }}
+                aria-pressed={sourceMode === 'LIVE' && !userEdited}
+                className={cn(
+                  'gp-button px-3 py-1.5 text-[10px] whitespace-nowrap shrink-0',
+                  sourceMode === 'LIVE' && !userEdited && 'gp-button--selected'
+                )}
+              >
+                {refreshing ? (
+                  <RefreshCw className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <Radio className="h-3.5 w-3.5" />
+                )}
+                Sync Live Parity
+              </button>
+              <button
+                type="button"
+                onClick={loadFixturePreset}
+                aria-pressed={sourceMode === 'FIXTURE'}
+                className={cn(
+                  'gp-button px-3 py-1.5 text-[10px] whitespace-nowrap shrink-0',
+                  sourceMode === 'FIXTURE' && 'gp-button--selected'
+                )}
+              >
+                <History className="h-3.5 w-3.5" />
+                20 Mar 2026 Fixture
+              </button>
+            </div>
           </div>
 
           <div className="grid gap-px bg-border md:grid-cols-2">
             <LegControl
               title="Leg A · far expiry"
               code={contractA}
-              onCode={setContractA}
+              onCode={(code) => {
+                setContractA(code)
+                if (sourceMode === 'LIVE' && !userEdited && feed?.contracts?.[code]) {
+                  setPriceA(feed.contracts[code].quotedPrice)
+                  setExpiryA(feed.contracts[code].expiryDate)
+                }
+              }}
               price={priceA}
-              onPrice={setPriceA}
+              onPrice={(p) => {
+                setUserEdited(true)
+                setPriceA(p)
+              }}
               expiry={expiryA}
-              onExpiry={setExpiryA}
+              onExpiry={(ex) => {
+                setUserEdited(true)
+                setExpiryA(ex)
+              }}
               normalized={result.priceANormalized}
             />
             <LegControl
               title="Leg B · near expiry"
               code={contractB}
-              onCode={setContractB}
+              onCode={(code) => {
+                setContractB(code)
+                if (sourceMode === 'LIVE' && !userEdited && feed?.contracts?.[code]) {
+                  setPriceB(feed.contracts[code].quotedPrice)
+                  setExpiryB(feed.contracts[code].expiryDate)
+                }
+              }}
               price={priceB}
-              onPrice={setPriceB}
+              onPrice={(p) => {
+                setUserEdited(true)
+                setPriceB(p)
+              }}
               expiry={expiryB}
-              onExpiry={setExpiryB}
+              onExpiry={(ex) => {
+                setUserEdited(true)
+                setExpiryB(ex)
+              }}
               normalized={result.priceBNormalized}
             />
           </div>
@@ -269,7 +444,10 @@ export function XRayWaterfallSection() {
                 min={4}
                 max={10}
                 step={0.5}
-                onValueChange={(val) => setCarryRate(val[0] / 100)}
+                onValueChange={(val) => {
+                  setUserEdited(true)
+                  setCarryRate(val[0] / 100)
+                }}
                 className="mt-4"
                 aria-label="Annual carry rate, percent"
               />
@@ -291,7 +469,10 @@ export function XRayWaterfallSection() {
                 min={0}
                 max={30}
                 step={1}
-                onValueChange={(val) => setSettlementArtifact(val[0])}
+                onValueChange={(val) => {
+                  setUserEdited(true)
+                  setSettlementArtifact(val[0])
+                }}
                 className="mt-4"
                 aria-label="Settlement artifact, rupees per gram"
               />
@@ -300,25 +481,33 @@ export function XRayWaterfallSection() {
               </p>
             </div>
           </div>
+
+          <div className="grid gap-4 border-t border-border p-4 md:grid-cols-2">
+            <NormalizationStepTrace
+              symbol={contractA}
+              quotedPrice={priceA}
+              label={`Leg A · ${contractA} normalization step`}
+              asOf={result.tradeDate}
+              compact
+            />
+            <NormalizationStepTrace
+              symbol={contractB}
+              quotedPrice={priceB}
+              label={`Leg B · ${contractB} normalization step`}
+              asOf={result.tradeDate}
+              compact
+            />
+          </div>
         </div>
 
         {/* ---------------- Main 61.8 / aside 38.2 ---------------- */}
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
-              <h3 className="gp-serif text-xl">Waterfall · signed components</h3>
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-                bps of leg A normalized price
-              </p>
-            </div>
+            <WaterfallChart bars={waterfallBars} tradable={tradable} />
 
-            <div className="mt-6">
-              <WaterfallChart bars={waterfallBars} tradable={tradable} />
-            </div>
-
-            <div className="mt-8 border border-border">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
-                <p className="gp-label">Show the work · reconciliation</p>
+            <div className="mt-5 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+                <p className="gp-label text-foreground">Show the work · reconciliation</p>
                 <span
                   className={cn(
                     'gp-tag',
@@ -328,11 +517,11 @@ export function XRayWaterfallSection() {
                   {result.reconciliationOk ? 'reconciled' : 'recon failed'}
                 </span>
               </div>
-              <div className="px-4 py-4">
+              <div className="px-4 py-3.5">
                 <pre className="overflow-x-auto whitespace-pre-wrap font-mono text-[12px] leading-relaxed text-foreground">
                   {reconLedger}
                 </pre>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+                <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5 font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground">
                   <span>
                     Reconciliation error · {result.reconciliationError.toFixed(6)} ₹/g
                   </span>
@@ -429,35 +618,39 @@ export function XRayWaterfallSection() {
               </div>
 
               <p className="mt-4 font-mono text-[9px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
-                Synthetic · historical fixture values. Not a live market quotation.
+                {isLiveUnedited
+                  ? `Live Global-to-MCX Parity · as_of ${feed?.asOf.slice(0, 19).replace('T', ' ')} UTC`
+                  : sourceMode === 'FIXTURE'
+                    ? 'Historical audit fixture (20 Mar 2026) · not a live market quote.'
+                    : 'Manual what-if simulation · modified from feed.'}
               </p>
             </div>
           </aside>
         </div>
 
         {/* ---------------- Verdict stamp ---------------- */}
-        <div className="mt-12 border-y-[3px] border-double border-[var(--gp-slag-500)] py-6">
-          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div className="flex items-center gap-5">
-              <Hallmark verdict={verdict} size={72} className="gp-verdict-punch" label={false} />
+        <div className="mt-6 rounded-[4px] border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <Hallmark verdict={verdict} size={64} className="gp-verdict-punch" label={false} />
               <div>
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <p className="gp-label">Final verdict</p>
                   <VerdictTag verdict={verdict} />
                 </div>
-                <p className="gp-ledger mt-2 text-2xl md:text-3xl">{result.verdictTitle}</p>
-                <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                <p className="gp-ledger mt-1.5 text-xl md:text-2xl">{result.verdictTitle}</p>
+                <p className="mt-1.5 max-w-xl text-xs leading-relaxed text-muted-foreground">
                   {result.verdictMessage}
                 </p>
               </div>
             </div>
 
-            <dl className="grid shrink-0 grid-cols-2 gap-x-8 gap-y-4 md:text-right">
+            <dl className="grid shrink-0 grid-cols-2 gap-x-6 gap-y-3 md:text-right">
               <div>
                 <dt className="gp-label">Net edge</dt>
                 <dd
                   className={cn(
-                    'gp-figure mt-2 text-2xl',
+                    'gp-figure mt-1 text-xl font-semibold',
                     tradable && result.netEdgeBps > 0 ? 'gp-gold-text' : 'text-foreground'
                   )}
                 >
@@ -466,11 +659,11 @@ export function XRayWaterfallSection() {
               </div>
               <div>
                 <dt className="gp-label">Per gram</dt>
-                <dd className="gp-figure mt-2 text-2xl">{inrPerG(result.netEdgeInrPerG)}</dd>
+                <dd className="gp-figure mt-1 text-xl font-semibold">{inrPerG(result.netEdgeInrPerG)}</dd>
               </div>
-              <div className="col-span-2 border-t border-border pt-3">
+              <div className="col-span-2 border-t border-border pt-2">
                 <dt className="gp-label">Edge against hurdle</dt>
-                <dd className="gp-figure mt-2 text-sm">
+                <dd className="gp-figure mt-1 text-xs">
                   {bps(result.netEdgeBps - DEFAULT_COST_HURDLE_BPS)}
                 </dd>
               </div>
@@ -478,68 +671,78 @@ export function XRayWaterfallSection() {
           </div>
         </div>
 
+        {/* ---------------- One-Click Execution Right After Verdict ---------------- */}
+        <div className="mt-5">
+          <OneClickTradeBar
+            intent={tradeIntent}
+            title="One-Click Spread Execution · Understand Every Number First"
+          />
+        </div>
+
         {/* ---------------- Cost table ---------------- */}
-        <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
+        <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,61.8%)_minmax(0,38.2%)]">
           <div className="min-w-0">
-            <div className="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-3">
-              <h3 className="gp-serif text-xl">Cost of the round trip</h3>
-              <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+            <div className="flex flex-wrap items-end justify-between gap-4 pb-2.5">
+              <h3 className="gp-ledger text-base">Cost of the round trip</h3>
+              <p className="font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground">
                 Both legs · one lot each
               </p>
             </div>
 
-            <table className="gp-table mt-4">
-              <thead>
-                <tr>
-                  <th scope="col">Component</th>
-                  <th scope="col" className="gp-num">
-                    ₹ · both legs
-                  </th>
-                  <th scope="col" className="hidden sm:table-cell">
-                    Basis
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {costRows.map((row) => (
-                  <tr key={row.label}>
-                    <td className="text-foreground">{row.label}</td>
-                    <td className="gp-num text-foreground">{inr(row.inr)}</td>
-                    <td className="hidden text-muted-foreground sm:table-cell">{row.note}</td>
+            <div className="overflow-x-auto rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+              <table className="gp-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Component</th>
+                    <th scope="col" className="gp-num">
+                      ₹ · both legs
+                    </th>
+                    <th scope="col" className="hidden sm:table-cell">
+                      Basis
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <td>Total friction</td>
-                  <td className="gp-num">{inr(totalCostInr)}</td>
-                  <td className="hidden text-muted-foreground sm:table-cell">
-                    {bps(result.transactionCostsBps)} · {inrPerG(result.transactionCostsInrPerG)}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
+                </thead>
+                <tbody>
+                  {costRows.map((row) => (
+                    <tr key={row.label}>
+                      <td className="font-medium text-foreground">{row.label}</td>
+                      <td className="gp-num text-foreground">{inr(row.inr)}</td>
+                      <td className="hidden text-muted-foreground sm:table-cell">{row.note}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <td>Total friction</td>
+                    <td className="gp-num">{inr(totalCostInr)}</td>
+                    <td className="hidden text-muted-foreground sm:table-cell">
+                      {bps(result.transactionCostsBps)} · {inrPerG(result.transactionCostsInrPerG)}
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
           </div>
 
-          <div className="min-w-0">
-            <div className="border border-border bg-card p-4">
-              <p className="gp-label">How to read the verdict</p>
-              <ul className="mt-4 space-y-3 text-[12px] leading-relaxed text-muted-foreground">
-                <li className="flex gap-3">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 bg-[var(--gp-slag-800)]" aria-hidden="true" />
-                  <span>Grey bars are structure we can name. They are explained away, not edge.</span>
+          <div className="min-w-0 pt-7">
+            <div className="rounded-[4px] border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)]">
+              <p className="gp-label text-foreground">How to read the verdict</p>
+              <ul className="mt-3 space-y-2.5 text-xs leading-relaxed text-muted-foreground">
+                <li className="flex gap-2.5">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[var(--gp-slag-800)]" aria-hidden="true" />
+                  <span>Charcoal &amp; stone bars represent structural pricing components explained away, not edge.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 gp-hatch border border-[var(--gp-slag-500)]" aria-hidden="true" />
-                  <span>Hatched bars are not clean measurements: grey hatch marks cost drag, and the same hatch marks synthetic or estimated inputs.</span>
+                <li className="flex gap-2.5">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[var(--gp-blocked)]/70" aria-hidden="true" />
+                  <span>Red-tinted hatched bars mark round-trip statutory friction or negative net edge.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 bg-[var(--gp-gold-500)]" aria-hidden="true" />
-                  <span>Gold appears only when the residual survives the cost hurdle.</span>
+                <li className="flex gap-2.5">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] bg-[var(--gp-gold-500)]" aria-hidden="true" />
+                  <span>Metallic gold appears only when residual edge clears the full cost hurdle.</span>
                 </li>
-                <li className="flex gap-3">
-                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 border border-[var(--gp-slag-500)]" aria-hidden="true" />
-                  <span>One verdict per screen. A quiet day is not an error.</span>
+                <li className="flex gap-2.5">
+                  <span className="mt-1 inline-block h-2.5 w-2.5 shrink-0 rounded-[2px] border border-[var(--gp-slag-500)]" aria-hidden="true" />
+                  <span>One disciplined verdict per screen. A quiet day is not an error.</span>
                 </li>
               </ul>
             </div>

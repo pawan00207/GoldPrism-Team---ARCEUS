@@ -1,0 +1,206 @@
+{
+  "entities": {
+    "TraderWorkspace": {
+      "title": "TraderWorkspace",
+      "description": "Authenticated GoldPrism trader virtual margin workspace state.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "displayName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120
+        },
+        "cashInr": {
+          "type": "number"
+        },
+        "defaultExposureG": {
+          "type": "number"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "displayName", "cashInr", "defaultExposureG", "createdAt", "updatedAt"]
+    },
+    "TraderPrivateInfo": {
+      "title": "TraderPrivateInfo",
+      "description": "Owner-only PII record storing verified email and avatar URL.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "email": {
+          "type": "string",
+          "maxLength": 180
+        },
+        "photoURL": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["uid", "email", "updatedAt"]
+    },
+    "UserPaperTrade": {
+      "title": "UserPaperTrade",
+      "description": "One-Click paper spread or single-contract hedge trade belonging to a trader.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["OPEN", "CLOSED"]
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["SPREAD", "SINGLE"]
+        },
+        "side": {
+          "type": "string",
+          "enum": ["BUY", "SELL", "SHORT_A_LONG_B", "LONG_A_SHORT_B"]
+        },
+        "headline": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 160
+        },
+        "verdictAtEntry": {
+          "type": "string",
+          "enum": ["TRADABLE", "WATCH", "NO EDGE", "BLOCKED", "DIRECT_HEDGE"]
+        },
+        "disciplineOverridden": {
+          "type": "boolean"
+        },
+        "contractA": {
+          "type": "string",
+          "enum": ["GOLDM", "GOLDTEN", "GOLDGUINEA", "GOLDPETAL"]
+        },
+        "entryPriceA": { "type": "number" },
+        "lotsA": { "type": "number" },
+        "gramsA": { "type": "number" },
+        "expiryA": { "type": "string", "maxLength": 24 },
+        "contractB": {
+          "type": "string",
+          "enum": ["GOLDM", "GOLDTEN", "GOLDGUINEA", "GOLDPETAL"]
+        },
+        "entryPriceB": { "type": "number" },
+        "lotsB": { "type": "number" },
+        "gramsB": { "type": "number" },
+        "expiryB": { "type": "string", "maxLength": 24 },
+        "marginBlockedInr": { "type": "number" },
+        "entryFeeInr": { "type": "number" },
+        "exitPriceA": { "type": "number" },
+        "exitPriceB": { "type": "number" },
+        "exitFeeInr": { "type": "number" },
+        "grossPnlInr": { "type": "number" },
+        "netPnlInr": { "type": "number" },
+        "returnOnMarginPct": { "type": "number" },
+        "sourceLabel": { "type": "string", "maxLength": 120 },
+        "asOfPrice": { "type": "string", "maxLength": 48 },
+        "rationale": { "type": "string", "maxLength": 600 },
+        "openedAt": { "type": "string", "maxLength": 48 },
+        "closedAt": { "type": "string", "maxLength": 48 },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "id",
+        "ownerId",
+        "status",
+        "kind",
+        "side",
+        "headline",
+        "verdictAtEntry",
+        "disciplineOverridden",
+        "contractA",
+        "entryPriceA",
+        "lotsA",
+        "gramsA",
+        "expiryA",
+        "marginBlockedInr",
+        "entryFeeInr",
+        "sourceLabel",
+        "asOfPrice",
+        "rationale",
+        "openedAt",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "CopilotInteraction": {
+      "title": "CopilotInteraction",
+      "description": "Recent grounded Trade Copilot assistant Q&A entries scoped strictly to owner.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "ownerId": {
+          "type": "string",
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "prompt": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 600
+        },
+        "reply": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 2400
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "ownerId", "prompt", "reply", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/TraderWorkspace" },
+      "description": "Authenticated user's GoldPrism virtual margin workspace document."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/TraderPrivateInfo" },
+      "description": "Isolated PII subcollection (email, photoURL) readable/writable only by verified owner."
+    },
+    "/users/{userId}/trades/{tradeId}": {
+      "schema": { "$ref": "#/entities/UserPaperTrade" },
+      "description": "User's One-Click executed paper spread and single-contract hedge ledger."
+    },
+    "/users/{userId}/copilotLogs/{logId}": {
+      "schema": { "$ref": "#/entities/CopilotInteraction" },
+      "description": "User's saved Trade Copilot trade guidance history."
+    }
+  }
+}

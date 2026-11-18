@@ -134,7 +134,7 @@ export function DataHealthSection({
 
   return (
     <section id="data-health" className="scroll-mt-16 border-b border-border bg-background">
-      <div className="mx-auto max-w-[1200px] px-4 py-14 md:py-20">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
         <SectionHead
           index="02.1"
           eyebrow="Market structure · Data health"
@@ -162,8 +162,8 @@ export function DataHealthSection({
         />
 
         {/* ---------------- Integrity gates ---------------- */}
-        <div className="mt-10 border border-border">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
             <p className="gp-label">MCX bhavcopy · integrity gates</p>
             <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
               DuckDB / Parquet store
@@ -198,7 +198,7 @@ export function DataHealthSection({
         </div>
 
         {/* ---------------- Provenance metrics ---------------- */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 grid gap-4 rounded-[4px] border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)] sm:grid-cols-2 lg:grid-cols-4">
           <div className="border-t-2 border-[var(--gp-slag-900)] pt-3 dark:border-[var(--gp-paper)]">
             <p className="gp-label">Validation status</p>
             <div className="mt-3">
@@ -252,9 +252,9 @@ export function DataHealthSection({
         </div>
 
         {/* ---------------- Records ---------------- */}
-        <div className="mt-10 grid gap-8 lg:grid-cols-2">
-          <div className="min-w-0 border border-border">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
               <h3 className="gp-serif text-base">
                 Validated &amp; normalized records ({ingestionResult.validatedRecords.length})
               </h3>
@@ -308,8 +308,8 @@ export function DataHealthSection({
             </div>
           </div>
 
-          <div className="min-w-0 border border-border">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-3">
+          <div className="min-w-0 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
               <h3 className="gp-serif text-base">
                 Integrity gate rejected rows ({ingestionResult.rejectedRows.length})
               </h3>

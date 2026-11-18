@@ -2,203 +2,220 @@
 
 import * as React from 'react'
 import {
-  ExternalLink,
+  Code2,
   Github,
   GraduationCap,
   Linkedin,
-  MapPin,
-  Sparkles,
-  Award,
-  Code2,
-  Cpu,
-  Layers,
-  Database,
-  Terminal,
 } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { SectionHead } from '@/components/goldprism/brand'
 
 export function TeamArceusSection() {
   return (
-    <section id="team-arceus" className="py-16 scroll-mt-16 bg-gradient-to-b from-background via-card/20 to-background">
-      <div className="container mx-auto px-4 max-w-7xl">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <Badge variant="outline" className="mb-3 gap-1.5 border-amber-500/40 text-amber-300">
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Team ARCEUS · Hack in Hills '26
-          </Badge>
-          <h2 className="text-3xl md:text-4xl font-extrabold tracking-tight">
-            Meet the Builders of <span className="text-amber-400">GoldPrism</span>
-          </h2>
-          <p className="text-muted-foreground text-sm md:text-base mt-2">
-            Track 03: Commodity Derivatives Intelligence — Built end-to-end to separate real economic value from expiry carry and transaction friction.
-          </p>
-        </div>
+    <section id="team-arceus" className="scroll-mt-16 border-b border-border bg-background">
+      <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
+        <SectionHead
+          index="04"
+          eyebrow="Team ARCEUS · Track 03 Commodity Derivatives"
+          title="Builders of GoldPrism."
+          description="Engineered end-to-end to separate genuine spread value from expiry carry, purity skew, and statutory transaction drag."
+          aside={<span className="gp-tag gp-tag--gold">Hack in Hills &apos;26</span>}
+        />
 
         {/* 3 Team Members Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          
+        <div className="mt-8 grid grid-cols-1 gap-5 md:grid-cols-3">
           {/* Pawan Singh (Lead Builder Card) */}
-          <Card className="border-amber-500/50 bg-gradient-to-b from-amber-500/10 to-card p-6 relative overflow-hidden flex flex-col justify-between shadow-lg shadow-amber-500/5">
-            <div className="absolute top-0 right-0 p-3">
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500 text-black">
-                LEAD DEVELOPER
-              </span>
-            </div>
-
+          <article className="flex flex-col justify-between overflow-hidden rounded-[4px] border border-[var(--gp-gold-500)]/60 bg-card shadow-[var(--gp-hard-shadow)]">
             <div>
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 font-bold text-xl mb-4 font-mono">
-                PS
+              <div className="flex items-center justify-between gap-2 border-b border-border bg-[var(--gp-gold-50)]/70 px-4 py-2.5 dark:bg-[var(--gp-gold-900)]/30">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] gp-gold-text">
+                  01 · Lead Developer
+                </span>
+                <span className="gp-tag gp-tag--gold">Full-Stack &amp; Quant</span>
               </div>
 
-              <h3 className="text-xl font-bold text-foreground">Pawan Singh</h3>
-              <div className="text-xs font-semibold text-amber-300 font-mono mt-0.5 mb-2">
-                Data &amp; Backend Engineering
-              </div>
-              <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Full-Stack Developer &amp; AI Builder
-              </div>
+              <div className="p-5">
+                <div className="mb-4 flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border border-[var(--gp-gold-500)]/50 bg-[var(--gp-gold-50)] font-mono text-sm font-semibold gp-gold-text dark:bg-[var(--gp-gold-900)]/40">
+                    PS
+                  </div>
+                  <div>
+                    <h3 className="gp-serif text-lg font-medium text-foreground">Pawan Singh</h3>
+                    <p className="font-mono text-[11px] gp-gold-text">
+                      Data &amp; Backend Engineering
+                    </p>
+                  </div>
+                </div>
 
-              <div className="p-3 rounded-xl bg-black/40 border border-border/60 text-xs space-y-1.5 font-mono mb-4">
-                <div className="flex items-center gap-1.5 text-foreground">
-                  <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
-                  <span>B.Tech CSE (2024–2028)</span>
-                </div>
-                <div className="text-muted-foreground pl-5">
-                  Delhi Technical Campus (DTC), GGSIPU
-                </div>
-                <div className="text-amber-300 font-semibold pl-5">
-                  CGPA: 9+
-                </div>
-              </div>
+                <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                  Full-Stack Developer &amp; AI Builder
+                </p>
 
-              <div className="text-xs space-y-1.5 text-muted-foreground mb-4">
-                <div className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
-                  Key GoldPrism Responsibilities:
+                <div className="mb-4 space-y-1.5 rounded-[4px] border border-border bg-[var(--gp-vellum)]/60 p-3 font-mono text-[11px]">
+                  <div className="flex items-center gap-1.5 text-foreground">
+                    <GraduationCap className="h-3.5 w-3.5 shrink-0 gp-gold-text" />
+                    <span>B.Tech CSE (2024–2028)</span>
+                  </div>
+                  <div className="pl-5 text-muted-foreground">
+                    Delhi Technical Campus (DTC), GGSIPU
+                  </div>
+                  <div className="pl-5 font-semibold gp-gold-text">
+                    CGPA: 9+
+                  </div>
                 </div>
-                <div>• Bhavcopy fetcher, schema validators &amp; trust flags</div>
-                <div>• DuckDB / Parquet store &amp; contract calendar</div>
-                <div>• Full-stack Next.js research terminal transformation</div>
-                <div>• Zero-lookahead backtest pipeline &amp; test suite</div>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground">
+                  <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground">
+                    Key GoldPrism Responsibilities
+                  </div>
+                  <div>• Bhavcopy fetcher, schema validators &amp; trust flags</div>
+                  <div>• DuckDB / Parquet store &amp; contract calendar</div>
+                  <div>• Full-stack Next.js research terminal transformation</div>
+                  <div>• Zero-lookahead backtest pipeline &amp; test suite</div>
+                </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-2 pt-4 border-t border-border/40">
-              <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs font-mono w-full">
+            <div className="flex items-center gap-2 border-t border-border bg-[var(--gp-vellum)]/40 px-5 py-3">
+              <Button asChild size="sm" variant="outline" className="w-full gap-1.5 rounded-[4px] font-mono text-xs">
                 <a href="https://github.com/pawan00207" target="_blank" rel="noreferrer">
-                  <Github className="w-3.5 h-3.5" /> GitHub
+                  <Github className="h-3.5 w-3.5" /> GitHub
                 </a>
               </Button>
-              <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs font-mono w-full">
+              <Button asChild size="sm" variant="outline" className="w-full gap-1.5 rounded-[4px] font-mono text-xs">
                 <a href="https://linkedin.com/in/pawan-singh-555423322/" target="_blank" rel="noreferrer">
-                  <Linkedin className="w-3.5 h-3.5 text-blue-400" /> LinkedIn
+                  <Linkedin className="h-3.5 w-3.5 gp-gold-text" /> LinkedIn
                 </a>
               </Button>
             </div>
-          </Card>
+          </article>
 
           {/* Manik Khurana */}
-          <Card className="border-border/80 bg-card/60 p-6 flex flex-col justify-between">
+          <article className="flex flex-col justify-between overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
             <div>
-              <div className="w-14 h-14 rounded-2xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400 font-bold text-xl mb-4 font-mono">
-                MK
+              <div className="flex items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  02 · Quant Strategy
+                </span>
+                <span className="gp-tag gp-tag--neutral">Analytics Lead</span>
               </div>
 
-              <h3 className="text-xl font-bold text-foreground">Manik Khurana</h3>
-              <div className="text-xs font-semibold text-blue-300 font-mono mt-0.5 mb-2">
-                Product Lead · Quant Analytics
-              </div>
-              <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Quantitative Strategy &amp; Model Architecture
-              </div>
-
-              <div className="text-xs space-y-1.5 text-muted-foreground mb-4">
-                <div className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
-                  Key GoldPrism Responsibilities:
+              <div className="p-5">
+                <div className="mb-4 flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border border-border bg-[var(--gp-vellum)] font-mono text-sm font-semibold text-foreground">
+                    MK
+                  </div>
+                  <div>
+                    <h3 className="gp-serif text-lg font-medium text-foreground">Manik Khurana</h3>
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                      Product Lead · Quant Analytics
+                    </p>
+                  </div>
                 </div>
-                <div>• Spread decomposition &amp; structural signal model</div>
-                <div>• Walk-forward backtest &amp; transaction cost modeling</div>
-                <div>• Block bootstrap, MDE &amp; statistical significance</div>
-                <div>• 4-verdict decision logic (TRADABLE/WATCH/NO EDGE/BLOCKED)</div>
+
+                <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                  Quantitative Strategy &amp; Model Architecture
+                </p>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground">
+                  <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground">
+                    Key GoldPrism Responsibilities
+                  </div>
+                  <div>• Spread decomposition &amp; structural signal model</div>
+                  <div>• Walk-forward backtest &amp; transaction cost modeling</div>
+                  <div>• Block bootstrap, MDE &amp; statistical significance</div>
+                  <div>• 4-verdict decision logic (TRADABLE/WATCH/NO EDGE/BLOCKED)</div>
+                </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border/40 text-xs text-muted-foreground font-mono">
+            <div className="border-t border-border bg-[var(--gp-vellum)]/40 px-5 py-3 font-mono text-[11px] text-muted-foreground">
               Team ARCEUS · Track 03 Lead
             </div>
-          </Card>
+          </article>
 
           {/* Vikas Shukla */}
-          <Card className="border-border/80 bg-card/60 p-6 flex flex-col justify-between">
+          <article className="flex flex-col justify-between overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
             <div>
-              <div className="w-14 h-14 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 font-bold text-xl mb-4 font-mono">
-                VS
+              <div className="flex items-center justify-between gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+                <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  03 · Terminal UX
+                </span>
+                <span className="gp-tag gp-tag--neutral">Design &amp; Demo</span>
               </div>
 
-              <h3 className="text-xl font-bold text-foreground">Vikas Shukla</h3>
-              <div className="text-xs font-semibold text-amber-300 font-mono mt-0.5 mb-2">
-                Frontend, UX &amp; Demo
-              </div>
-              <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
-                Interactive Design &amp; Presentation Delivery
-              </div>
-
-              <div className="text-xs space-y-1.5 text-muted-foreground mb-4">
-                <div className="font-semibold text-foreground text-[11px] uppercase tracking-wider mb-1">
-                  Key GoldPrism Responsibilities:
+              <div className="p-5">
+                <div className="mb-4 flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[4px] border border-border bg-[var(--gp-vellum)] font-mono text-sm font-semibold text-foreground">
+                    VS
+                  </div>
+                  <div>
+                    <h3 className="gp-serif text-lg font-medium text-foreground">Vikas Shukla</h3>
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                      Frontend, UX &amp; Demo
+                    </p>
+                  </div>
                 </div>
-                <div>• Streamlit dashboard &amp; interactive terminal wireframes</div>
-                <div>• X-Ray waterfall visual hierarchy</div>
-                <div>• Best-vehicle exposure ranking UX &amp; alerts</div>
-                <div>• 5-minute judge demo script &amp; pitch delivery</div>
+
+                <p className="mb-4 text-xs leading-relaxed text-muted-foreground">
+                  Interactive Design &amp; Presentation Delivery
+                </p>
+
+                <div className="space-y-1.5 text-xs text-muted-foreground">
+                  <div className="mb-1.5 font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-foreground">
+                    Key GoldPrism Responsibilities
+                  </div>
+                  <div>• Streamlit dashboard &amp; interactive terminal wireframes</div>
+                  <div>• X-Ray waterfall visual hierarchy</div>
+                  <div>• Best-vehicle exposure ranking UX &amp; alerts</div>
+                  <div>• 5-minute judge demo script &amp; pitch delivery</div>
+                </div>
               </div>
             </div>
 
-            <div className="pt-4 border-t border-border/40 text-xs text-muted-foreground font-mono">
+            <div className="border-t border-border bg-[var(--gp-vellum)]/40 px-5 py-3 font-mono text-[11px] text-muted-foreground">
               Team ARCEUS · UX Architecture
             </div>
-          </Card>
+          </article>
         </div>
 
         {/* Pawan Singh — Other Notable Projects Compact Grid */}
-        <Card className="p-6 border-border/60 bg-muted/20">
-          <div className="flex items-center gap-2 mb-4">
-            <Code2 className="w-4 h-4 text-amber-400" />
-            <h3 className="text-sm font-bold uppercase tracking-wider text-foreground">
+        <div className="mt-8 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
+          <div className="flex items-center gap-2 border-b border-border bg-[var(--gp-vellum)]/60 px-4 py-2.5">
+            <Code2 className="h-4 w-4 gp-gold-text" />
+            <h3 className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-foreground">
               Pawan Singh — Other Portfolio Projects
             </h3>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-            <div className="p-3.5 rounded-xl bg-card border border-border/60">
-              <div className="font-bold text-foreground mb-1">MediVerse.AI</div>
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <div className="grid grid-cols-1 gap-px bg-border text-xs sm:grid-cols-2 lg:grid-cols-4">
+            <div className="bg-card p-4">
+              <div className="font-medium text-foreground">MediVerse.AI</div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                 AI-driven healthcare assistant providing automated patient triage and clinical data intelligence.
               </p>
             </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border/60">
-              <div className="font-bold text-foreground mb-1">Swasth-Saathi</div>
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
+            <div className="bg-card p-4">
+              <div className="font-medium text-foreground">Swasth-Saathi</div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                 Bilingual health empowerment platform delivering preventative care insights for underserved communities.
               </p>
             </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border/60">
-              <div className="font-bold text-foreground mb-1">TrafficGuard Pro</div>
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
+            <div className="bg-card p-4">
+              <div className="font-medium text-foreground">TrafficGuard Pro</div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                 Computer-vision system for real-time intersection traffic density estimation and emergency routing.
               </p>
             </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border/60">
-              <div className="font-bold text-foreground mb-1">ResQMap</div>
-              <p className="text-muted-foreground text-[11px] leading-relaxed">
+            <div className="bg-card p-4">
+              <div className="font-medium text-foreground">ResQMap</div>
+              <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
                 Disaster relief mapping tool coordinating resource allocation during urban flood crises.
               </p>
             </div>
           </div>
-        </Card>
-
+        </div>
       </div>
     </section>
   )
 }
+
