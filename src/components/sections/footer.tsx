@@ -3,7 +3,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 import { Github } from 'lucide-react'
-import { BrandMark } from '@/components/goldprism/brand'
+import { Mascot } from '@/components/goldprism/Mascot'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { cn } from '@/lib/utils'
 
@@ -66,7 +66,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-12">
           <div className="md:col-span-4">
             <Link href="/" className="flex items-center gap-3" aria-label="GoldPrism home">
-              <BrandMark className="h-9 w-9" />
+              <Mascot className="h-11 w-11 object-contain" alt="GoldPrism" />
               <span
                 className="font-serif text-2xl font-medium tracking-[-0.01em] text-foreground"
                 style={{ fontVariationSettings: '"SOFT" 50, "opsz" 40' }}

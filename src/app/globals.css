@@ -387,6 +387,35 @@
   .gp-gold-text {
     color: var(--gp-gold-ink);
   }
+  /* Metallic gold wordmark — the one place gold sits on type (Prism, hero accents).
+     Bright slab gradient + slow hover sheen. Disabled under reduced motion. */
+  .gp-foil-text {
+    background-image: linear-gradient(
+      100deg,
+      #8a5f0b 0%,
+      #c99a2e 22%,
+      #f6d983 38%,
+      #fff6c9 46%,
+      #f6d983 52%,
+      #d9a62e 62%,
+      #9a6b10 82%,
+      #c99318 100%
+    );
+    background-size: 220% 100%;
+    background-position: 0% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transition: background-position 900ms var(--gp-ease-foil);
+  }
+  .gp-foil-text:hover {
+    background-position: 100% 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .gp-foil-text {
+      transition: none;
+    }
+  }
   .gp-tradable-text {
     color: var(--gp-tradable-ink);
   }

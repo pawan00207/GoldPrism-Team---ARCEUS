@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
-import { BrandMark } from '@/components/goldprism/brand'
+import { Mascot } from '@/components/goldprism/Mascot'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { inr } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
@@ -164,7 +164,7 @@ export function Navbar() {
             className="group flex shrink-0 items-center gap-2.5 whitespace-nowrap"
             aria-label="GoldPrism home"
           >
-            <BrandMark className="h-7 w-7 shrink-0 transition-transform duration-500 group-hover:scale-[1.06]" tone={isDark ? 'dark' : 'paper'} />
+            <Mascot className="h-9 w-9 shrink-0 object-contain transition-transform duration-500 group-hover:scale-110" tone={isDark ? 'dark' : 'paper'} />
             <span
               className="font-serif text-[1.35rem] font-medium leading-none tracking-[-0.01em] text-foreground"
               style={{ fontVariationSettings: '"SOFT" 50, "opsz" 30' }}
