@@ -34,61 +34,48 @@ const SYMBOLS: SupportedContractCode[] = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOL
 
 interface ReplayCurvePoint {
   date: string
-  grossEquity: number
-  netEquity: number
+  xauUsd: number
+  comexGcUsd: number
 }
 
 export function Dashboard() {
   const {
     feed,
+    feedRequestError,
+    marketHistory,
+    marketHistoryLoading,
+    marketHistoryError,
     loading,
     tickCount,
-    equityInr,
     cashInr,
-    marginBlockedInr,
     unrealizedPnlInr,
-    realizedPnlInr,
     positions,
     livePricesMap,
   } = useLiveFeed()
 
-  const [curve, setCurve] = React.useState<ReplayCurvePoint[]>([])
-
-  React.useEffect(() => {
-    let active = true
-    void (async () => {
-      try {
-        const res = await fetch('/api/goldprism/replay?pair=GOLDM_CALENDAR&include_summary=1', {
-          cache: 'no-store',
+  const curve = React.useMemo<ReplayCurvePoint[]>(
+    () =>
+      marketHistory
+        .flatMap((record) => {
+          const xauUsd = record.payload.benchmarks.xauUsd
+          const comexGcUsd = record.payload.benchmarks.comexGcUsd
+          if (xauUsd === null || comexGcUsd === null) return []
+          return [
+            {
+              date: new Date(record.bucketAt).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                timeZone: 'UTC',
+              }),
+              xauUsd,
+              comexGcUsd,
+            },
+          ]
         })
-        if (!res.ok) return
-        const data = await res.json()
-        const rawCurve = data?.summary?.equityCurve
-        if (active && Array.isArray(rawCurve)) {
-          setCurve(
-            rawCurve
-              .slice(-45)
-              .map(
-                (pt: {
-                  date: string
-                  cumulativeGrossPnlInr?: number
-                  cumulativeNetPnlInr?: number
-                }) => ({
-                  date: pt.date,
-                  grossEquity: Math.round(1_000_000 + (pt.cumulativeGrossPnlInr ?? 0)),
-                  netEquity: Math.round(1_000_000 + (pt.cumulativeNetPnlInr ?? 0)),
-                })
-              )
-          )
-        }
-      } catch {
-        // Leave empty if replay unreachable
-      }
-    })()
-    return () => {
-      active = false
-    }
-  }, [])
+        .reverse()
+        .slice(-45),
+    [marketHistory]
+  )
 
   const contracts = feed?.contracts ?? null
   const isLive = feed?.status === 'LIVE_PARITY' && contracts !== null
@@ -118,14 +105,14 @@ export function Dashboard() {
         >
           <div>
             <Badge variant="outline" className="mb-2 gap-1">
-              <Gauge className="w-3 h-3" /> Live MCX Workspace · Sync #{tickCount}
+              <Gauge className="w-3 h-3" /> Global-Parity Workspace · Sync #{tickCount}
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Your GoldPrism portfolio &amp; live parity desk
             </h2>
             <p className="text-muted-foreground mt-2 max-w-xl">
-              Real-time MCX Gold parity pricing (GOLDM, GOLDTEN, GOLDGUINEA, GOLDPETAL),
-              10g fine-gold comparison, and live paper MTM positions.
+              Public gold and FX feeds inform indicative MCX-sized parity estimates;
+              they are not exchange quotes. Paper-trade marks refresh with the feed.
             </p>
           </div>
           <Link href="/dashboard" className="gp-button gp-button--primary whitespace-nowrap">
@@ -141,7 +128,7 @@ export function Dashboard() {
                 const q = contracts[sym]
                 return (
                   <Card key={sym} className="p-3">
-                    <div className="text-xs text-muted-foreground">{sym}</div>
+                    <div className="text-xs text-muted-foreground">{sym} parity estimate</div>
                     <div className="text-base font-semibold tabular-nums mt-0.5">
                       {inr(q.quotedPrice, 0)}
                     </div>
@@ -156,7 +143,9 @@ export function Dashboard() {
                 <div className="text-base font-semibold tabular-nums mt-0.5">
                   {feed?.benchmarks.xauUsd ? `$${feed.benchmarks.xauUsd.toFixed(2)}` : '—'}
                 </div>
-                <div className="text-[11px] text-muted-foreground mt-0.5">LBMA / Spot proxy</div>
+                <div className="text-[11px] text-muted-foreground mt-0.5">
+                  {feed?.upstream.find((quote) => quote.id === 'XAU_USD')?.source ?? 'Public spot feed'}
+                </div>
               </Card>
               <Card className="p-3">
                 <div className="text-xs text-muted-foreground">USD/INR FX</div>
@@ -172,35 +161,32 @@ export function Dashboard() {
             <Card className="col-span-full p-4 font-mono text-xs text-muted-foreground">
               {loading
                 ? 'Connecting to live Global-to-MCX parity feed…'
-                : `Live feed offline (${feed?.error ?? 'upstream unavailable'}).`}
+                : `Live feed unavailable (${feedRequestError ?? feed?.error ?? 'upstream unavailable'}).`}
             </Card>
           )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-6">
-          {/* Historical Replay Benchmark Curve */}
+          {/* Archived Live Market Benchmarks */}
           <Card className="lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <div>
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Account Equity (Live Paper Account)
+                  XAU/USD &amp; COMEX Gold · PostgreSQL archive
                 </CardTitle>
-                <div className="text-3xl font-bold tabular-nums mt-1">{inr(equityInr, 0)}</div>
+                <div className="mt-1 text-xs text-muted-foreground">
+                  One saved parity-feed snapshot per UTC minute
+                </div>
               </div>
               <div className="text-right">
-                <div className="text-xs text-muted-foreground">Live MTM + Realized</div>
-                <div
-                  className={cn(
-                    'text-lg font-semibold tabular-nums',
-                    unrealizedPnlInr + realizedPnlInr >= 0 ? 'gp-pos' : 'gp-neg'
-                  )}
-                >
-                  {unrealizedPnlInr + realizedPnlInr >= 0 ? '+' : ''}
-                  {inr(unrealizedPnlInr + realizedPnlInr, 2)}
-                </div>
                 <div className="text-xs text-muted-foreground tabular-nums">
-                  Margin blocked: {inr(marginBlockedInr, 0)}
+                  Archived snapshots: {marketHistory.length}
                 </div>
+                {marketHistoryError ? (
+                  <div className="mt-1 max-w-56 text-xs text-destructive">
+                    PostgreSQL unavailable: {marketHistoryError}
+                  </div>
+                ) : null}
               </div>
             </CardHeader>
             <CardContent>
@@ -220,8 +206,8 @@ export function Dashboard() {
                       fontSize={11}
                       tickLine={false}
                       axisLine={false}
-                      domain={['dataMin - 1000', 'dataMax + 1000']}
-                      tickFormatter={(v) => `₹${(v / 1000).toFixed(0)}k`}
+                      domain={['auto', 'auto']}
+                      tickFormatter={(v) => `$${Number(v).toFixed(0)}`}
                     />
                     <Tooltip
                       contentStyle={{
@@ -230,23 +216,23 @@ export function Dashboard() {
                         borderRadius: 2,
                         fontSize: 12,
                       }}
-                      formatter={(v: number) => inr(v, 0)}
+                      formatter={(v: number) => `$${v.toFixed(2)}/oz`}
                     />
                     <Area
                       type="monotone"
-                      dataKey="grossEquity"
-                      stroke="var(--muted-foreground)"
+                      dataKey="xauUsd"
+                      stroke="var(--gp-gold-ink)"
                       strokeWidth={1.5}
                       fill="var(--gp-slag-300)"
                       fillOpacity={0.18}
-                      name="Gross Replay Equity"
+                      name="XAU/USD Spot"
                     />
                     <Line
                       type="monotone"
-                      dataKey="netEquity"
+                      dataKey="comexGcUsd"
                       stroke="var(--foreground)"
                       strokeWidth={2}
-                      name="Net After-Cost Equity"
+                      name="COMEX GC Futures"
                       dot={false}
                     />
                     <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
@@ -254,7 +240,11 @@ export function Dashboard() {
                 </ResponsiveContainer>
               ) : (
                 <div className="flex h-[240px] items-center justify-center font-mono text-xs text-muted-foreground">
-                  Loading audited 18M MCX Bhavcopy replay equity series…
+                  {marketHistoryLoading
+                    ? 'Loading archived market data from PostgreSQL…'
+                    : marketHistoryError
+                      ? 'PostgreSQL market history is unavailable. Configure DATABASE_URL and apply the migration.'
+                      : 'No archived snapshots yet. Keep the live feed open to start collecting minute snapshots.'}
                 </div>
               )}
             </CardContent>

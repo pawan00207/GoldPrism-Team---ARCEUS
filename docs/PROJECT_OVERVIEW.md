@@ -26,9 +26,14 @@ profit-guarantee system.
   and a seeded fault demonstration.
 - Contract purity normalization and exposure-based vehicle ranking.
 - Research/backtest visualizations and report/export UI.
-- Retained workspace tools: market dashboard, research agent, factor
-  exploration, paper trading, trade-journal analysis, multi-agent presets, and
-  strategy builder.
+- A deterministic historical research pipeline and fixed GoldPrism replay
+  endpoint for supported MCX spread pairs.
+- A trade-journal endpoint that validates CSV-derived rows and reports only
+  measurable P&L and holding-period statistics.
+- Reference-only factor formula catalog; displayed performance statistics are
+  not locally validated or presented as live results.
+- Paper-trading persistence uses Firestore for authenticated users when
+  configured; unauthenticated guest portfolios remain browser-local.
 
 ### Research and calculation code
 
@@ -43,6 +48,16 @@ profit-guarantee system.
 
 ### API and current operating limits
 
+- The `/api/goldprism/live-feed` route archives at most one successful global
+  market-parity snapshot per UTC minute in PostgreSQL. The
+  `/api/goldprism/live-history` route reads that archive. These routes require
+  the additive Prisma migration and a server-side `DATABASE_URL`; an unavailable
+  database is reported in the archive status and does not fabricate prices.
+- Authenticated paper-trading workspaces continue to use Firebase Firestore
+  listeners for realtime trade and portfolio synchronization.
+- The main dashboard charts persisted XAU/USD and COMEX benchmark snapshots
+  from PostgreSQL; its contract-sized values are indicative parity estimates,
+  not direct MCX exchange quotes.
 - `POST /api/agent`: quantitative assistant, with deterministic responses when
   no Z.AI key is configured.
 - `POST /api/backtest`: strategy report endpoint, with a deterministic demo
@@ -52,9 +67,8 @@ profit-guarantee system.
 - The standalone Python pipeline is not currently called by these web routes.
   The web experience includes demo/sample values; it is not connected to a
   live MCX feed, broker, or order-routing system.
-- A Prisma schema/client utility exists, but the reviewed application flows
-  do not yet persist user accounts, uploads, or reports to a production
-  database.
+- PostgreSQL stores shared live market snapshot history, not user accounts,
+  uploads, reports, or broker order routing.
 
 ## Additional work already present
 

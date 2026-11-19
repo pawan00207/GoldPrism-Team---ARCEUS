@@ -1,6 +1,6 @@
 // ============================================================
-// VibeTrading Alpha Zoo — 456 alpha factors (sample of 60 shown)
-// Inspired by Qlib158, WorldQuant alpha101, GTJA191, academic
+// Reference factor formulas. Performance fields are legacy example metadata,
+// not validated against the GoldPrism dataset.
 // ============================================================
 
 export interface Alpha {
@@ -101,7 +101,7 @@ export const ALPHAS: Alpha[] = [
   { id: 'gp004', name: 'MCX Net Edge Hurdle', family: 'GoldPrism-Commodity', category: 'Commodity Spread', formula: 'Residual_gross - Paired_roundtrip_costs', description: 'Net actionable trading edge strictly exceeding broker commission, CTT, GST, and slippage.', ic: 0.091, ir: 1.82, turnover: 0.25, sharpe: 2.31, maxDrawdown: -3.2, status: 'live', tags: ['net-edge', 'hurdle', 'cost-model'] },
 ]
 
-// Helper: family summary stats
+// Helper: catalog counts only; legacy performance fields are not evidence.
 export function familyStats() {
   const families = ['Qlib158', 'alpha101', 'GTJA191', 'Academic', 'GoldPrism-Commodity'] as const
   return families.map(fam => {
@@ -109,9 +109,6 @@ export function familyStats() {
     return {
       family: fam,
       count: items.length,
-      avgIC: items.reduce((s, a) => s + a.ic, 0) / (items.length || 1),
-      avgIR: items.reduce((s, a) => s + a.ir, 0) / (items.length || 1),
-      live: items.filter(a => a.status === 'live').length,
     }
   })
 }

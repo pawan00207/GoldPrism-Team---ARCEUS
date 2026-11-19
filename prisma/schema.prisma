@@ -30,3 +30,16 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model MarketSnapshot {
+  id        String   @id @default(cuid())
+  bucketAt  DateTime @unique @map("bucket_at") @db.Timestamptz(3)
+  asOf      DateTime @map("as_of") @db.Timestamptz(3)
+  status    String
+  payload   Json     @db.JsonB
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([asOf])
+  @@map("market_snapshots")
+}

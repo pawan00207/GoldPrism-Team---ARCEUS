@@ -945,8 +945,11 @@ export interface PartitionReplayStats {
   noEdgeBars: number;
   blockedBars: number;
   executedTrades: number;
+  wins: number;
   winRatePct: number;
   profitFactor: number | null;
+  positiveNetTradePnlInr: number;
+  negativeNetTradePnlInr: number;
   cumulativeNetPnlInr: number;
   cumulativeGrossPnlInr: number;
   totalCostDragInr: number;
@@ -1120,6 +1123,7 @@ export function computeFullReplaySummary(
     noEdgeBars: acc.noEdgeBars,
     blockedBars: acc.blockedBars,
     executedTrades: acc.executedTrades,
+    wins: acc.wins,
     winRatePct:
       acc.executedTrades > 0 ? Number(((acc.wins / acc.executedTrades) * 100).toFixed(1)) : 0,
     profitFactor:
@@ -1128,6 +1132,8 @@ export function computeFullReplaySummary(
         : acc.grossProfit > 0
           ? Number(acc.grossProfit.toFixed(2))
           : null,
+    positiveNetTradePnlInr: Number(acc.grossProfit.toFixed(2)),
+    negativeNetTradePnlInr: Number(acc.grossLoss.toFixed(2)),
     cumulativeNetPnlInr: Number(acc.cumulativeNetPnlInr.toFixed(2)),
     cumulativeGrossPnlInr: Number(acc.cumulativeGrossPnlInr.toFixed(2)),
     totalCostDragInr: Number(acc.totalCostDragInr.toFixed(2)),

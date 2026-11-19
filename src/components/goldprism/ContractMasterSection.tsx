@@ -271,7 +271,7 @@ export function ContractMasterSection() {
               ) : (
                 <p className="mt-6 border-t border-border pt-4 text-sm text-muted-foreground">
                   {loading
-                    ? 'Connecting to live MCX parity feed…'
+                    ? 'Connecting to public global gold and FX feeds…'
                     : 'Live quote unavailable. Toggle "Manual what-if" above to run a hypothetical calculation.'}
                 </p>
               )}

@@ -16,7 +16,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { SAMPLE_TRADES, SAMPLE_BEHAVIOR_PROFILE } from '@/lib/mock-data'
+import { SAMPLE_TRADES } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 
 interface BiasRow {
@@ -36,7 +36,7 @@ interface AnalysisResult {
     metric: string
     value: string
     benchmark: string
-    status: 'good' | 'warning' | 'bad'
+    status: 'good' | 'warning' | 'bad' | 'neutral'
     description: string
   }>
   biases: BiasRow[]
@@ -75,6 +75,7 @@ const STATUS_STYLES = {
   good: { icon: CheckCircle2, color: 'gp-pos' },
   warning: { icon: AlertTriangle, color: 'gp-warn' },
   bad: { icon: XCircle, color: 'gp-neg' },
+  neutral: { icon: AlertTriangle, color: 'text-muted-foreground' },
 }
 
 const SEVERITY_STYLES = {
@@ -144,12 +145,12 @@ export function ShadowAccount() {
             <Brain className="w-3 h-3" /> Shadow Account
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Reverse-engineer your trading behavior
+            Calculate descriptive trade-journal statistics
           </h2>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Upload your broker trade journal (CSV). The agent profiles your
-            behavior, surfaces behavioral biases, and extracts a rule-based
-            strategy you can backtest.
+            Upload a trade journal CSV to calculate descriptive P&amp;L, win-rate,
+            holding-period, and drawdown statistics. Behavioral bias and trading
+            rules are not inferred from fields the journal does not contain.
           </p>
         </motion.div>
 
@@ -215,7 +216,7 @@ export function ShadowAccount() {
                 ) : (
                   <>
                     <Brain className="w-4 h-4" />
-                    Run Behavioral Analysis
+                    Run Journal Statistics
                   </>
                 )}
               </Button>
@@ -232,7 +233,7 @@ export function ShadowAccount() {
           <div className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Behavior Profile</CardTitle>
+                <CardTitle className="text-base">Journal Statistics</CardTitle>
               </CardHeader>
               <CardContent>
                 {result ? (
@@ -261,27 +262,8 @@ export function ShadowAccount() {
                     </ScrollArea>
                   </motion.div>
                 ) : (
-                  <div className="space-y-2">
-                    <div className="text-xs text-muted-foreground mb-3">Preview using sample data:</div>
-                    {SAMPLE_BEHAVIOR_PROFILE.slice(0, 4).map((m) => {
-                      const s = STATUS_STYLES[m.status]
-                      const Icon = s.icon
-                      return (
-                        <div key={m.metric} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
-                          <Icon className={cn('w-4 h-4 mt-0.5 shrink-0', s.color)} />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{m.metric}</span>
-                              <span className="text-sm font-mono">{m.value}</span>
-                            </div>
-                            <div className="text-xs text-muted-foreground">{m.description}</div>
-                          </div>
-                        </div>
-                      )
-                    })}
-                    <div className="text-xs text-muted-foreground text-center pt-2">
-                      Click <strong>Run Behavioral Analysis</strong> for the full report.
-                    </div>
+                  <div className="py-12 text-center text-sm text-muted-foreground">
+                    Run analysis to calculate statistics from the CSV shown on the left.
                   </div>
                 )}
               </CardContent>
@@ -300,12 +282,17 @@ export function ShadowAccount() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <AlertTriangle className="w-4 h-4 gp-warn" />
-                  Detected Biases
+                  Biases (not inferred)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-80">
                   <div className="space-y-3">
+                    {result.biases.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No bias inferred. The uploaded columns do not include the decision context needed to support a behavioral finding.
+                      </p>
+                    )}
                     {result.biases.map((b) => (
                       <div key={b.name} className="p-3 rounded-[2px] border border-border">
                         <div className="flex items-center justify-between mb-1">
@@ -329,12 +316,17 @@ export function ShadowAccount() {
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center gap-2 text-base">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  Extracted Rules
+                  Rules (not inferred)
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <ScrollArea className="h-80">
                   <div className="space-y-2">
+                    {result.extractedRules.length === 0 && (
+                      <p className="text-sm text-muted-foreground">
+                        No rules extracted. Entry rationale, exit rationale, and risk limits are not present in the required CSV fields.
+                      </p>
+                    )}
                     {result.extractedRules.map((r, i) => (
                       <div key={i} className="flex items-start gap-2 p-2.5 rounded-[2px] bg-muted/30">
                         <Badge variant="secondary" className={cn('text-[10px] capitalize shrink-0', TYPE_COLORS[r.type])}>

@@ -44,7 +44,9 @@ flowchart TB
     GPUI --> Engine[TypeScript research engine<br/>src/lib/goldprism<br/>normalization · integrity gates<br/>costs · waterfall · verdicts]
     Workspace --> Routes[Next.js route handlers<br/>/api/agent<br/>/api/backtest<br/>/api/analyze-trades]
     Routes --> Deterministic[Deterministic TypeScript quant handlers]
-    Routes -. "not used by current app flows" .-> Prisma[Prisma schema and client utility<br/>persistence not wired]
+    Routes --> MarketAPI[Public market parity API<br/>XAU/USD · COMEX · USD/INR]
+    MarketAPI --> Prisma
+    Browser --> Firebase[Firebase Auth + Firestore<br/>realtime authenticated paper trades]
 
     CSV[Bhavcopy CSV / sample data] --> Python[Separate Python research pipeline<br/>research/]
     Python --> Analysis[Validation · contract master<br/>waterfall · walk-forward backtest]
@@ -54,9 +56,13 @@ flowchart TB
 
 **Runtime boundary:** The web UI uses the TypeScript engine. The Python pipeline
 is a separate research workflow and produces files in `results/`; it is not
-currently invoked by the web app. All API routes execute deterministic server-side
-quantitative logic without external LLM dependencies. There is no live MCX feed,
-broker order routing, or connected user-data persistence in the current app.
+currently invoked by the web app. The global gold/FX parity feed refreshes from
+public sources; its contract-sized prices are indicative estimates, not direct
+MCX exchange quotes. Successful parity snapshots can be archived in PostgreSQL
+once `DATABASE_URL` and the Prisma migration are configured. Authenticated paper
+trades sync in real time through Firestore; unsigned guest portfolios remain in
+browser storage. Replay and backtests use the versioned historical Bhavcopy
+dataset. There is no broker order routing.
 
 For the problem statement, delivered features, limitations, and proposed next
 steps, see [Project Overview](docs/PROJECT_OVERVIEW.md). For repository size
@@ -131,14 +137,14 @@ $$|\text{Reconciliation Sum} - \text{Raw Spread}| < 0.01\text{ ₹/g}$$
 
 ## 🛡️ Preserved Base Features
 
-As a robust quant workspace, the terminal preserves existing foundation capabilities alongside GoldPrism:
-- **Global Markets Dashboard**: Real-time ticker tape, sector heatmap, portfolio holdings, risk gauges.
-- **AI Research Agent**: Server-side ReAct-style agent grounded in the GoldPrism system prompt with deterministic quant fallback.
-- **Alpha Zoo**: 456 factors (Qlib158, alpha101, GTJA191, Academic) + MCX Gold spread factors (`GP_PURITY_SPREAD`, `GP_EXPIRY_CARRY`, `GP_GROSS_RESIDUAL`, `GP_NET_EDGE`).
-- **Paper Trading Arena**: Virtual capital simulation with market & limit orders.
-- **Shadow Account**: Trade journal CSV analyzer with behavioral bias extraction.
-- **Multi-Agent Swarm**: 5 presets + preset 6: `GoldPrism Quant Research Desk`.
-- **Strategy Builder & Backtester**: 15 strategy blocks + walk-forward validation.
+The retained workspace tools now expose their actual data boundaries:
+- **GoldPrism Dashboard**: Uses the indicative global-to-MCX parity feed and archived snapshots; it is not a direct licensed MCX quote.
+- **Research Agent**: Deterministic answers grounded in the versioned historical Bhavcopy tools; it is not a generative AI service.
+- **Alpha Zoo**: Formula reference catalog only. Its factor performance statistics are not validated against the GoldPrism dataset.
+- **Paper Trading**: Simulated trades; authenticated users sync through Firestore when configured, while guest trades remain in browser storage.
+- **Shadow Account**: Validates CSV rows and calculates descriptive trade-journal statistics. Behavioral biases and trading rules are not inferred.
+- **Research Pipeline**: A deterministic seven-stage GoldPrism historical analysis, not a generative multi-agent debate.
+- **Historical Replay**: Runs the supported GoldPrism edge-gated spread strategy. Generic visual indicator blocks and broker execution are not modeled.
 
 *(Note: Telegram bot alert integration was evaluated as a stretch goal and deliberately omitted to preserve local terminal execution privacy).*
 

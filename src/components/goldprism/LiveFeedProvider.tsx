@@ -15,7 +15,7 @@ import {
   resetCloudWorkspaceTrades,
 } from '@/lib/firebase/client'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
-import type { LiveFeedResponse } from '@/lib/goldprism/live-feed'
+import type { LiveFeedHistoryRecord, LiveFeedResponse } from '@/lib/goldprism/live-feed'
 import {
   ClosedPaperTrade,
   evaluateTradePlan,
@@ -28,6 +28,7 @@ import { calculateTransactionCosts, DEFAULT_COST_CONFIG } from '@/lib/goldprism/
 
 const STORAGE_KEY = 'goldprism_one_click_portfolio_v1'
 const POLL_INTERVAL_MS = 10_000
+const HISTORY_POLL_INTERVAL_MS = 60_000
 
 interface StoredPortfolio {
   cashInr: number
@@ -41,8 +42,44 @@ const DEFAULT_PORTFOLIO: StoredPortfolio = {
   closedTrades: [],
 }
 
+function isLiveFeedHistoryRecord(value: unknown): value is LiveFeedHistoryRecord {
+  if (typeof value !== 'object' || value === null) return false
+  const record = value as Record<string, unknown>
+  if (
+    typeof record.bucketAt !== 'string' ||
+    typeof record.asOf !== 'string' ||
+    record.status !== 'LIVE_PARITY' ||
+    typeof record.payload !== 'object' ||
+    record.payload === null
+  ) {
+    return false
+  }
+
+  const payload = record.payload as Record<string, unknown>
+  if (
+    payload.status !== 'LIVE_PARITY' ||
+    typeof payload.benchmarks !== 'object' ||
+    payload.benchmarks === null ||
+    typeof payload.contracts !== 'object' ||
+    payload.contracts === null
+  ) {
+    return false
+  }
+
+  const benchmarks = payload.benchmarks as Record<string, unknown>
+  return (
+    (typeof benchmarks.xauUsd === 'number' || benchmarks.xauUsd === null) &&
+    (typeof benchmarks.comexGcUsd === 'number' || benchmarks.comexGcUsd === null)
+  )
+}
+
 export interface LiveFeedContextValue {
   feed: LiveFeedResponse | null
+  feedRequestError: string | null
+  marketHistory: LiveFeedHistoryRecord[]
+  marketHistoryLoading: boolean
+  marketHistoryError: string | null
+  refreshMarketHistory: () => Promise<void>
   loading: boolean
   refreshing: boolean
   autoRefresh: boolean
@@ -81,6 +118,10 @@ const LiveFeedContext = React.createContext<LiveFeedContextValue | null>(null)
 
 export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
   const [feed, setFeed] = React.useState<LiveFeedResponse | null>(null)
+  const [feedRequestError, setFeedRequestError] = React.useState<string | null>(null)
+  const [marketHistory, setMarketHistory] = React.useState<LiveFeedHistoryRecord[]>([])
+  const [marketHistoryLoading, setMarketHistoryLoading] = React.useState<boolean>(true)
+  const [marketHistoryError, setMarketHistoryError] = React.useState<string | null>(null)
   const [loading, setLoading] = React.useState<boolean>(true)
   const [refreshing, setRefreshing] = React.useState<boolean>(false)
   const [autoRefresh, setAutoRefresh] = React.useState<boolean>(true)
@@ -292,19 +333,58 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = (await res.json()) as LiveFeedResponse
       setFeed(data)
+      setFeedRequestError(null)
       setTickCount((c) => c + 1)
       setLastUpdatedAtMs(Date.now())
-    } catch {
-      // Keep prior feed if transient network hiccup
+    } catch (error) {
+      setFeedRequestError(
+        error instanceof Error ? error.message : 'Live market feed request failed'
+      )
     } finally {
       setLoading(false)
       setRefreshing(false)
     }
   }, [])
 
+  const refreshMarketHistory = React.useCallback(async () => {
+    try {
+      const res = await fetch('/api/goldprism/live-history?limit=120', { cache: 'no-store' })
+      const data = (await res.json()) as {
+        records?: unknown
+        error?: string
+      }
+      if (!res.ok) {
+        throw new Error(data.error || `Market history request failed (HTTP ${res.status})`)
+      }
+      if (!Array.isArray(data.records)) {
+        throw new Error('Market history API returned an invalid response')
+      }
+      const records = data.records.filter(isLiveFeedHistoryRecord)
+      if (records.length !== data.records.length) {
+        throw new Error('Market history API returned an invalid snapshot')
+      }
+      setMarketHistory(records)
+      setMarketHistoryError(null)
+    } catch (error) {
+      setMarketHistoryError(
+        error instanceof Error ? error.message : 'Failed to load PostgreSQL market history'
+      )
+    } finally {
+      setMarketHistoryLoading(false)
+    }
+  }, [])
+
   React.useEffect(() => {
     refreshFeed(false)
   }, [refreshFeed])
+
+  React.useEffect(() => {
+    void refreshMarketHistory()
+    const timer = window.setInterval(() => {
+      void refreshMarketHistory()
+    }, HISTORY_POLL_INTERVAL_MS)
+    return () => window.clearInterval(timer)
+  }, [refreshMarketHistory])
 
   React.useEffect(() => {
     if (!autoRefresh) return
@@ -502,6 +582,11 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
 
   const value: LiveFeedContextValue = {
     feed,
+    feedRequestError,
+    marketHistory,
+    marketHistoryLoading,
+    marketHistoryError,
+    refreshMarketHistory,
     loading,
     refreshing,
     autoRefresh,

@@ -29,7 +29,7 @@ export function Agent() {
     {
       role: 'assistant',
       content:
-        "Hi! I'm **GoldPrism Agent**, your AI research assistant for MCX gold derivatives. Ask me about spread decomposition, X-Ray waterfall analysis, best-vehicle selection, data trust flags, or general market strategy. Try one of the prompts below to get started.",
+        "Hi! I'm **GoldPrism Research Agent**, a deterministic assistant grounded in GoldPrism's historical MCX Bhavcopy tools. Ask about spread decomposition, contract specs, vehicle ranking, liquidity, data-quality checks, or modeled costs. I don't provide generative predictions or live MCX quotes.",
       ts: Date.now(),
     },
   ])
@@ -103,7 +103,7 @@ export function Agent() {
         >
           <div>
             <Badge variant="outline" className="mb-2 gap-1 border-[color-mix(in_srgb,var(--gp-watch-ink)_40%,transparent)] gp-warn">
-              <Bot className="w-3 h-3" /> GoldPrism AI Agent
+              <Bot className="w-3 h-3" /> GoldPrism Research Agent
             </Badge>
             <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
               Chat with <span className="gp-gold-text">GoldPrism</span> Agent

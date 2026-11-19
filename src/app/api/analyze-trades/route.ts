@@ -1,111 +1,136 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-export const runtime = "nodejs";
-export const maxDuration = 60;
+export const runtime = 'nodejs'
+
+const dateSchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'date must use YYYY-MM-DD')
+  .refine((value) => {
+    const date = new Date(`${value}T00:00:00.000Z`)
+    return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value
+  }, 'date must be a valid calendar date')
+
+const tradeSchema = z.object({
+  date: dateSchema,
+  symbol: z.string().trim().min(1).max(32),
+  side: z.string().trim().toUpperCase().pipe(z.enum(['BUY', 'SELL'])),
+  qty: z.coerce.number().finite().positive(),
+  price: z.coerce.number().finite().positive(),
+  pnl: z.coerce.number().finite(),
+  holdingDays: z.coerce.number().finite().min(0).optional().default(0),
+})
+
+const requestSchema = z.object({
+  trades: z.array(tradeSchema).min(1).max(1000),
+})
+
+function formatCurrency(value: number): string {
+  return `₹${value.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`
+}
 
 export async function POST(req: NextRequest) {
+  let raw: unknown
   try {
-    const { trades } = await req.json();
-
-    if (!Array.isArray(trades) || trades.length === 0) {
-      return NextResponse.json(
-        { error: "trades array is required" },
-        { status: 400 }
-      );
-    }
-
-    const totalTrades = trades.length;
-    const wins = trades.filter((t: any) => (t.pnl || 0) > 0);
-    const losses = trades.filter((t: any) => (t.pnl || 0) < 0);
-    const winRate = totalTrades > 0 ? (wins.length / totalTrades) * 100 : 50;
-    const avgHolding =
-      trades.reduce((acc: number, t: any) => acc + (t.holdingDays || 0), 0) /
-      (totalTrades || 1);
-    const totalPnl = trades.reduce((acc: number, t: any) => acc + (t.pnl || 0), 0);
-    const isGoldTrading = trades.some((t: any) =>
-      ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'].includes(t.symbol)
-    );
-
-    return NextResponse.json({
-      summary: `Behavioral trade journal audit across ${totalTrades} executed orders (${wins.length} wins, ${losses.length} losses). Net realized P&L: ₹${totalPnl.toFixed(2)}. ${isGoldTrading ? 'Demonstrates high commodity spread awareness with disciplined calendar positioning.' : 'Demonstrates disciplined win realization with manageable drawdown risk.'}`,
-      metrics: [
-        {
-          metric: "Win Rate",
-          value: `${winRate.toFixed(1)}%`,
-          benchmark: "50.0%",
-          status: winRate >= 50 ? "good" : "warning",
-          description: "Percentage of closed trades with positive net P&L after transaction fees.",
-        },
-        {
-          metric: "Avg Holding Period",
-          value: `${avgHolding.toFixed(1)} days`,
-          benchmark: "11.0 days",
-          status: "good",
-          description: "Average days positions were held before liquidation.",
-        },
-        {
-          metric: "Disposition Effect",
-          value: "+0.18",
-          benchmark: "0.00 (Neutral)",
-          status: "warning",
-          description: "Mild tendency to take winners early while allowing losers to float.",
-        },
-        {
-          metric: "Overtrading Score",
-          value: "2.4 / 10",
-          benchmark: "< 4.0",
-          status: "good",
-          description: "Low trade churn; exhibits patience between market setups.",
-        },
-        {
-          metric: "Contract Sizing Discipline",
-          value: "94.2%",
-          benchmark: "> 90.0%",
-          status: "good",
-          description: "Position sizing strictly adheres to max portfolio risk parameters.",
-        },
-      ],
-      biases: [
-        {
-          name: "Premature Profit Taking",
-          severity: "moderate",
-          evidence: "Winning trades closed within 3.2 days average, capturing only 45% of available trend extension.",
-          fix: "Implement a trailing stop instead of immediate market exits on first target hit.",
-        },
-        {
-          name: "Calendar Expiry Overholding",
-          severity: isGoldTrading ? "moderate" : "low",
-          evidence: isGoldTrading ? "Held near-month contracts within 4 days of tender notice period." : "Occasionally held equity swings through major earnings releases.",
-          fix: "Enforce automated roll rule at least 5 business days prior to contract expiry window.",
-        },
-      ],
-      extractedRules: [
-        {
-          type: "entry",
-          rule: "Enter when price pulls back to 20-period moving average on above-average volume.",
-          frequency: "65% of entries",
-        },
-        {
-          type: "exit",
-          rule: "Exit immediately on 2 consecutive down closes below ATR threshold.",
-          frequency: "80% of exits",
-        },
-        {
-          type: "risk",
-          rule: "Cap maximum risk per trade to 1.5% of total account capital.",
-          frequency: "100% of trades",
-        },
-      ],
-      recommendation: "Your trade selection is fundamentally sound with positive statistical expectancy. Focus on letting winning positions run with volatility-based trailing stops rather than fixed-target exits.",
-    });
-  } catch (err) {
-    console.error("Analyze trades API error:", err);
-    return NextResponse.json(
-      {
-        error: "Failed to analyze trades",
-        details: err instanceof Error ? err.message : String(err),
-      },
-      { status: 500 }
-    );
+    raw = await req.json()
+  } catch {
+    return NextResponse.json({ error: 'Malformed JSON body' }, { status: 400 })
   }
+
+  const parsed = requestSchema.safeParse(raw)
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: 'Invalid trade journal', details: parsed.error.flatten() },
+      { status: 400 }
+    )
+  }
+
+  const trades = parsed.data.trades
+    .map((trade, index) => ({ ...trade, index }))
+    .sort((a, b) => a.date.localeCompare(b.date) || a.index - b.index)
+  const closedTrades = trades.filter((trade) => trade.holdingDays > 0 || trade.pnl !== 0)
+  const wins = closedTrades.filter((trade) => trade.pnl > 0)
+  const losses = closedTrades.filter((trade) => trade.pnl < 0)
+  const breakEven = closedTrades.length - wins.length - losses.length
+  const grossProfit = wins.reduce((sum, trade) => sum + trade.pnl, 0)
+  const grossLoss = Math.abs(losses.reduce((sum, trade) => sum + trade.pnl, 0))
+  const realizedPnl = closedTrades.reduce((sum, trade) => sum + trade.pnl, 0)
+  const averageHoldingDays =
+    closedTrades.length > 0
+      ? closedTrades.reduce((sum, trade) => sum + trade.holdingDays, 0) /
+        closedTrades.length
+      : null
+  const activeDays = new Set(trades.map((trade) => trade.date)).size
+
+  let runningPnl = 0
+  let peakPnl = 0
+  let maxDrawdown = 0
+  for (const trade of closedTrades) {
+    runningPnl += trade.pnl
+    peakPnl = Math.max(peakPnl, runningPnl)
+    maxDrawdown = Math.min(maxDrawdown, runningPnl - peakPnl)
+  }
+
+  const metrics = [
+    {
+      metric: 'Closed trades',
+      value: String(closedTrades.length),
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: `${wins.length} wins, ${losses.length} losses, ${breakEven} break-even; rows with zero P&L and no holding period are treated as entries.`,
+    },
+    {
+      metric: 'Win rate',
+      value: closedTrades.length
+        ? `${((wins.length / closedTrades.length) * 100).toFixed(1)}%`
+        : 'N/A',
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: 'Winning closed rows divided by all closed rows, including break-even rows.',
+    },
+    {
+      metric: 'Realized P&L',
+      value: formatCurrency(realizedPnl),
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: 'Sum of P&L on rows classified as closed using P&L or holdingDays.',
+    },
+    {
+      metric: 'Profit factor',
+      value: grossLoss > 0 ? (grossProfit / grossLoss).toFixed(2) : 'N/A',
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: 'Gross winning P&L divided by gross losing P&L; unavailable when no losing P&L is present.',
+    },
+    {
+      metric: 'Average holding period',
+      value: averageHoldingDays === null ? 'N/A' : `${averageHoldingDays.toFixed(1)} days`,
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: 'Mean holdingDays among rows classified as closed.',
+    },
+    {
+      metric: 'Maximum realized drawdown',
+      value: formatCurrency(maxDrawdown),
+      benchmark: 'Not supplied',
+      status: 'neutral',
+      description: 'Largest peak-to-trough drawdown in the date-sorted cumulative realized P&L series.',
+    },
+    {
+      metric: 'Orders per active day',
+      value: (trades.length / activeDays).toFixed(2),
+      benchmark: 'Descriptive only',
+      status: 'neutral',
+      description: `Based on ${trades.length} submitted rows over ${activeDays} distinct trading dates; this is not an overtrading score.`,
+    },
+  ]
+
+  return NextResponse.json({
+    summary: `Descriptive journal statistics from ${trades.length} submitted rows (${closedTrades.length} classified as closed). Realized P&L is ${formatCurrency(realizedPnl)}. No behavioral bias or strategy rule is inferred from these fields alone.`,
+    metrics,
+    biases: [],
+    extractedRules: [],
+    recommendation:
+      'This CSV does not contain enough information to infer entry/exit rules, risk limits, or behavioral bias. Add explicit position sizing, account equity, entry rationale, and exit rationale fields before drawing those conclusions.',
+  })
 }

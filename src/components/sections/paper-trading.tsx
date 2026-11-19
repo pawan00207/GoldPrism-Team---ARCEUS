@@ -127,7 +127,7 @@ export function PaperTrading() {
           className="mb-8"
         >
           <Badge variant="outline" className="mb-2 gap-1">
-            <CandlestickChart className="w-3 h-3" /> Live MCX Paper Trading
+            <CandlestickChart className="w-3 h-3" /> Live-Parity Paper Trading
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
             Execute with ₹10,00,000 virtual margin against live parity

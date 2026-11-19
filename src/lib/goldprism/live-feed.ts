@@ -78,6 +78,18 @@ export interface LiveFeedResponse {
   upstream: UpstreamQuoteStatus[];
   contracts: Record<ContractSymbol, LiveContractQuote> | null;
   error: string | null;
+  archive?: {
+    status: 'saved' | 'already_saved' | 'skipped' | 'unavailable';
+    bucketAt?: string;
+    message?: string;
+  };
+}
+
+export interface LiveFeedHistoryRecord {
+  bucketAt: string;
+  asOf: string;
+  status: 'LIVE_PARITY';
+  payload: LiveFeedResponse;
 }
 
 interface CacheEntry {

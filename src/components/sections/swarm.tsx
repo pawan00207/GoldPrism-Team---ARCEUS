@@ -21,6 +21,14 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 import { SWARM_PRESETS, type SwarmPreset, type SwarmWorker } from '@/lib/mock-data'
 
+function getActivePreset(): SwarmPreset {
+  const preset = SWARM_PRESETS.find((item) => item.id === 'goldprism-quant-desk')
+  if (!preset) throw new Error('GoldPrism research pipeline preset is missing')
+  return preset
+}
+
+const activePreset = getActivePreset()
+
 type WorkerStatus = SwarmWorker['status']
 
 interface StatusMeta {
@@ -41,58 +49,60 @@ const STATUS_META: Record<WorkerStatus, StatusMeta> = {
 }
 
 export function Swarm() {
-  const [activePreset, setActivePreset] = React.useState<SwarmPreset>(SWARM_PRESETS[0])
-  const [workers, setWorkers] = React.useState<SwarmPreset['workers']>(SWARM_PRESETS[0].workers)
+  const [workers, setWorkers] = React.useState<SwarmWorker[]>(() =>
+    activePreset.workers.map((worker) => ({ ...worker, status: 'waiting', output: undefined }))
+  )
   const [running, setRunning] = React.useState(false)
   const [selectedWorker, setSelectedWorker] = React.useState<SwarmWorker | null>(null)
+  const [error, setError] = React.useState<string | null>(null)
 
-  React.useEffect(() => {
-    setWorkers(activePreset.workers)
-    setSelectedWorker(null)
-  }, [activePreset])
-
-  // Simulate swarm execution
   async function runSwarm() {
     setRunning(true)
-    const fresh: SwarmWorker[] = activePreset.workers.map((w): SwarmWorker => ({
-      ...w,
-      status: 'waiting',
-      output: undefined,
-    }))
-    setWorkers(fresh)
-
-    for (let i = 0; i < fresh.length; i++) {
-      const w = fresh[i]
-      // Check deps done
-      const depsDone = w.dependencies.every((d) => {
-        const dep = fresh.find((x) => x.id === d)
-        return dep ? dep.status === 'done' : false
+    setError(null)
+    setSelectedWorker(null)
+    setWorkers(
+      activePreset.workers.map((worker) => ({
+        ...worker,
+        status: 'waiting',
+        output: undefined,
+      }))
+    )
+    try {
+      const response = await fetch('/api/goldprism/swarm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}),
       })
-      if (!depsDone) {
-        // mark blocked then continue (shouldn't happen in our DAG)
-        fresh[i] = { ...w, status: 'blocked' }
-        setWorkers([...fresh])
-        continue
-      }
-      fresh[i] = { ...w, status: 'running' }
-      setWorkers([...fresh])
-      await sleep(900)
-      fresh[i] = { ...w, status: 'done', output: w.output ?? '(no output captured)' }
-      setWorkers([...fresh])
-      await sleep(200)
+      const data = await response.json()
+      if (!response.ok) throw new Error(data.error || 'Research pipeline failed')
+      const completedWorkers = data.workers as SwarmWorker[]
+      setWorkers(completedWorkers)
+      setSelectedWorker(completedWorkers[0] ?? null)
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Research pipeline failed'
+      setError(message)
+      setWorkers((current) =>
+        current.map((worker) =>
+          worker.status === 'waiting'
+            ? { ...worker, status: 'failed', output: message }
+            : worker
+        )
+      )
+    } finally {
+      setRunning(false)
     }
-    setRunning(false)
   }
 
   function reset() {
     setWorkers(
-      activePreset.workers.map((w): SwarmWorker => ({
-        ...w,
+      activePreset.workers.map((worker): SwarmWorker => ({
+        ...worker,
         status: 'waiting',
         output: undefined,
       }))
     )
     setSelectedWorker(null)
+    setError(null)
   }
 
   return (
@@ -105,29 +115,23 @@ export function Swarm() {
           className="mb-8"
         >
           <Badge variant="outline" className="mb-2 gap-1">
-            <Network className="w-3 h-3" /> Multi-Agent Swarm
+            <Network className="w-3 h-3" /> Deterministic Research Pipeline
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            Watch a trading team debate in real time
+            Run an auditable commodity-research pipeline
           </h2>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            Each swarm is a directed acyclic graph of specialized agents — bull
-            analyst, bear analyst, risk reviewer, PM — that reason over grounded
-            market data and produce a final decision.
+            Seven sequential research stages calculate against the bundled MCX
+            Bhavcopy archive. Outputs are produced by GoldPrism tools, not
+            simulated agent dialogue or generative debate.
           </p>
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-6">
-          {SWARM_PRESETS.map((p) => (
-            <button
+          {[activePreset].map((p) => (
+            <div
               key={p.id}
-              onClick={() => setActivePreset(p)}
-              className={cn(
-                'text-left p-4 rounded-[2px] border transition-all',
-                activePreset.id === p.id
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                  : 'border-border hover:border-primary/40 hover:bg-muted/30'
-              )}
+              className="text-left p-4 rounded-[2px] border border-primary bg-primary/5 ring-1 ring-primary/20"
             >
               <div className="flex items-center justify-between mb-1">
                 <Users className="w-4 h-4 text-primary" />
@@ -140,7 +144,7 @@ export function Swarm() {
               <div className="text-xs text-muted-foreground mt-2">
                 {p.workers.length} agents
               </div>
-            </button>
+            </div>
           ))}
         </div>
 
@@ -172,11 +176,16 @@ export function Swarm() {
                   ) : (
                     <Play className="w-3.5 h-3.5" />
                   )}
-                  {running ? 'Running…' : 'Run Swarm'}
+                  {running ? 'Running…' : 'Run Analysis'}
                 </Button>
               </div>
             </CardHeader>
             <CardContent>
+              {error && (
+                <div className="mb-3 rounded-[2px] gp-tint-neg gp-neg p-2.5 text-xs">
+                  {error}
+                </div>
+              )}
               <div className="relative">
                 {/* SVG layer for edges */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none" style={{ zIndex: 0 }}>
@@ -334,10 +343,4 @@ function nodePos(idx: number, total: number) {
     x: col * cellW + cellW / 2,
     y: row * cellH + cellH / 2,
   }
-}
-
-// Convert percentage coords → we use viewBox via SVG width 100%. Simpler: use absolute pixel-free approach.
-// To keep it simple, edges use percentage coordinates scaled by SVG viewBox 0..100 x 0..100
-function sleep(ms: number) {
-  return new Promise((r) => setTimeout(r, ms))
 }

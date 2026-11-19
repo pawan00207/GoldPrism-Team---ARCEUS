@@ -13,7 +13,7 @@ export function LivePageBadge() {
       synthetic={!isLive}
       detail={
         isLive && feed?.asOf
-          ? `${feed.asOf.slice(0, 16).replace('T', ' ')} UTC`
+          ? `global parity · ${feed.asOf.slice(0, 16).replace('T', ' ')} UTC`
           : loading
             ? 'connecting'
             : 'feed offline'

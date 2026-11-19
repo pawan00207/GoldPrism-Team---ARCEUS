@@ -4,6 +4,7 @@ import * as React from 'react'
 import { Download } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { DataTag, SectionHead } from '@/components/goldprism/brand'
+import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { CLEAN_MCX_BHAVCOPY_CSV, generateWalkForwardHistory } from '@/lib/goldprism/fixtures'
 import { rankBestVehicleForExposure } from '@/lib/goldprism/signal'
 
@@ -43,6 +44,9 @@ const EXPORTS = [
 ] as const
 
 export function ReportsExportSection() {
+  const { feed, marketHistory, marketHistoryError } = useLiveFeed()
+  const [exportError, setExportError] = React.useState<string | null>(null)
+
   const triggerDownload = (filename: string, content: string, contentType: string) => {
     const blob = new Blob([content], { type: contentType })
     const url = URL.createObjectURL(blob)
@@ -104,6 +108,38 @@ export function ReportsExportSection() {
     )
   }
 
+  const exportLiveFeed = () => {
+    setExportError(null)
+    if (feed?.status !== 'LIVE_PARITY' || !feed.contracts) {
+      setExportError('Live global-parity data is currently unavailable.')
+      return
+    }
+
+    triggerDownload(
+      `goldprism_global-parity_${new Date(feed.asOf).toISOString().slice(0, 10)}.json`,
+      JSON.stringify(feed, null, 2),
+      'application/json'
+    )
+  }
+
+  const exportMarketHistory = () => {
+    setExportError(null)
+    if (marketHistoryError) {
+      setExportError(`PostgreSQL market history is unavailable: ${marketHistoryError}`)
+      return
+    }
+    if (marketHistory.length === 0) {
+      setExportError('No PostgreSQL market snapshots are available to export yet.')
+      return
+    }
+
+    triggerDownload(
+      `goldprism_postgres-market-history_${new Date().toISOString().slice(0, 10)}.json`,
+      JSON.stringify(marketHistory, null, 2),
+      'application/json'
+    )
+  }
+
   const actions: Record<string, () => void> = {
     bhavcopy: exportBhavcopy,
     backtest: exportBacktest,
@@ -157,11 +193,60 @@ export function ReportsExportSection() {
 
         <div className="mt-8 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
           <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            All exports are generated from the frozen fixture run
+            The four research downloads above are frozen demonstration fixtures
           </p>
           <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
-            No live market feed is used
+            Live quotes below come from public global feeds, not the MCX order book
           </p>
+        </div>
+
+        <div className="mt-8">
+          <h3 className="gp-label text-foreground">Connected market data exports</h3>
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            These downloads use the current server feed and PostgreSQL minute archive.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            <article className="flex items-center justify-between gap-4 rounded-[4px] border border-border bg-card p-4">
+              <div>
+                <h4 className="font-medium">Latest global parity snapshot</h4>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  XAU/USD, COMEX GC, USD/INR, and clearly labeled indicative contract estimates.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={exportLiveFeed}
+                disabled={feed?.status !== 'LIVE_PARITY' || !feed.contracts}
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                JSON
+              </Button>
+            </article>
+            <article className="flex items-center justify-between gap-4 rounded-[4px] border border-border bg-card p-4">
+              <div>
+                <h4 className="font-medium">PostgreSQL market history</h4>
+                <p className="mt-1 text-[11px] text-muted-foreground">
+                  {marketHistory.length} minute snapshots
+                  {marketHistoryError ? ` · PostgreSQL unavailable: ${marketHistoryError}` : ''}
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={exportMarketHistory}
+                disabled={marketHistory.length === 0 || Boolean(marketHistoryError)}
+              >
+                <Download className="h-3.5 w-3.5" aria-hidden="true" />
+                JSON
+              </Button>
+            </article>
+          </div>
+          {exportError ? (
+            <p role="alert" className="mt-3 text-xs text-destructive">
+              {exportError}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

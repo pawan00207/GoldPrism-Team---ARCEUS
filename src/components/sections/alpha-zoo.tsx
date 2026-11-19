@@ -10,7 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
-import { ALPHAS, type Alpha, familyStats, categoryStats } from '@/lib/alphas'
+import { ALPHAS, type Alpha, categoryStats } from '@/lib/alphas'
 
 const FAMILY_META: Record<string, { icon: any; color: string; label: string }> = {
   Qlib158: { icon: Atom, color: 'var(--foreground)', label: 'Qlib158' },
@@ -18,13 +18,6 @@ const FAMILY_META: Record<string, { icon: any; color: string; label: string }> =
   GTJA191: { icon: FlaskConical, color: 'color-mix(in srgb, var(--foreground) 45%, var(--muted-foreground))', label: 'GTJA191' },
   Academic: { icon: GraduationCap, color: 'color-mix(in srgb, var(--foreground) 25%, var(--muted-foreground))', label: 'Academic' },
   'GoldPrism-Commodity': { icon: Atom, color: 'var(--gp-gold-ink)', label: 'GoldPrism Commodity' },
-}
-
-const STATUS_COLORS = {
-  live: 'gp-pos gp-tint-pos',
-  'alive-reversed': 'gp-warn gp-tint-warn',
-  dead: 'gp-neg gp-tint-neg',
-  experimental: 'text-muted-foreground bg-muted',
 }
 
 export function AlphaZoo() {
@@ -44,7 +37,10 @@ export function AlphaZoo() {
     return matchSearch && matchFamily && matchCategory
   })
 
-  const famStats = familyStats()
+  const famStats = Object.keys(FAMILY_META).map((family) => ({
+    family,
+    count: ALPHAS.filter((alpha) => alpha.family === family).length,
+  }))
   const catStats = categoryStats()
   const maxCategoryCount = Math.max(...catStats.map((c) => c.count), 1)
 
@@ -61,12 +57,13 @@ export function AlphaZoo() {
             <Atom className="w-3 h-3" /> Alpha Zoo
           </Badge>
           <h2 className="text-3xl md:text-4xl font-bold tracking-tight">
-            456 alpha factors, ready to backtest
+            {ALPHAS.length} factor definitions in the reference catalog
           </h2>
           <p className="text-muted-foreground mt-2 max-w-2xl">
-            A curated library of cross-sectional alphas from Qlib158,
-            WorldQuant alpha101, GTJA191, and academic literature. All
-            lookahead-banned and AST-validated.
+            Browse formula descriptions from the listed research families. These
+            entries are not currently backtested against the GoldPrism dataset;
+            IC, IR, Sharpe, turnover, and live/dead status are not presented as
+            validated measurements.
           </p>
         </motion.div>
 
@@ -83,16 +80,10 @@ export function AlphaZoo() {
               >
                 <div className="flex items-center justify-between mb-2">
                   <Icon className="w-4 h-4" style={{ color: meta.color }} />
-                  <span className="text-xs text-muted-foreground">{f.live}/{f.count} live</span>
+                  <span className="text-xs text-muted-foreground">{f.count} listed</span>
                 </div>
                 <div className="text-xl font-bold tabular-nums">{f.count}</div>
-                <div className="text-xs text-muted-foreground">{meta.label}</div>
-                <div className="mt-2 text-xs">
-                  <span className="text-muted-foreground">avg IC </span>
-                  <span className="font-mono">{f.avgIC.toFixed(3)}</span>
-                  <span className="text-muted-foreground"> · IR </span>
-                  <span className="font-mono">{f.avgIR.toFixed(2)}</span>
-                </div>
+                <div className="text-xs text-muted-foreground">{meta.label} reference formulas</div>
               </Card>
             )
           })}
@@ -195,29 +186,11 @@ export function AlphaZoo() {
                               {a.family}
                             </Badge>
                           </div>
-                          <Badge variant="secondary" className={cn('text-[10px] capitalize', STATUS_COLORS[a.status])}>
-                            {a.status}
+                          <Badge variant="secondary" className="text-[10px]">
+                            Reference
                           </Badge>
                         </div>
                         <div className="text-xs text-muted-foreground mb-2">{a.description}</div>
-                        <div className="flex items-center gap-3 text-xs">
-                          <span>
-                            <span className="text-muted-foreground">IC </span>
-                            <span className="font-mono">{a.ic.toFixed(3)}</span>
-                          </span>
-                          <span>
-                            <span className="text-muted-foreground">IR </span>
-                            <span className="font-mono">{a.ir.toFixed(2)}</span>
-                          </span>
-                          <span>
-                            <span className="text-muted-foreground">Sharpe </span>
-                            <span className="font-mono">{a.sharpe.toFixed(2)}</span>
-                          </span>
-                          <span>
-                            <span className="text-muted-foreground">MaxDD </span>
-                            <span className="font-mono gp-neg">{a.maxDrawdown.toFixed(1)}%</span>
-                          </span>
-                        </div>
                       </button>
                     )
                   })}
@@ -250,13 +223,9 @@ export function AlphaZoo() {
                     </pre>
                   </div>
                   <p className="text-sm text-muted-foreground">{selected.description}</p>
-                  <div className="grid grid-cols-2 gap-2 pt-2">
-                    <Metric label="IC" value={selected.ic.toFixed(3)} />
-                    <Metric label="IR" value={selected.ir.toFixed(2)} />
-                    <Metric label="Sharpe" value={selected.sharpe.toFixed(2)} />
-                    <Metric label="Turnover" value={`${(selected.turnover * 100).toFixed(0)}%`} />
-                    <Metric label="Max DD" value={`${selected.maxDrawdown.toFixed(1)}%`} />
-                    <Metric label="Status" value={selected.status} />
+                  <div className="rounded-[2px] bg-muted/40 p-3 text-xs text-muted-foreground">
+                    Reference formula only. GoldPrism does not calculate this
+                    factor&apos;s performance statistics on the current dataset.
                   </div>
                   <div className="flex flex-wrap gap-1 pt-2">
                     {selected.tags.map((t) => (
@@ -277,14 +246,5 @@ export function AlphaZoo() {
         </div>
       </div>
     </section>
-  )
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-2 rounded-[2px] bg-muted/40">
-      <div className="text-xs text-muted-foreground">{label}</div>
-      <div className="text-sm font-mono font-medium tabular-nums">{value}</div>
-    </div>
   )
 }

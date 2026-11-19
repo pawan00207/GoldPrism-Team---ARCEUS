@@ -36,11 +36,18 @@ export function TradeExecutionDesk() {
 
   const {
     feed,
+    feedRequestError,
     loading,
     refreshing,
     autoRefresh,
     setAutoRefresh,
     refreshFeed,
+    user,
+    authReady,
+    authBusy,
+    authError,
+    cloudSynced,
+    signInWithGoogle,
     livePricesMap,
     cashInr,
     marginBlockedInr,
@@ -260,7 +267,7 @@ export function TradeExecutionDesk() {
           index="01 / LIVE EXECUTION"
           eyebrow="Understand first · then execute in one click"
           title="One-Click Trade Desk"
-          description="Inspect live international-to-MCX bullion parity quotes, check 10g pure-gold normalization, review exact statutory fees and X-Ray edge, and execute or hedge in one click."
+          description="Inspect public global gold/FX-derived indicative contract prices (not MCX exchange quotes), check 10g normalization and estimated fees, and place simulated paper trades."
           aside={
             <div className="flex flex-wrap items-center gap-2">
               <DataTag
@@ -281,11 +288,11 @@ export function TradeExecutionDesk() {
               >
                 {autoRefresh ? (
                   <>
-                    <Pause className="h-3.5 w-3.5" /> Auto 15s: ON
+                    <Pause className="h-3.5 w-3.5" /> Auto 10s: ON
                   </>
                 ) : (
                   <>
-                    <Play className="h-3.5 w-3.5" /> Auto 15s: PAUSED
+                    <Play className="h-3.5 w-3.5" /> Auto 10s: PAUSED
                   </>
                 )}
               </button>
@@ -327,6 +334,38 @@ export function TradeExecutionDesk() {
               tone={realizedPnlInr >= 0 ? 'tradable' : 'blocked'}
             />
           </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-[4px] border border-border bg-card px-4 py-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-[0.1em] text-muted-foreground">
+              Firestore paper-trade sync
+            </p>
+            <p className="mt-1 text-xs text-foreground">
+              {user
+                ? cloudSynced
+                  ? `Realtime cloud sync connected for ${user.email ?? 'your account'}.`
+                  : 'Signed in; connecting to your Firestore workspace…'
+                : authReady
+                  ? 'Guest trades stay in this browser only. Sign in to sync trades across devices.'
+                  : 'Checking sign-in and cloud sync…'}
+            </p>
+            {authError ? (
+              <p role="alert" className="mt-1 text-xs text-destructive">
+                Firestore/Auth: {authError}
+              </p>
+            ) : null}
+          </div>
+          {!user && authReady ? (
+            <button
+              type="button"
+              onClick={() => void signInWithGoogle()}
+              disabled={authBusy}
+              className="gp-button gp-button--primary px-3 py-1.5 text-xs disabled:opacity-50"
+            >
+              {authBusy ? 'Connecting…' : 'Sign in to sync'}
+            </button>
+          ) : null}
         </div>
 
         {/* Live Global Benchmark Provenance Bar */}
@@ -384,12 +423,28 @@ export function TradeExecutionDesk() {
               {feed.disclosure}
             </p>
           ) : null}
+          {feed?.archive ? (
+            <p
+              aria-live="polite"
+              className={cn(
+                'mt-2 font-mono text-[10px]',
+                feed.archive.status === 'saved' || feed.archive.status === 'already_saved'
+                  ? 'text-[var(--gp-tradable-ink)]'
+                  : 'text-muted-foreground'
+              )}
+            >
+              PostgreSQL market archive: {feed.archive.status.replace('_', ' ')}
+              {feed.archive.message ? ` — ${feed.archive.message}` : ''}
+            </p>
+          ) : null}
         </div>
 
-        {/* Live 4-Contract Instant 1-Click Quote Board */}
+        {/* Indicative 4-contract parity board for paper trading */}
         <div className="mt-6">
           <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-            <p className="gp-label text-foreground">Live MCX Contract Board · instant 1-lot execution</p>
+            <p className="gp-label text-foreground">
+              Indicative contract parity · paper trading only (not MCX exchange quotes)
+            </p>
             {deskNotice ? (
               <span
                 className={cn(
@@ -406,7 +461,7 @@ export function TradeExecutionDesk() {
             <div className="rounded-[4px] border border-border bg-card p-5 font-mono text-xs text-muted-foreground">
               {loading
                 ? 'Connecting to live spot gold, COMEX GC=F, and USD/INR feeds…'
-                : `Live parity data unavailable (${feed?.error ?? 'upstream timeout'}). Click Refresh to retry.`}
+                : `Global parity data unavailable (${feedRequestError ?? feed?.error ?? 'upstream timeout'}). Click Refresh to retry.`}
             </div>
           ) : (
             <div className="grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] sm:grid-cols-2 lg:grid-cols-4">

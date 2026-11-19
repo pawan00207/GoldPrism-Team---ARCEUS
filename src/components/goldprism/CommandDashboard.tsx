@@ -301,11 +301,11 @@ export function CommandDashboard() {
             <div>
               <p className="gp-kicker text-[var(--gp-gold-ink)]">Authenticated Workspace · Cloud Synced</p>
               <h1 className="gp-title mt-2.5 text-balance">
-                Sign in to your live MCX Gold desk.
+                Sign in to sync your paper-trading desk and Firestore workspace.
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
                 Authenticate with Google to unlock your ₹10,00,000 paper margin account, live
-                real-time MCX parity streaming, X-Ray spread verdicts, 1-Click trade ledger, and
+                live global-to-MCX parity estimates, X-Ray spread verdicts, 1-Click paper-trade ledger, and
                 Trade Copilot AI—synced automatically to Cloud Firestore across sessions.
               </p>
 
