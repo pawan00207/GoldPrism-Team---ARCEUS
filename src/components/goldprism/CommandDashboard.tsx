@@ -30,6 +30,7 @@ import {
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
 import { TradeCopilotChat } from '@/components/goldprism/TradeCopilotChat'
+import { FirebaseAuthNotice } from '@/components/goldprism/FirebaseAuthNotice'
 import { DataTag, Metric, VerdictTag } from '@/components/goldprism/brand'
 import { fetchRecentCopilotLogs } from '@/lib/firebase/client'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
@@ -328,9 +329,7 @@ export function CommandDashboard() {
                 </button>
               </div>
 
-              {authError ? (
-                <p className="mt-4 font-mono text-xs text-[var(--gp-blocked-ink)]">{authError}</p>
-              ) : null}
+              {authError ? <FirebaseAuthNotice message={authError} /> : null}
             </div>
 
             <div className="overflow-hidden rounded-[4px] border border-border bg-card/95 backdrop-blur-xs shadow-[var(--gp-hard-shadow)]">

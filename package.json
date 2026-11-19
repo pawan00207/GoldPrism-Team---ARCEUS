@@ -26,7 +26,7 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "mcx:snapshot": "python scripts/fetch_mcx_snapshot.py --print",
-    "test:unit": "node scripts/run-unit-tests.mjs",
+    "test:unit": "tsx --test tests/unit/*.test.ts",
     "test:all": "npm run test && npm run test:unit && npm run test:python"
   },
   "dependencies": {

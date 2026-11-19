@@ -33,6 +33,11 @@ import {
 import {
   rankBestVehicleForExposure,
 } from '../src/lib/goldprism/signal';
+import { isQuoteTimestampFresh } from '../src/lib/goldprism/live-feed';
+import {
+  describeFirebaseAuthError,
+  describeFirebaseSyncError,
+} from '../src/lib/firebase/auth-error';
 import {
   CLEAN_MCX_BHAVCOPY_CSV,
   SEEDED_ERROR_BHAVCOPY_CSV,
@@ -206,6 +211,46 @@ it('Ranks GOLDTEN as #1 for 50g exposure with 0% mismatch', () => {
 });
 
 console.log('\n6. Anti-Lookahead & Pipeline Reproducibility:');
+it('Explains Firebase unauthorized-domain failures with the exact current hostname', () => {
+  const previousWindow = globalThis.window;
+  Object.defineProperty(globalThis, 'window', {
+    configurable: true,
+    value: { location: { hostname: 'localhost' } },
+  });
+  try {
+    const message = describeFirebaseAuthError({ code: 'auth/unauthorized-domain' });
+    assert(message.includes('localhost'));
+    assert(message.includes('Authorized domains'));
+  } finally {
+    if (previousWindow === undefined) {
+      Reflect.deleteProperty(globalThis, 'window');
+    } else {
+      Object.defineProperty(globalThis, 'window', {
+        configurable: true,
+        value: previousWindow,
+      });
+    }
+  }
+});
+
+it('Explains Firestore permission failures without exposing account details', () => {
+  const message = describeFirebaseSyncError({
+    code: 'permission-denied',
+    message: 'permission-denied',
+    email: 'private@example.com',
+  });
+  assert(message.includes('firestore.rules'));
+  assert(!message.includes('private@example.com'));
+});
+
+it('Xaus quotes are accepted only with timestamps no more than five minutes old', () => {
+  const now = Date.parse('2026-11-19T04:40:00.000Z');
+  assert.strictEqual(isQuoteTimestampFresh('2026-11-19T04:36:00.000Z', now), true);
+  assert.strictEqual(isQuoteTimestampFresh('2026-11-19T04:34:59.000Z', now), false);
+  assert.strictEqual(isQuoteTimestampFresh('2026-11-19T04:41:01.000Z', now), false);
+  assert.strictEqual(isQuoteTimestampFresh(undefined, now), false);
+});
+
 it('Anti-lookahead guard: fails if signal generator accesses bar t+1', () => {
   const samplePrices = [72000, 72200, 72150, 72500, 72400];
   // Peeking signal: accesses prices[t+1] at index t

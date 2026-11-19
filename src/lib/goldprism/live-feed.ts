@@ -2,9 +2,9 @@
  * Real-Time Live Gold & FX Market Parity Feed — GoldPrism
  * ========================================================
  * Aggregates verified external public market feeds in parallel:
- *   1. Spot Gold XAU/USD        -> api.gold-api.com/price/XAU
+ *   1. Spot Gold XAU/USD + USD/INR -> xaus.com/api/v1/spot
+ *      (fallbacks: api.gold-api.com and Yahoo Finance / open.er-api.com)
  *   2. COMEX Gold Futures GC=F  -> query1.finance.yahoo.com/v8/finance/chart/GC=F
- *   3. USD/INR FX Spot          -> query1.finance.yahoo.com/v8/finance/chart/USDINR=X (fallback: open.er-api.com)
  *   4. NSE Gold ETF Benchmark   -> query1.finance.yahoo.com/v8/finance/chart/GOLDBEES.NS
  *
  * Computes deterministic Indian Bullion Import Parity (10g pure + contract unit quotes)
@@ -154,7 +154,127 @@ interface OpenErResponse {
   time_last_update_utc?: string;
 }
 
-async function fetchXauSpot(): Promise<UpstreamQuoteStatus> {
+interface XausSpotResponse {
+  xau?: {
+    price?: number;
+    currency?: string;
+    unit?: string;
+  };
+  fx_rates?: Record<string, number>;
+  price_as_of?: string;
+  updated_at?: string;
+  stale?: boolean;
+  fx_stale?: boolean;
+  data_state?: {
+    status?: string;
+    as_of?: string;
+  };
+}
+
+const XAUS_MAX_AGE_MS = 5 * 60_000;
+
+export function isQuoteTimestampFresh(value: string | undefined, nowMs: number): value is string {
+  if (!value) return false;
+  const timestamp = Date.parse(value);
+  const ageMs = nowMs - timestamp;
+  return Number.isFinite(timestamp) && ageMs >= -60_000 && ageMs <= XAUS_MAX_AGE_MS;
+}
+
+function unavailableQuote(
+  id: UpstreamQuoteStatus['id'],
+  label: string,
+  currency: string,
+  source: string,
+  error: string
+): UpstreamQuoteStatus {
+  return {
+    id,
+    label,
+    available: false,
+    price: null,
+    previousClose: null,
+    changePct: null,
+    currency,
+    source,
+    asOf: null,
+    error,
+  };
+}
+
+async function fetchXausMarketData(): Promise<{
+  xau: UpstreamQuoteStatus;
+  usdInr: UpstreamQuoteStatus;
+}> {
+  const nowMs = Date.now();
+  try {
+    const data = await fetchJsonWithTimeout<XausSpotResponse>('https://xaus.com/api/v1/spot');
+    const xauAsOf = data.price_as_of ?? data.data_state?.as_of ?? data.updated_at;
+    const xauPrice = data.xau?.price;
+    const xauIsFresh =
+      data.stale !== true &&
+      data.data_state?.status !== 'stale' &&
+      isQuoteTimestampFresh(xauAsOf, nowMs);
+    const xau =
+      typeof xauPrice === 'number' && Number.isFinite(xauPrice) && xauPrice > 0 && xauIsFresh
+        ? {
+            id: 'XAU_USD' as const,
+            label: 'Spot Gold (XAU/USD)',
+            available: true,
+            price: Number(xauPrice.toFixed(2)),
+            previousClose: null,
+            changePct: null,
+            currency: `${data.xau?.currency ?? 'USD'}/${data.xau?.unit ?? 'oz'}`,
+            source: 'xaus.com',
+            asOf: xauAsOf,
+            error: null,
+          }
+        : unavailableQuote(
+            'XAU_USD',
+            'Spot Gold (XAU/USD)',
+            'USD/oz',
+            'xaus.com',
+            !xauIsFresh ? 'Xaus spot quote is stale or has no valid timestamp' : 'Invalid Xaus spot price'
+          );
+
+    const fxUpdatedAt = data.updated_at ?? data.data_state?.as_of;
+    const usdInrRate = data.fx_rates?.INR;
+    const fxIsFresh =
+      data.fx_stale !== true &&
+      data.data_state?.status !== 'stale' &&
+      isQuoteTimestampFresh(fxUpdatedAt, nowMs);
+    const usdInr =
+      typeof usdInrRate === 'number' && Number.isFinite(usdInrRate) && usdInrRate > 0 && fxIsFresh
+        ? {
+            id: 'USD_INR' as const,
+            label: 'USD / INR FX',
+            available: true,
+            price: Number(usdInrRate.toFixed(4)),
+            previousClose: null,
+            changePct: null,
+            currency: 'INR/USD',
+            source: 'xaus.com',
+            asOf: fxUpdatedAt,
+            error: null,
+          }
+        : unavailableQuote(
+            'USD_INR',
+            'USD / INR FX',
+            'INR/USD',
+            'xaus.com',
+            !fxIsFresh ? 'Xaus USD/INR quote is stale or has no valid timestamp' : 'Invalid Xaus USD/INR rate'
+          );
+
+    return { xau, usdInr };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Xaus market feed failed';
+    return {
+      xau: unavailableQuote('XAU_USD', 'Spot Gold (XAU/USD)', 'USD/oz', 'xaus.com', message),
+      usdInr: unavailableQuote('USD_INR', 'USD / INR FX', 'INR/USD', 'xaus.com', message),
+    };
+  }
+}
+
+async function fetchFallbackXauSpot(): Promise<UpstreamQuoteStatus> {
   try {
     const data = await fetchJsonWithTimeout<GoldApiResponse>('https://api.gold-api.com/price/XAU');
     if (typeof data.price !== 'number' || !Number.isFinite(data.price) || data.price <= 0) {
@@ -404,11 +524,14 @@ export async function getLiveGoldFeed(forceRefresh = false): Promise<LiveFeedRes
     return cachedLiveFeed.payload;
   }
 
-  const [xau, comex, usdinr, goldbees] = await Promise.all([
-    fetchXauSpot(),
+  const [xaus, comex, goldbees] = await Promise.all([
+    fetchXausMarketData(),
     fetchYahooQuote('COMEX_GCF', 'GC=F', 'COMEX Gold Futures (GC=F)', 'USD/oz'),
-    fetchUsdInrWithFallback(),
     fetchYahooQuote('GOLDBEES_NS', 'GOLDBEES.NS', 'NSE Gold ETF (GOLDBEES.NS)', 'INR/unit'),
+  ]);
+  const [xau, usdinr] = await Promise.all([
+    xaus.xau.available ? xaus.xau : fetchFallbackXauSpot(),
+    xaus.usdInr.available ? xaus.usdInr : fetchUsdInrWithFallback(),
   ]);
 
   const upstream = [xau, comex, usdinr, goldbees];

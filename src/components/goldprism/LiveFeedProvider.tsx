@@ -8,7 +8,6 @@ import {
   db,
   ensureUserWorkspace,
   googleProvider,
-  handleFirestoreError,
   OperationType,
   persistCloseTradeToCloud,
   persistOpenTradeToCloud,
@@ -26,6 +25,10 @@ import {
   valuatePaperPosition,
 } from '@/lib/goldprism/trade-engine'
 import { calculateTransactionCosts, DEFAULT_COST_CONFIG } from '@/lib/goldprism/transaction-costs'
+import {
+  describeFirebaseAuthError,
+  describeFirebaseSyncError,
+} from '@/lib/firebase/auth-error'
 
 const STORAGE_KEY = 'goldprism_one_click_portfolio_v1'
 const POLL_INTERVAL_MS = 10_000
@@ -91,8 +94,9 @@ export interface LiveFeedContextValue {
   livePricesMap: Partial<Record<SupportedContractCode, number>>
   /** Real MCX bhavcopy snapshot (results/mcx-live-snapshot.json via scripts/fetch_mcx_snapshot.py). */
   mcxSnapshot: McxSnapshotResponse | null
-  /** Where the active contract prices come from. Parity is a model; MCX is recorded settle. */
-  pricesSource: 'mcx_bhavcopy' | 'parity' | 'none'
+  mcxSnapshotError: string | null
+  /** Paper mark prices come from the indicative parity model, never bhavcopy closes. */
+  pricesSource: 'parity' | 'none'
 
   // Firebase Auth & Cloud Sync State
   user: User | null
@@ -127,8 +131,10 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
   const [marketHistory, setMarketHistory] = React.useState<LiveFeedHistoryRecord[]>([])
   const [marketHistoryLoading, setMarketHistoryLoading] = React.useState<boolean>(true)
   const [marketHistoryError, setMarketHistoryError] = React.useState<string | null>(null)
+  const [marketHistoryUnavailable, setMarketHistoryUnavailable] = React.useState<boolean>(false)
   const [mcxSnapshot, setMcxSnapshot] = React.useState<McxSnapshotResponse | null>(null)
-  const [pricesSource, setPricesSource] = React.useState<'mcx_bhavcopy' | 'parity' | 'none'>('none')
+  const [mcxSnapshotError, setMcxSnapshotError] = React.useState<string | null>(null)
+  const [pricesSource, setPricesSource] = React.useState<'parity' | 'none'>('none')
   const [loading, setLoading] = React.useState<boolean>(true)
   const [refreshing, setRefreshing] = React.useState<boolean>(false)
   const [autoRefresh, setAutoRefresh] = React.useState<boolean>(true)
@@ -147,13 +153,21 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
 
   // Track Firebase auth
   React.useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (nextUser) => {
-      setUser(nextUser)
-      setAuthReady(true)
-      if (!nextUser) {
+    const unsub = onAuthStateChanged(
+      auth,
+      (nextUser) => {
+        setUser(nextUser)
+        setAuthReady(true)
+        setAuthError(null)
+        if (!nextUser) setCloudSynced(false)
+      },
+      (error) => {
+        setUser(null)
+        setAuthReady(true)
         setCloudSynced(false)
+        setAuthError(describeFirebaseAuthError(error))
       }
-    })
+    )
     return () => unsub()
   }, [])
 
@@ -163,8 +177,15 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     let unsubWorkspace: (() => void) | undefined
     let unsubTrades: (() => void) | undefined
     let active = true
+    let workspaceReady = false
+    let tradesReady = false
 
     const uid = user.uid
+    setCloudSynced(false)
+    setAuthError(null)
+    const updateCloudSyncStatus = () => {
+      if (active) setCloudSynced(workspaceReady && tradesReady)
+    }
 
     void (async () => {
       try {
@@ -177,9 +198,9 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
         })
         if (!active) return
 
-        const userDocPath = `users/${uid}`
         unsubWorkspace = onSnapshot(
           doc(db, 'users', uid),
+          { includeMetadataChanges: true },
           (snap) => {
             if (snap.exists()) {
               const data = snap.data()
@@ -190,20 +211,25 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
                 }))
               }
             }
-            setCloudSynced(true)
+            workspaceReady = !snap.metadata.fromCache
+            updateCloudSyncStatus()
           },
           (error) => {
-            handleFirestoreError(error, OperationType.GET, userDocPath)
+            if (!active) return
+            workspaceReady = false
+            updateCloudSyncStatus()
+            setAuthError(describeFirebaseSyncError(error))
+            console.error('Firestore workspace listener failed', { operation: OperationType.GET })
           }
         )
 
-        const tradesPath = `users/${uid}/trades`
         const tradesQuery = query(
           collection(db, 'users', uid, 'trades'),
           where('ownerId', '==', uid)
         )
         unsubTrades = onSnapshot(
           tradesQuery,
+          { includeMetadataChanges: true },
           (snap) => {
             const openList: PaperPosition[] = []
             const closedList: ClosedPaperTrade[] = []
@@ -256,13 +282,21 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
               positions: openList,
               closedTrades: closedList,
             }))
+            tradesReady = !snap.metadata.fromCache
+            updateCloudSyncStatus()
           },
           (error) => {
-            handleFirestoreError(error, OperationType.LIST, tradesPath)
+            if (!active) return
+            tradesReady = false
+            updateCloudSyncStatus()
+            setAuthError(describeFirebaseSyncError(error))
+            console.error('Firestore trade listener failed', { operation: OperationType.LIST })
           }
         )
       } catch (err) {
-        setAuthError(err instanceof Error ? err.message : 'Cloud workspace sync failed')
+        if (!active) return
+        setCloudSynced(false)
+        setAuthError(describeFirebaseSyncError(err))
       }
     })()
 
@@ -313,7 +347,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     try {
       await signInWithPopup(auth, googleProvider)
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Google Sign-In failed')
+      setAuthError(describeFirebaseAuthError(err))
     } finally {
       setAuthBusy(false)
     }
@@ -326,7 +360,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       await signOut(auth)
       setPortfolio(DEFAULT_PORTFOLIO)
     } catch (err) {
-      setAuthError(err instanceof Error ? err.message : 'Sign-Out failed')
+      setAuthError(describeFirebaseAuthError(err))
     } finally {
       setAuthBusy(false)
     }
@@ -359,8 +393,12 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       const data = (await res.json()) as {
         records?: unknown
         error?: string
+        status?: string
       }
       if (!res.ok) {
+        if (res.status === 503 && data.status === 'UNAVAILABLE') {
+          setMarketHistoryUnavailable(true)
+        }
         throw new Error(data.error || `Market history request failed (HTTP ${res.status})`)
       }
       if (!Array.isArray(data.records)) {
@@ -387,9 +425,14 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
       const data = (await res.json()) as McxSnapshotResponse
       setMcxSnapshot(data)
+      setMcxSnapshotError(data.status === 'UNAVAILABLE' ? data.error : null)
     } catch (error) {
-      console.error('MCX snapshot request failed:', error)
       setMcxSnapshot(null)
+      setMcxSnapshotError(
+        error instanceof TypeError
+          ? 'Unable to reach the MCX snapshot service. Retrying automatically.'
+          : `Unable to load the MCX snapshot${error instanceof Error ? ` (${error.message})` : ''}. Retrying automatically.`
+      )
     }
   }, [])
 
@@ -399,12 +442,31 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
   }, [refreshFeed, refreshMcxSnapshot])
 
   React.useEffect(() => {
+    if (
+      feed?.status === 'LIVE_PARITY' &&
+      feed.archive?.status === 'unavailable'
+    ) {
+      setMarketHistoryUnavailable(true)
+      setMarketHistoryError(
+        feed.archive.message ?? 'Configure DATABASE_URL to enable PostgreSQL market history.'
+      )
+      setMarketHistoryLoading(false)
+      return
+    }
+    if (marketHistoryUnavailable || !feed) return
+
     void refreshMarketHistory()
     const timer = window.setInterval(() => {
       void refreshMarketHistory()
     }, HISTORY_POLL_INTERVAL_MS)
     return () => window.clearInterval(timer)
-  }, [refreshMarketHistory])
+  }, [
+    feed?.status,
+    feed?.archive?.status,
+    feed?.archive?.message,
+    marketHistoryUnavailable,
+    refreshMarketHistory,
+  ])
 
   React.useEffect(() => {
     if (!autoRefresh) return
@@ -416,27 +478,8 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
   }, [autoRefresh, refreshFeed, refreshMcxSnapshot])
 
   const livePricesMap = React.useMemo<Partial<Record<SupportedContractCode, number>>>(() => {
-    // Prefer real recorded MCX settles when a snapshot exists; fall back to the
-    // import-parity model. pricesSource records which one won.
-    if (mcxSnapshot && mcxSnapshot.status !== 'UNAVAILABLE') {
-      const pick = (code: SupportedContractCode) => {
-        const rows = mcxSnapshot.contracts[code]
-        const first = rows?.[0]
-        const px = first?.close ?? first?.previousClose ?? null
-        return px && px > 0 ? px : null
-      }
-      const mcxMap: Partial<Record<SupportedContractCode, number>> = {}
-      const codes: SupportedContractCode[] = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL']
-      let any = false
-      for (const code of codes) {
-        const px = pick(code)
-        if (px !== null) {
-          mcxMap[code] = px
-          any = true
-        }
-      }
-      if (any) return mcxMap
-    }
+    // Bhavcopy closes are settlement references, not streaming quotes.
+    // Mark paper positions against the refreshed parity feed instead.
     if (!feed?.contracts) return {}
     return {
       GOLDM: feed.contracts.GOLDM.quotedPrice,
@@ -444,18 +487,11 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       GOLDGUINEA: feed.contracts.GOLDGUINEA.quotedPrice,
       GOLDPETAL: feed.contracts.GOLDPETAL.quotedPrice,
     }
-  }, [feed, mcxSnapshot])
+  }, [feed])
 
   React.useEffect(() => {
-    if (mcxSnapshot && mcxSnapshot.status !== 'UNAVAILABLE') {
-      const hasAny = (['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'] as SupportedContractCode[]).some(
-        (code) => mcxSnapshot.contracts[code]?.[0]?.close != null
-      )
-      setPricesSource(hasAny ? 'mcx_bhavcopy' : feed?.contracts ? 'parity' : 'none')
-      return
-    }
     setPricesSource(feed?.contracts ? 'parity' : 'none')
-  }, [mcxSnapshot, feed])
+  }, [feed])
 
   const executeOneClickTrade = React.useCallback(
     (
@@ -515,7 +551,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
 
       if (user) {
         void persistOpenTradeToCloud(user.uid, pos, nextCash).catch((e) =>
-          setAuthError(e instanceof Error ? e.message : 'Failed to sync trade to Firestore')
+          setAuthError(describeFirebaseSyncError(e))
         )
       }
 
@@ -581,7 +617,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
 
       if (user) {
         void persistCloseTradeToCloud(user.uid, closed, nextCash).catch((e) =>
-          setAuthError(e instanceof Error ? e.message : 'Failed to close trade in Firestore')
+          setAuthError(describeFirebaseSyncError(e))
         )
       }
 
@@ -598,7 +634,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     setPortfolio(DEFAULT_PORTFOLIO)
     if (user) {
       void resetCloudWorkspaceTrades(user.uid).catch((e) =>
-        setAuthError(e instanceof Error ? e.message : 'Failed to reset Firestore workspace')
+        setAuthError(describeFirebaseSyncError(e))
       )
     }
   }, [user])
@@ -649,6 +685,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     lastUpdatedAtMs,
     livePricesMap,
     mcxSnapshot,
+    mcxSnapshotError,
     pricesSource,
     user,
     authReady,

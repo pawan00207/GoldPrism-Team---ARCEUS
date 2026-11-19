@@ -21,7 +21,7 @@ function fmtExpiry(v: string): string {
 }
 
 export function VaultHero() {
-  const { mcxSnapshot, pricesSource } = useLiveFeed()
+  const { mcxSnapshot, mcxSnapshotError, pricesSource } = useLiveFeed()
   const live = mcxSnapshot?.status === 'MCX_LIVE'
   const stale = mcxSnapshot?.status === 'MCX_STALE'
   const usable = live || stale
@@ -32,18 +32,17 @@ export function VaultHero() {
   const petal = usable ? mcxSnapshot?.contracts?.GOLDPETAL?.[0] ?? null : null
 
   return (
-    <section className="relative overflow-hidden border-b border-border">
-      {/* Vault glow — dark mode only: cinematic pyramid/candle backdrop + single restrained caramel radial */}
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 hidden dark:block">
+    <section id="home-hero" className="relative overflow-hidden border-b border-border">
+      {/* Gold-market backdrop; gradients preserve contrast behind the hero copy. */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0">
         <img
-          src="/hero-vault.png"
+          src="/gold-market-hero.png"
           alt=""
-          className="h-full w-full object-[88%_40%] opacity-90"
-          style={{ filter: 'contrast(1.08) brightness(1.06)' }}
+          className="h-full w-full object-cover object-[72%_50%] opacity-35 dark:opacity-70"
+          style={{ filter: 'contrast(1.08) brightness(0.82)' }}
         />
-        {/* Readability gradients: keep the left type lane near-solid, let the art breathe right */}
-        <div className="absolute inset-0 bg-gradient-to-r from-[#12100D] via-[#12100D]/66 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-[#12100D]/92 via-transparent to-[#12100D]/48" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/90 to-background/35 dark:from-[#12100D] dark:via-[#12100D]/66 dark:to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/95 via-background/35 to-background/50 dark:from-[#12100D]/92 dark:via-transparent dark:to-[#12100D]/48" />
       </div>
       <div
         aria-hidden="true"
@@ -55,9 +54,9 @@ export function VaultHero() {
           opacity: 0.16,
         }}
       />
-      <div className="gp-container relative grid gap-10 py-14 lg:grid-cols-12 lg:gap-12 lg:py-20">
+      <div className="gp-container relative grid items-start gap-8 py-8 sm:py-10 lg:grid-cols-12 lg:gap-12 lg:py-12">
         {/* Left — thesis */}
-        <div className="flex flex-col justify-center lg:col-span-7">
+        <div className="flex flex-col lg:col-span-7 lg:pt-8">
           <div className="flex items-center gap-3">
             <span className="h-px w-8 bg-[var(--gp-caramel)]" aria-hidden="true" />
             <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
@@ -108,7 +107,7 @@ export function VaultHero() {
 
         {/* Right — live assay ledger (real numbers when snapshot available) */}
         <div className="lg:col-span-5">
-          <div className="relative mx-auto w-full max-w-md rounded-lg border border-border bg-card p-5 shadow-[var(--gp-hard-shadow)] lg:mr-0 lg:max-w-none">
+          <div className="relative mx-auto w-full max-w-md rounded-lg border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)] sm:p-5 lg:mr-0 lg:max-w-none">
             <div className="flex items-center justify-between border-b border-border pb-3">
               <div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -125,9 +124,14 @@ export function VaultHero() {
                 className={cn(!usable && 'gp-hatch')}
               />
             </div>
+            {mcxSnapshotError ? (
+              <p role="status" className="mt-3 text-xs leading-relaxed text-[var(--gp-meta-ink)]">
+                MCX snapshot unavailable: {mcxSnapshotError}
+              </p>
+            ) : null}
 
             {/* Spot */}
-            <div className="mt-4 flex items-end justify-between gap-4 rounded-md border border-border/70 bg-background/60 px-4 py-3">
+            <div className="mt-3 flex items-end justify-between gap-3 rounded-md border border-border/70 bg-background/60 px-3 py-2.5 sm:px-4">
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
                   GOLD spot · Ahmedabad
@@ -143,7 +147,7 @@ export function VaultHero() {
             </div>
 
             {/* Contract settles */}
-            <dl className="mt-4 divide-y divide-border/70">
+            <dl className="mt-3 divide-y divide-border/70">
               <LedgerLine row={goldm} name="GOLDM" sub="100g · 995" />
               <LedgerLine row={goldten} name="GOLDTEN" sub="10g · 999" />
               <LedgerLine row={guinea} name="GOLDGUINEA" sub="8g · 999" />
@@ -151,7 +155,7 @@ export function VaultHero() {
             </dl>
 
             {/* Example verdict — explicitly fixture */}
-            <div className="mt-4 flex items-center justify-between gap-4 rounded-md border border-border/70 px-4 py-3">
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-border/70 px-3 py-2.5">
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
                   Verdict · 20 Mar 2026 (fixture)
@@ -165,7 +169,7 @@ export function VaultHero() {
 
             <p className="mt-3 flex items-center justify-between font-mono text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground/80">
               <span>Source · MCX bhavcopy via mcx_data</span>
-              <span>pricesSource · {pricesSource === 'mcx_bhavcopy' ? 'MCX settle' : pricesSource === 'parity' ? 'parity model' : 'offline'}</span>
+              <span>paper mark · {pricesSource === 'parity' ? 'indicative parity' : 'offline'}</span>
             </p>
           </div>
         </div>
@@ -184,7 +188,7 @@ function LedgerLine({
   sub: string
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-4 py-2.5">
+    <div className="flex items-baseline justify-between gap-3 py-2">
       <div className="min-w-0">
         <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.1em] text-foreground">
           {name}

@@ -29,6 +29,69 @@ export function TickerTape() {
   const hasMcxSnapshot = mcxLive || mcxStale
   const b = feed?.benchmarks
 
+  const tapeItems = (
+    <>
+      {hasMcxSnapshot && mcxSnapshot?.spot ? (
+        <>
+          <span>
+            GOLD SPOT{' '}
+            <strong className="font-semibold text-[var(--gp-caramel)]">
+              ₹{Number(mcxSnapshot.spot.price).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </strong>
+          </span>
+          <Dot />
+        </>
+      ) : null}
+      {hasMcxSnapshot && mcxSnapshot?.contracts?.GOLDM?.[0] ? (
+        <>
+          <span>
+            GOLDM {mcxSnapshot.contracts.GOLDM[0].expiryDate}{' '}
+            <strong className="font-semibold text-foreground">
+              ₹{Number(mcxSnapshot.contracts.GOLDM[0].close).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </strong>
+          </span>
+          <Dot />
+        </>
+      ) : null}
+      {isLive && b ? (
+        <>
+          <span>
+            XAU/USD{' '}
+            <strong className="font-medium text-foreground">{b.xauUsd !== null ? `$${b.xauUsd.toFixed(0)}` : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            COMEX{' '}
+            <strong className="font-medium text-foreground">{b.comexGcUsd !== null ? `$${b.comexGcUsd.toFixed(0)}` : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            USD/INR{' '}
+            <strong className="font-medium text-foreground">{b.usdInr !== null ? b.usdInr.toFixed(2) : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            10g PARITY{' '}
+            <strong className="font-medium text-foreground">
+              {b.landedSpotParity10gInr !== null ? inr(b.landedSpotParity10gInr, 0) : 'N/A'}
+            </strong>
+          </span>
+          <Dot />
+          <span>
+            GOLDBEES{' '}
+            <strong className="font-medium text-foreground">{b.goldBeesInr !== null ? `₹${b.goldBeesInr.toFixed(2)}` : 'N/A'}</strong>
+          </span>
+        </>
+      ) : (
+        <span>
+          {loading
+            ? 'Fetching benchmark tape…'
+            : 'Benchmark feed unreachable — historical 18-month bhavcopy archive active.'}
+        </span>
+      )}
+    </>
+  )
+
   return (
     <div className="border-b border-border/80 bg-[var(--gp-vellum)]/60 backdrop-blur-sm dark:bg-[#1a1512]">
       <div className="mx-auto flex max-w-[1360px] items-stretch px-4">
@@ -64,66 +127,17 @@ export function TickerTape() {
           />
         </button>
 
-        <div className="flex flex-1 items-center overflow-x-auto">
-          <div className="flex items-center gap-5 whitespace-nowrap px-4 py-2 font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {hasMcxSnapshot && mcxSnapshot?.spot ? (
-              <>
-                <span>
-                  GOLD SPOT{' '}
-                  <strong className="font-semibold text-[var(--gp-caramel)]">
-                    ₹{Number(mcxSnapshot.spot.price).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                  </strong>
-                </span>
-                <Dot />
-              </>
-            ) : null}
-            {hasMcxSnapshot && mcxSnapshot?.contracts?.GOLDM?.[0] ? (
-              <>
-                <span>
-                  GOLDM {mcxSnapshot.contracts.GOLDM[0].expiryDate}{' '}
-                  <strong className="font-semibold text-foreground">
-                    ₹{Number(mcxSnapshot.contracts.GOLDM[0].close).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                  </strong>
-                </span>
-                <Dot />
-              </>
-            ) : null}
-            {isLive && b ? (
-              <>
-                <span>
-                  XAU/USD{' '}
-                  <strong className="font-medium text-foreground">{b.xauUsd !== null ? `$${b.xauUsd.toFixed(0)}` : 'N/A'}</strong>
-                </span>
-                <Dot />
-                <span>
-                  COMEX{' '}
-                  <strong className="font-medium text-foreground">{b.comexGcUsd !== null ? `$${b.comexGcUsd.toFixed(0)}` : 'N/A'}</strong>
-                </span>
-                <Dot />
-                <span>
-                  USD/INR{' '}
-                  <strong className="font-medium text-foreground">{b.usdInr !== null ? b.usdInr.toFixed(2) : 'N/A'}</strong>
-                </span>
-                <Dot />
-                <span>
-                  10g PARITY{' '}
-                  <strong className="font-medium text-foreground">
-                    {b.landedSpotParity10gInr !== null ? inr(b.landedSpotParity10gInr, 0) : 'N/A'}
-                  </strong>
-                </span>
-                <Dot />
-                <span>
-                  GOLDBEES{' '}
-                  <strong className="font-medium text-foreground">{b.goldBeesInr !== null ? `₹${b.goldBeesInr.toFixed(2)}` : 'N/A'}</strong>
-                </span>
-              </>
-            ) : (
-              <span>
-                {loading
-                  ? 'Fetching benchmark tape…'
-                  : `Benchmark feed unreachable — historical 18-month bhavcopy archive active.`}
-              </span>
-            )}
+        <div className="ticker-viewport flex min-w-0 flex-1 items-center overflow-hidden">
+          <div className="ticker-track flex w-max">
+            {[0, 1].map((copy) => (
+              <div
+                key={copy}
+                aria-hidden={copy === 1}
+                className="flex shrink-0 items-center gap-5 whitespace-nowrap py-2 pl-4 pr-5 font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground"
+              >
+                {tapeItems}
+              </div>
+            ))}
           </div>
         </div>
       </div>

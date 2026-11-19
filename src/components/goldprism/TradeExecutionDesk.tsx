@@ -17,6 +17,8 @@ import {
 } from 'lucide-react'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
+import { TradePositionChart } from '@/components/goldprism/TradePositionChart'
+import { FirebaseAuthNotice } from '@/components/goldprism/FirebaseAuthNotice'
 import { DataTag, Metric, SectionHead, VerdictTag } from '@/components/goldprism/brand'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
 import { contractSpecs } from '@/lib/goldprism/contract-specs'
@@ -350,11 +352,7 @@ export function TradeExecutionDesk() {
                   ? 'Guest trades stay in this browser only. Sign in to sync trades across devices.'
                   : 'Checking sign-in and cloud sync…'}
             </p>
-            {authError ? (
-              <p role="alert" className="mt-1 text-xs text-destructive">
-                Firestore/Auth: {authError}
-              </p>
-            ) : null}
+            {authError ? <FirebaseAuthNotice message={authError} /> : null}
           </div>
           {!user && authReady ? (
             <button
@@ -800,6 +798,14 @@ export function TradeExecutionDesk() {
                             </p>
                           </div>
                         </div>
+
+                        <TradePositionChart
+                          symbol={pos.contractA}
+                          currentPrice={val.currentPriceA}
+                          entryPrice={pos.entryPriceA}
+                          observedAt={feed?.fetchedAt ?? null}
+                          sourceAsOf={feed?.asOf ?? null}
+                        />
 
                         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-2.5">
                           <span className="font-mono text-[10px] text-muted-foreground">

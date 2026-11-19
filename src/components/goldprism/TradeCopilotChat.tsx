@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 import { Bot, CheckCircle2, Cpu, Loader2, Send, Sparkles, X } from 'lucide-react'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
@@ -288,9 +289,28 @@ export function TradeCopilotChat({
 
 export function FloatingTradeCopilot() {
   const [open, setOpen] = React.useState(false)
+  const [homeHeroVisible, setHomeHeroVisible] = React.useState(false)
+  const pathname = usePathname()
   const prefersReduced = useReducedMotion()
   const { scrollYProgress } = useScroll()
   const spring = useSpring(scrollYProgress, { stiffness: 90, damping: 20, mass: 0.4 })
+
+  React.useEffect(() => {
+    if (pathname !== '/') {
+      setHomeHeroVisible(false)
+      return
+    }
+
+    const hero = document.getElementById('home-hero')
+    if (!hero) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHomeHeroVisible(entry.isIntersecting),
+      { rootMargin: '-80px 0px -80px 0px' }
+    )
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [pathname])
 
   // 3D "presenting the ingot" drift: yaw follows the scroll through the page,
   // pitch counters it, the mascot bobs on a half-helix — CSS perspective on the
@@ -303,6 +323,8 @@ export function FloatingTradeCopilot() {
   const motionStyle = prefersReduced
     ? {}
     : { rotateY, rotateX, y }
+
+  if (pathname === '/' && homeHeroVisible && !open) return null
 
   return (
     <div className="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5" style={{ perspective: 720 }}>
@@ -351,7 +373,7 @@ export function FloatingTradeCopilot() {
           />
           <Mascot
             alt="Trade Copilot — GoldPrism's bandaged mummy analyst"
-            className="relative h-20 w-20 object-contain drop-shadow-[0_10px_0_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:-translate-y-1.5 sm:h-24 sm:w-24"
+            className="relative h-14 w-14 object-contain drop-shadow-[0_6px_0_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:-translate-y-1 sm:h-16 sm:w-16"
           />
           {/* sheen sweep on hover */}
           <span
