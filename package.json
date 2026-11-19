@@ -24,7 +24,10 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "mcx:snapshot": "python scripts/fetch_mcx_snapshot.py --print",
+    "test:unit": "node scripts/run-unit-tests.mjs",
+    "test:all": "npm run test && npm run test:unit && npm run test:python"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -93,6 +96,7 @@
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
     "vaul": "^1.1.2",
+    "z-ai-web-dev-sdk": "^0.0.18",
     "zod": "^4.0.2",
     "zustand": "^5.0.6"
   },

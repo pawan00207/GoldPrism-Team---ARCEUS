@@ -1,11 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { Bot, CheckCircle2, Cpu, Loader2, MessageSquare, Send, Sparkles, X } from 'lucide-react'
+import { motion, useReducedMotion, useScroll, useSpring, useTransform } from 'framer-motion'
+import { Bot, CheckCircle2, Cpu, Loader2, Send, Sparkles, X } from 'lucide-react'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
 import { saveCopilotLogToCloud } from '@/lib/firebase/client'
 import { TradeIntentInput } from '@/lib/goldprism/trade-engine'
+import { Mascot } from '@/components/goldprism/Mascot'
 import { cn } from '@/lib/utils'
 
 interface CopilotMessage {
@@ -286,9 +288,24 @@ export function TradeCopilotChat({
 
 export function FloatingTradeCopilot() {
   const [open, setOpen] = React.useState(false)
+  const prefersReduced = useReducedMotion()
+  const { scrollYProgress } = useScroll()
+  const spring = useSpring(scrollYProgress, { stiffness: 90, damping: 20, mass: 0.4 })
+
+  // 3D "presenting the ingot" drift: yaw follows the scroll through the page,
+  // pitch counters it, the mascot bobs on a half-helix — CSS perspective on the
+  // wrapper sells the depth. Flattens entirely under reduced motion.
+  const rotateY = useTransform(spring, [0, 1], [14, -14])
+  const rotateX = useTransform(spring, [0, 1], [-7, 7])
+  const y = useTransform(spring, [0, 0.25, 0.5, 0.75, 1], [0, -18, 0, -14, 0])
+  const glow = useTransform(spring, [0, 0.5, 1], [0.25, 0.5, 0.3])
+
+  const motionStyle = prefersReduced
+    ? {}
+    : { rotateY, rotateX, y }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50">
+    <div className="fixed bottom-4 right-4 z-50 sm:bottom-5 sm:right-5" style={{ perspective: 720 }}>
       {open ? (
         <div className="w-[min(94vw,440px)]">
           <div className="flex items-center justify-end bg-transparent pb-1.5">
@@ -304,14 +321,49 @@ export function FloatingTradeCopilot() {
           <TradeCopilotChat />
         </div>
       ) : (
-        <button
+        <motion.button
           type="button"
           onClick={() => setOpen(true)}
-          className="gp-button gp-button--primary shadow-[var(--gp-hard-shadow)] whitespace-nowrap"
+          aria-label="Open Trade Copilot AI"
+          className="group relative block cursor-pointer rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--gp-caramel)] focus-visible:ring-offset-2"
+          style={motionStyle}
+          whileHover={prefersReduced ? undefined : { scale: 1.06, rotateZ: -1.5 }}
+          whileTap={prefersReduced ? undefined : { scale: 0.94 }}
+          transition={{ type: 'spring', stiffness: 260, damping: 18 }}
         >
-          <MessageSquare className="h-4 w-4" />
-          Trade Copilot AI
-        </button>
+          {/* ingot glow — breathes with scroll position */}
+          {prefersReduced ? null : (
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 h-[115%] w-[115%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                opacity: glow,
+                background:
+                  'radial-gradient(closest-side, var(--gp-caramel) 0%, transparent 68%)',
+                filter: 'blur(14px)',
+              }}
+            />
+          )}
+          {/* depth shadow stack — sells the 3D */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-x-2 -bottom-1 h-4 rounded-full bg-black/45 blur-md"
+          />
+          <Mascot
+            alt="Trade Copilot — GoldPrism's bandaged mummy analyst"
+            className="relative h-20 w-20 object-contain drop-shadow-[0_10px_0_rgba(0,0,0,0.25)] transition-transform duration-300 group-hover:-translate-y-1.5 sm:h-24 sm:w-24"
+          />
+          {/* sheen sweep on hover */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 overflow-hidden rounded-2xl"
+          >
+            <span className="absolute -left-full top-0 h-full w-2/3 -skew-x-12 bg-gradient-to-r from-transparent via-white/45 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-[320%]" />
+          </span>
+          <span className="pointer-events-none absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-[var(--gp-caramel)]/70 bg-[var(--gp-crucible)]/90 px-2 py-0.5 font-mono text-[8px] uppercase tracking-[0.14em] text-[var(--gp-paper)] shadow-[var(--gp-hard-shadow)] backdrop-blur-sm">
+            Trade Copilot AI
+          </span>
+        </motion.button>
       )}
     </div>
   )

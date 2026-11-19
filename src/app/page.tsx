@@ -1,146 +1,136 @@
 import Link from 'next/link'
 import {
   ArrowRight,
-  BookOpen,
-  Bot,
-  FlaskConical,
-  History,
-  Layers3,
+  ArrowUpRight,
+  FileCheck2,
+  ScanLine,
   Scale,
-  Wrench,
-  Zap,
+  ShieldCheck,
 } from 'lucide-react'
-import { GoldPrismHeader } from '@/components/goldprism/GoldPrismHeader'
-import { HomeFeaturesShowcase } from '@/components/goldprism/HomeFeaturesShowcase'
 import { SiteShell } from '@/components/goldprism/SiteShell'
-import { SpectralRule } from '@/components/goldprism/brand'
+import { VaultHero } from '@/components/goldprism/VaultHero'
+import { Reveal } from '@/components/goldprism/Reveal'
 
-const pathways = [
+const SEQUENCE = [
   {
-    href: '/xray',
-    icon: Layers3,
     index: '01',
-    eyebrow: 'Decision surface',
-    title: 'X-Ray the spread',
-    description:
-      'Decompose a live or historical gap into basis, carry, settlement artifact, statutory costs, and net edge — then execute in 1 click.',
+    href: '/research#data-health',
+    icon: FileCheck2,
+    title: 'Validate the file',
+    body: 'Hash, schema, date-match and duplicate gates. Nothing trades until the data is proven.',
   },
   {
-    href: '/trade',
-    icon: Zap,
     index: '02',
-    eyebrow: 'One-click execution',
-    title: 'Trade & hedge in one click',
-    description:
-      'See every contract gram, margin block, statutory fee, and X-Ray verdict in plain English before clicking Execute, with live MTM P&L.',
-  },
-  {
     href: '/normalization',
     icon: Scale,
+    title: 'Normalize to 999',
+    body: 'Convert 100g·995, 1g, 8g and 10g onto one pure-gold scale before any spread is computed.',
+  },
+  {
     index: '03',
-    eyebrow: 'Equivalence engine',
-    title: 'Normalize 4 MCX contracts',
-    description:
-      'Convert 1g, 8g, 10g, and 100g contracts across 995 and 999 purity onto one 10g pure-gold scale using live parity or Bhavcopy.',
+    href: '/xray',
+    icon: ScanLine,
+    title: 'Name the structure',
+    body: 'Basis, expiry carry, settlement artifact — each component charged, reconciled to 0.01 ₹/g.',
   },
   {
-    href: '/replay',
-    icon: History,
     index: '04',
-    eyebrow: 'Zero look-ahead audit',
-    title: 'Replay point-in-time history',
-    description:
-      'Pick any date in the 18-month MCX Bhavcopy archive and inspect only information strictly known on or before that timestamp.',
-  },
-  {
-    href: '/analyst',
-    icon: Bot,
-    index: '05',
-    eyebrow: 'Grounded co-pilot',
-    title: 'Ask the Research Analyst',
-    description:
-      'Deterministic tool-calling quant analyst grounded strictly in verified Bhavcopy data, X-Ray outputs, and MCX contract specs.',
-  },
-  {
-    href: '/research',
-    icon: FlaskConical,
-    index: '06',
-    eyebrow: 'Market structure',
-    title: 'Inspect the evidence',
-    description:
-      'Review contract specifications, data quality gates, exposure matching, term structure, and cost-sensitivity backtests.',
-  },
-  {
-    href: '/methodology',
-    icon: BookOpen,
-    index: '07',
-    eyebrow: 'Audit trail',
-    title: 'Read the method',
-    description:
-      'Understand every mathematical formula, fee schedule, reconciliation check, and exportable research record.',
-  },
-  {
-    href: '/workspace',
-    icon: Wrench,
-    index: '08',
-    eyebrow: 'Research workspace',
-    title: 'Explore full quant suite',
-    description:
-      'Access factor dashboards, cointegration heatmaps, alpha zoo scanners, and preserved strategy workbenches.',
+    href: '/trade',
+    icon: ShieldCheck,
+    title: 'Refuse or trade',
+    body: 'Full statutory cost first. If the residual does not survive, the verdict is NO EDGE.',
   },
 ]
 
 export default function Home() {
   return (
     <SiteShell>
-      <GoldPrismHeader />
-      <HomeFeaturesShowcase />
+      <VaultHero />
+
+      {/* The audit sequence */}
       <section className="border-b border-border bg-background">
-        <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
-          <div className="flex flex-col gap-4 border-b border-border pb-5 lg:flex-row lg:items-end lg:justify-between">
-            <div className="max-w-2xl">
-              <p className="gp-kicker">Terminal Directory · Surfaces &amp; Research</p>
-              <h2 className="gp-title mt-2 text-balance">
-                Direct navigation across execution, verification, and audit modules.
+        <div className="gp-container py-14 lg:py-16">
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+                The sequence
+              </p>
+              <h2
+                className="mt-3 font-serif text-3xl font-medium leading-tight text-foreground sm:text-4xl"
+                style={{ fontVariationSettings: '"SOFT" 40, "opsz" 60' }}
+              >
+                Four steps, in order,<br />
+                <span className="italic font-normal text-[var(--gp-caramel)]">no shortcuts.</span>
               </h2>
             </div>
-            <p className="max-w-md text-xs leading-relaxed text-muted-foreground lg:text-right">
-              Every module reads from the same parity feed, contract master, and statutory cost
-              schedule—zero disconnected tools.
-            </p>
+            <Link
+              href="/methodology"
+              className="group inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Read the full method
+              <ArrowUpRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" aria-hidden="true" />
+            </Link>
           </div>
 
-          <div className="gp-stagger mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {pathways.map((pathway) => {
-              const Icon = pathway.icon
+          <ol className="mt-10 grid gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2 lg:grid-cols-4">
+            {SEQUENCE.map((step) => {
+              const Icon = step.icon
               return (
-                <Link
-                  key={pathway.href}
-                  href={pathway.href}
-                  className="group relative flex flex-col justify-between rounded-[4px] border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)] transition-colors hover:border-[var(--gp-gold-500)] hover:bg-[var(--gp-gold-50)]/40 dark:hover:bg-[var(--gp-gold-900)]/20"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[10px] font-medium tracking-[0.11em] text-[var(--gp-gold-ink)]">
-                        {pathway.index} · {pathway.eyebrow}
+                <li key={step.index} className="bg-card transition-colors hover:bg-[var(--gp-vellum)] dark:hover:bg-[#2a2018]">
+                  <Link href={step.href} className="group flex h-full flex-col gap-8 p-6">
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="font-serif text-3xl font-normal text-border transition-colors duration-300 group-hover:text-[var(--gp-caramel)]"
+                        style={{ fontVariationSettings: '"SOFT" 100, "opsz" 80' }}
+                      >
+                        {step.index}
                       </span>
-                      <Icon className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
+                      <Icon className="h-5 w-5 text-muted-foreground transition-colors duration-300 group-hover:text-[var(--gp-caramel)]" aria-hidden="true" strokeWidth={1.75} />
                     </div>
-                    <h3 className="gp-ledger mt-3 text-base text-foreground">{pathway.title}</h3>
-                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                      {pathway.description}
-                    </p>
-                  </div>
-
-                  <div className="mt-4 flex items-center justify-between border-t border-border pt-2.5 font-mono text-[10px] uppercase tracking-[0.09em] text-muted-foreground group-hover:text-foreground">
-                    <span>Open surface</span>
-                    <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5" />
-                  </div>
-                </Link>
+                    <div>
+                      <p className="font-serif text-xl text-foreground">{step.title}</p>
+                      <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                        {step.body}
+                      </p>
+                    </div>
+                    <span className="mt-auto inline-flex items-center gap-1.5 font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground/80 transition-colors group-hover:text-[var(--gp-caramel)]">
+                      Open <ArrowRight className="h-3 w-3" aria-hidden="true" />
+                    </span>
+                  </Link>
+                </li>
               )
             })}
-          </div>
+          </ol>
         </div>
+      </section>
+
+      {/* Closing band */}
+      <section className="border-b border-border bg-[var(--gp-vellum)]/40 dark:bg-[#1a1512]">
+        <Reveal>
+          <div className="gp-container flex flex-col items-center gap-6 py-14 text-center lg:py-20">
+            <p className="font-mono text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+              Verdict before velocity
+            </p>
+            <h2
+              className="max-w-3xl text-balance font-serif text-3xl font-medium leading-tight text-foreground sm:text-5xl"
+              style={{ fontVariationSettings: '"SOFT" 50, "opsz" 100' }}
+            >
+              If the answer is not trade,<br />
+              <span className="italic font-normal text-[var(--gp-caramel)]">it cannot be trade.</span>
+            </h2>
+            <p className="max-w-md text-[15px] leading-relaxed text-muted-foreground">
+              Walk any historical day — watch the gate fire, the carry close, and the
+              costs keep what was never yours.
+            </p>
+            <Link
+              href="/replay"
+              className="group inline-flex h-12 items-center gap-2 rounded-md bg-[var(--gp-caramel)] px-7 font-mono text-[11px] uppercase tracking-[0.16em] text-[#141010] transition-all hover:bg-[#e8bd8a]"
+            >
+              Watch the gate fire
+              <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" aria-hidden="true" />
+            </Link>
+          </div>
+        </Reveal>
       </section>
     </SiteShell>
   )

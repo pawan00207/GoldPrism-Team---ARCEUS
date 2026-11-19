@@ -43,6 +43,7 @@
     "skills",
     "scripts",
     "research",
-    "tests"
+    "tests",
+    "theme.template.ts"
   ]
 }

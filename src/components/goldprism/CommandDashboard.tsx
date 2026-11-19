@@ -285,18 +285,18 @@ export function CommandDashboard() {
   // Signed-Out Authentication Gate
   if (authReady && !user && !guestBypass) {
     return (
-      <section className="relative overflow-hidden border-b border-border bg-background">
+      <section className="relative flex min-h-[calc(100svh-9rem)] overflow-hidden border-b border-border bg-background">
         <div className="pointer-events-none absolute inset-0 z-0" aria-hidden="true">
           <img
             src="/assets/aistudio/image_4b7aab2b.png"
             alt=""
-            className="h-full w-full object-cover object-right opacity-[0.22] dark:opacity-[0.20]"
+            className="h-full w-full object-cover object-right opacity-[0.25] dark:opacity-[0.22]"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-[#F7F4EC] via-[#F7F4EC]/92 to-[#F7F4EC]/72 dark:from-[#171613] dark:via-[#171613]/92 dark:to-[#171613]/75" />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#F7F4EC] via-transparent to-[#F7F4EC]/40 dark:from-[#171613] dark:via-transparent dark:to-[#171613]/45" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#FFFCF7] via-[#FFFCF7]/92 to-[#FFFCF7]/65 dark:from-[#12100D] dark:via-[#12100D]/92 dark:to-[#12100D]/60" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#FFFCF7] via-transparent to-[#FFFCF7]/40 dark:from-[#12100D] dark:via-transparent dark:to-[#12100D]/45" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-[1360px] px-4 py-10 md:py-14">
+        <div className="relative z-10 mx-auto flex w-full max-w-[1360px] items-center px-4 py-10 md:py-14">
           <div className="grid gap-8 lg:grid-cols-[minmax(0,52%)_minmax(0,48%)] lg:items-center">
             <div>
               <p className="gp-kicker text-[var(--gp-gold-ink)]">Authenticated Workspace · Cloud Synced</p>
