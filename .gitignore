@@ -70,3 +70,5 @@ __pycache__/
 
 # brand kit (not part of the project)
 /GoldPrism Brand Kit.html/
+
+.vercel
