@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
+import { FirebaseAuthNotice } from '@/components/goldprism/FirebaseAuthNotice'
 import { Mascot } from '@/components/goldprism/Mascot'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { inr } from '@/lib/goldprism/format'
@@ -160,7 +161,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const { resolvedTheme, setTheme } = useTheme()
-  const { user, authBusy, signInWithGoogle } = useLiveFeed()
+  const { user, authBusy, authError, signInWithGoogle } = useLiveFeed()
   const [mounted, setMounted] = React.useState(false)
   const [mobileOpen, setMobileOpen] = React.useState(false)
   const pathname = usePathname()
@@ -287,6 +288,12 @@ export function Navbar() {
           </div>
         </div>
       </header>
+
+      {authError ? (
+        <div className="mx-auto max-w-[1360px] px-4 sm:px-6" role="status" aria-live="polite">
+          <FirebaseAuthNotice message={authError} />
+        </div>
+      ) : null}
 
       {mobileOpen && (
         <div className="fixed left-0 right-0 top-16 z-40 border-b border-border bg-background/98 shadow-[var(--gp-hard-shadow)] backdrop-blur-lg lg:hidden">
