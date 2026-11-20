@@ -6,6 +6,10 @@ import { useGoldMarket } from '@/hooks/use-gold-market'
 import { useMcxMarketWatch } from '@/hooks/use-mcx-market-watch'
 import { pricePerGramInr } from '@/lib/goldprism/gold-market'
 import { buildWalletCatalog } from '@/lib/goldprism/wallet-catalog'
+import {
+  isValidWalletPaymentAmount,
+  WALLET_PAYMENT_CONFIG,
+} from '@/lib/goldprism/wallet-config'
 
 const STORAGE_KEY = 'goldprism-token-wallet-v1'
 
@@ -167,6 +171,7 @@ export function GoldTokenWallet() {
   const [wallet, setWallet] = React.useState<WalletData>(EMPTY_WALLET)
   const [storageReady, setStorageReady] = React.useState(false)
   const [storageError, setStorageError] = React.useState<string | null>(null)
+  const [paymentAmountInput, setPaymentAmountInput] = React.useState('')
   const [paymentAmount, setPaymentAmount] = React.useState<number | null>(null)
   const [paymentBusy, setPaymentBusy] = React.useState(false)
   const [swapAmount, setSwapAmount] = React.useState('')
@@ -426,6 +431,13 @@ export function GoldTokenWallet() {
   const usdtQuote = live && Number(swapAmount) > 0
     ? Number(swapAmount) * (live.paxg.usd / 31.1035)
     : 0
+  const enteredPaymentAmount = paymentAmountInput.trim()
+  const parsedPaymentAmount = /^\d+(?:\.\d{1,2})?$/.test(enteredPaymentAmount)
+    ? Number(enteredPaymentAmount)
+    : Number.NaN
+  const selectedPaymentAmount = isValidWalletPaymentAmount(parsedPaymentAmount)
+    ? parsedPaymentAmount
+    : null
   const actionsDisabled = !storageReady || !!storageError
 
   return (
@@ -465,23 +477,77 @@ export function GoldTokenWallet() {
         <div className="rounded-md border border-border bg-card p-4 sm:p-5">
           <div>
             <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">01 · Pay to credit demo wallet</p>
-            <h2 className="mt-1 font-serif text-2xl text-foreground">Choose a test amount</h2>
+            <h2 className="mt-1 font-serif text-2xl text-foreground">Set your payment amount</h2>
             <p className="mt-1 text-xs text-muted-foreground">A browser-local demo credit is calculated only after Razorpay verifies a captured test payment, using the current PAXG INR / gram quote.</p>
           </div>
+          <div className="mt-4">
+            <label htmlFor="wallet-payment-amount" className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
+              Amount in INR
+            </label>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <div className="flex h-11 min-w-0 flex-1 items-center rounded-sm border border-border bg-background px-3">
+                <span className="mr-2 font-mono text-sm text-muted-foreground">₹</span>
+                <input
+                  id="wallet-payment-amount"
+                  type="number"
+                  min={WALLET_PAYMENT_CONFIG.minAmountInr}
+                  max={WALLET_PAYMENT_CONFIG.maxAmountInr}
+                  step="0.01"
+                  inputMode="decimal"
+                  value={paymentAmountInput}
+                  onChange={(event) => {
+                    setPaymentAmountInput(event.target.value)
+                    setError(null)
+                  }}
+                  placeholder="Enter amount"
+                  aria-describedby="wallet-payment-range wallet-payment-estimate"
+                  aria-invalid={paymentAmountInput !== '' && selectedPaymentAmount === null}
+                  className="h-full min-w-0 flex-1 bg-transparent font-mono text-sm text-foreground outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                disabled={actionsDisabled || !live || selectedPaymentAmount === null}
+                onClick={() => {
+                  if (selectedPaymentAmount === null) return
+                  setError(null)
+                  setPaymentAmount(selectedPaymentAmount)
+                }}
+                className="h-11 rounded-sm bg-[var(--gp-tradable-ink)] px-4 font-mono text-[9px] uppercase tracking-[0.1em] text-white disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Continue to checkout
+              </button>
+            </div>
+            <p id="wallet-payment-range" className="mt-2 text-[9px] text-muted-foreground">
+              Enter ₹{WALLET_PAYMENT_CONFIG.minAmountInr}–₹{formatNumber(WALLET_PAYMENT_CONFIG.maxAmountInr, 0)}, up to 2 decimals. Razorpay test mode only.
+            </p>
+            <p id="wallet-payment-estimate" className="mt-1 font-mono text-[9px] text-muted-foreground" aria-live="polite">
+              {selectedPaymentAmount !== null && live
+                ? `Live estimate: ${formatNumber(selectedPaymentAmount / pricePerGramInr(live.paxg.inr))} gGOLD · PAXG quote as of ${live.fetchedAt}`
+                : !live
+                  ? 'Waiting for a live PAXG quote; checkout stays disabled until pricing is available.'
+                  : paymentAmountInput
+                    ? 'Enter an amount within the range above, with up to 2 decimals.'
+                    : 'Set an amount to see its live PAXG-based gGOLD estimate.'}
+            </p>
+          </div>
+          <p className="mt-4 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">Quick select</p>
           <div className="mt-4 grid grid-cols-3 gap-2">
-            {[100, 500, 1000].map((amount) => (
+            {WALLET_PAYMENT_CONFIG.suggestedAmountsInr.map((amount) => (
               <button
                 type="button"
                 key={amount}
-                disabled={actionsDisabled || !live}
-                onClick={() => { setError(null); setPaymentAmount(amount) }}
+                disabled={actionsDisabled}
+                onClick={() => {
+                  setError(null)
+                  setPaymentAmountInput(String(amount))
+                }}
                 className="rounded-sm border border-border bg-background px-2 py-3 font-mono text-xs text-foreground transition-colors hover:border-[var(--gp-caramel)] disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Pay {inr(amount)}
+                {inr(amount)}
               </button>
             ))}
           </div>
-          {!live ? <p className="mt-3 text-[10px] text-muted-foreground">Fetching live PAXG quote; payment buttons unlock when pricing is available.</p> : null}
         </div>
 
         <div className="rounded-md border border-border bg-card p-4 sm:p-5">

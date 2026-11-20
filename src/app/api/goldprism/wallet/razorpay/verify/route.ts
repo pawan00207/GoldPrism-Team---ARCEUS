@@ -3,6 +3,10 @@ import {
   RazorpayIntegrationError,
   verifyRazorpayTestPayment,
 } from '@/lib/goldprism/razorpay'
+import {
+  isValidWalletPaymentAmount,
+  WALLET_PAYMENT_CONFIG,
+} from '@/lib/goldprism/wallet-config'
 
 export const runtime = 'nodejs'
 
@@ -10,7 +14,7 @@ const verifyRequestSchema = z.object({
   orderId: z.string().regex(/^order_[A-Za-z0-9]+$/),
   paymentId: z.string().regex(/^pay_[A-Za-z0-9]+$/),
   signature: z.string().regex(/^[\da-f]{64}$/i),
-  expectedAmountInr: z.union([z.literal(100), z.literal(500), z.literal(1000)]),
+  expectedAmountInr: z.number().refine(isValidWalletPaymentAmount),
 })
 
 export async function POST(request: Request) {

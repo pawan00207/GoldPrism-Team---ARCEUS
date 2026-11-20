@@ -3,11 +3,15 @@ import {
   createRazorpayTestOrder,
   RazorpayIntegrationError,
 } from '@/lib/goldprism/razorpay'
+import {
+  isValidWalletPaymentAmount,
+  WALLET_PAYMENT_CONFIG,
+} from '@/lib/goldprism/wallet-config'
 
 export const runtime = 'nodejs'
 
 const orderRequestSchema = z.object({
-  amountInr: z.union([z.literal(100), z.literal(500), z.literal(1000)]),
+  amountInr: z.number().refine(isValidWalletPaymentAmount),
 })
 
 export async function POST(request: Request) {
@@ -20,7 +24,12 @@ export async function POST(request: Request) {
 
   const parsed = orderRequestSchema.safeParse(payload)
   if (!parsed.success) {
-    return Response.json({ error: 'Choose ₹100, ₹500, or ₹1,000.' }, { status: 400 })
+    return Response.json(
+      {
+        error: `Enter ₹${WALLET_PAYMENT_CONFIG.minAmountInr}–₹${WALLET_PAYMENT_CONFIG.maxAmountInr.toLocaleString('en-IN')} with up to two decimal places.`,
+      },
+      { status: 400 }
+    )
   }
 
   try {

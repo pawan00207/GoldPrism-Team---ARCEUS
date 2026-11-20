@@ -1,9 +1,9 @@
 import { Buffer } from 'node:buffer'
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto'
 import { z } from 'zod'
+import { isValidWalletPaymentAmount } from './wallet-config'
 
 const RAZORPAY_API = 'https://api.razorpay.com/v1'
-const ALLOWED_AMOUNTS_INR = [100, 500, 1000] as const
 const ORDER_TIMEOUT_MS = 10_000
 
 const orderResponseSchema = z.object({
@@ -90,12 +90,15 @@ export async function createRazorpayTestOrder(
   amountInr: number,
   fetcher: typeof fetch = fetch
 ): Promise<{ orderId: string; amountPaise: number; currency: 'INR'; keyId: string }> {
-  if (!(ALLOWED_AMOUNTS_INR as readonly number[]).includes(amountInr)) {
-    throw new RazorpayIntegrationError('Choose a supported wallet payment amount.', 400)
+  if (!isValidWalletPaymentAmount(amountInr)) {
+    throw new RazorpayIntegrationError(
+      'Enter an amount between ₹1 and ₹1,00,000 with up to two decimal places.',
+      400
+    )
   }
 
   const credentials = getTestCredentials()
-  const amountPaise = amountInr * 100
+  const amountPaise = Math.round(amountInr * 100)
   const response = await razorpayRequest(
     '/orders',
     'POST',
@@ -155,8 +158,11 @@ export async function verifyRazorpayTestPayment(
   },
   fetcher: typeof fetch = fetch
 ): Promise<{ orderId: string; paymentId: string; amountInr: number }> {
-  if (!(ALLOWED_AMOUNTS_INR as readonly number[]).includes(input.expectedAmountInr)) {
-    throw new RazorpayIntegrationError('The requested payment amount is invalid.', 400)
+  if (!isValidWalletPaymentAmount(input.expectedAmountInr)) {
+    throw new RazorpayIntegrationError(
+      'The expected amount must be between ₹1 and ₹1,00,000 with up to two decimal places.',
+      400
+    )
   }
 
   const credentials = getTestCredentials()
@@ -179,7 +185,7 @@ export async function verifyRazorpayTestPayment(
   }
 
   const parsed = paymentResponseSchema.safeParse(response.payload)
-  const expectedPaise = input.expectedAmountInr * 100
+  const expectedPaise = Math.round(input.expectedAmountInr * 100)
   if (
     !parsed.success ||
     parsed.data.id !== input.paymentId ||

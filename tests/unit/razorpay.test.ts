@@ -71,6 +71,32 @@ test('Razorpay test order sends a validated INR amount using server-only credent
   })
 })
 
+test('Razorpay test orders accept custom amounts with paise and reject invalid bounds', async () => {
+  await withTestCredentials(async () => {
+    let called = false
+    const fetcher: typeof fetch = async (_input, init) => {
+      called = true
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>
+      assert.equal(body.amount, 257_550)
+      return Response.json({ id: 'order_customfixture', amount: 257_550, currency: 'INR' })
+    }
+
+    const order = await createRazorpayTestOrder(2575.5, fetcher)
+    assert.equal(order.amountPaise, 257_550)
+    assert.equal(order.orderId, 'order_customfixture')
+    assert.equal(called, true)
+
+    called = false
+    for (const invalidAmount of [0.99, -1, 1.001, 100_000.01, 100_001]) {
+      await assert.rejects(
+        createRazorpayTestOrder(invalidAmount, fetcher),
+        /up to two decimal places/
+      )
+    }
+    assert.equal(called, false)
+  })
+})
+
 test('Razorpay signature verification rejects tampered signatures', () => {
   const signature = createHmac('sha256', TEST_KEY_SECRET)
     .update('order_testfixture|pay_testfixture')
@@ -94,7 +120,7 @@ test('only captured payments matching the Razorpay order can verify', async () =
       return Response.json({
         id: paymentId,
         order_id: orderId,
-        amount: 50_000,
+        amount: 72_525,
         currency: 'INR',
         status: 'captured',
         captured: true,
@@ -102,10 +128,10 @@ test('only captured payments matching the Razorpay order can verify', async () =
     }
 
     const verified = await verifyRazorpayTestPayment(
-      { orderId, paymentId, signature, expectedAmountInr: 500 },
+      { orderId, paymentId, signature, expectedAmountInr: 725.25 },
       fetcher
     )
-    assert.deepEqual(verified, { orderId, paymentId, amountInr: 500 })
+    assert.deepEqual(verified, { orderId, paymentId, amountInr: 725.25 })
 
     await assert.rejects(
       verifyRazorpayTestPayment(
