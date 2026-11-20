@@ -32,7 +32,7 @@ export interface NormalizationTrace {
   quoteUnitG: number;
   unadjustedPricePerG: number; // quotedPrice / quoteUnitG
   purityFine: number;
-  purityRatio: number;        // purityFine / 999.0
+  purityRatio: number;        // grams of quoted metal containing 0.999g of fine gold
   normalizedPricePerG: number; // unadjustedPricePerG * purityRatio
   formula: string;
   stepByStep: string[];
@@ -56,7 +56,7 @@ export const CONTRACT_MASTER: Record<SupportedContractCode, ContractSpec> = {
     verificationStatus: 'VERIFIED',
     sourceReference: 'MCX GOLDM Contract Specification — official circular',
     sourceDate: '2024-10-01',
-    notes: '100g trading unit. Quoted per 10g. Purity 995/1000 (22 carat equivalent). Early month expiry (3rd-5th).',
+    notes: '100g trading unit. Quoted per 10g. Fineness 995/1000. Use the listed contract expiry.',
   },
   GOLDTEN: {
     contractCode: 'GOLDTEN',
@@ -67,11 +67,11 @@ export const CONTRACT_MASTER: Record<SupportedContractCode, ContractSpec> = {
     lotSize: 1,
     tickSizeInr: 1.0,
     expiryWindow: '27th–31st of expiry month',
-    effectiveFrom: '2016-01-01',
+    effectiveFrom: '2025-04-01',
     effectiveTo: null,
     verificationStatus: 'VERIFIED',
-    sourceReference: 'MCX GOLDTEN Contract Specification — official circular',
-    sourceDate: '2024-10-01',
+    sourceReference: 'MCX/TRD/134/2025 · https://www.mcxindia.com/en/products/bullion/gold',
+    sourceDate: '2025-03-18',
     notes: '10g trading unit. Quoted per 10g. Purity 999/1000 (24 carat, 99.9% fine). Month-end expiry.',
   },
   GOLDGUINEA: {
@@ -124,19 +124,19 @@ export function getAllContractSpecs(): ContractSpec[] {
  * Normalizes quoted price to INR per gram of 999-fine gold.
  *
  * Formula:
- *   price_999_per_g = (price_quoted / quote_unit_g) * (purity_fine / 999.0)
+ *   price_999_per_g = (price_quoted / quote_unit_g) * (999 / purity_fine)
  */
 export function normalizePriceTo999(
   quotedPrice: number,
   contractCode: string
 ): { normalizedPrice: number; trace: NormalizationTrace } {
   const spec = getContractSpec(contractCode);
-  if (quotedPrice <= 0) {
+  if (!Number.isFinite(quotedPrice) || quotedPrice <= 0) {
     throw new Error(`Invalid non-positive price for ${contractCode}: ${quotedPrice}`);
   }
 
   const unadjustedPricePerG = quotedPrice / spec.quoteUnitG;
-  const purityRatio = spec.purityFine / 999.0;
+  const purityRatio = 999 / spec.purityFine;
   const normalizedPricePerG = unadjustedPricePerG * purityRatio;
 
   const trace: NormalizationTrace = {
@@ -147,11 +147,11 @@ export function normalizePriceTo999(
     purityFine: spec.purityFine,
     purityRatio: Number(purityRatio.toFixed(6)),
     normalizedPricePerG: Number(normalizedPricePerG.toFixed(4)),
-    formula: `(${quotedPrice} / ${spec.quoteUnitG}) × (${spec.purityFine} / 999.0) = ${normalizedPricePerG.toFixed(4)} ₹/g`,
+    formula: `(${quotedPrice} / ${spec.quoteUnitG}) × (999 / ${spec.purityFine}) = ${normalizedPricePerG.toFixed(4)} ₹/g`,
     stepByStep: [
       `1. Base Quoted Price: ₹${quotedPrice.toFixed(2)} per ${spec.quoteUnitG}g`,
       `2. Divide by Quote Unit: ₹${quotedPrice.toFixed(2)} / ${spec.quoteUnitG}g = ₹${unadjustedPricePerG.toFixed(4)}/g (${spec.purityFine} purity)`,
-      `3. Purity Adjustment Factor: ${spec.purityFine} / 999.0 = ${purityRatio.toFixed(6)}`,
+      `3. Purity adjustment factor: 999 / ${spec.purityFine} = ${purityRatio.toFixed(6)}`,
       `4. Final 999-Fine Equivalent: ₹${normalizedPricePerG.toFixed(4)} / gram`,
     ],
   };

@@ -10,12 +10,113 @@ import { BrandMark } from '@/components/goldprism/brand'
 import { cn } from '@/lib/utils'
 
 export function TickerTape() {
+<<<<<<< Updated upstream
   return (
     <div className="border-b border-border bg-card">
       <div className="mx-auto flex max-w-[1200px] items-stretch px-4">
         <div className="gp-hatch flex shrink-0 items-center border-x border-border px-3 py-2">
           <span className="font-mono text-[11px] font-medium uppercase tracking-[0.14em] text-foreground">
             Fixture data
+=======
+  const { feed, mcxSnapshot, loading, refreshing, refreshFeed, tickCount } = useLiveFeed()
+  const isLive = feed?.status === 'LIVE_PARITY'
+  const mcxEod = mcxSnapshot?.status === 'MCX_EOD'
+  const mcxStale = mcxSnapshot?.status === 'MCX_STALE'
+  const hasMcxSnapshot = mcxEod || mcxStale
+  const b = feed?.benchmarks
+
+  const tapeItems = (
+    <>
+      {hasMcxSnapshot && mcxSnapshot?.spot ? (
+        <>
+          <span>
+            GOLD SPOT{' '}
+            <strong className="font-semibold text-[var(--gp-caramel)]">
+              ₹{Number(mcxSnapshot.spot.price).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </strong>
+          </span>
+          <Dot />
+        </>
+      ) : null}
+      {hasMcxSnapshot && mcxSnapshot?.contracts?.GOLDM?.[0] ? (
+        <>
+          <span>
+            GOLDM {mcxSnapshot.contracts.GOLDM[0].expiryDate}{' '}
+            <strong className="font-semibold text-foreground">
+              ₹{Number(mcxSnapshot.contracts.GOLDM[0].close).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
+            </strong>
+          </span>
+          <Dot />
+        </>
+      ) : null}
+      {isLive && b ? (
+        <>
+          <span>
+            XAU/USD{' '}
+            <strong className="font-medium text-foreground">{b.xauUsd !== null ? `$${b.xauUsd.toFixed(0)}` : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            COMEX{' '}
+            <strong className="font-medium text-foreground">{b.comexGcUsd !== null ? `$${b.comexGcUsd.toFixed(0)}` : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            USD/INR{' '}
+            <strong className="font-medium text-foreground">{b.usdInr !== null ? b.usdInr.toFixed(2) : 'N/A'}</strong>
+          </span>
+          <Dot />
+          <span>
+            10g PARITY{' '}
+            <strong className="font-medium text-foreground">
+              {b.landedSpotParity10gInr !== null ? inr(b.landedSpotParity10gInr, 0) : 'N/A'}
+            </strong>
+          </span>
+          <Dot />
+          <span>
+            GOLDBEES{' '}
+            <strong className="font-medium text-foreground">{b.goldBeesInr !== null ? `₹${b.goldBeesInr.toFixed(2)}` : 'N/A'}</strong>
+          </span>
+        </>
+      ) : (
+        <span>
+          {loading
+            ? 'Fetching benchmark tape…'
+            : 'Benchmark feed unreachable — historical 18-month bhavcopy archive active.'}
+        </span>
+      )}
+    </>
+  )
+
+  return (
+    <div className="border-b border-border/80 bg-[var(--gp-vellum)]/60 backdrop-blur-sm dark:bg-[#1a1512]">
+      <div className="mx-auto flex max-w-[1360px] items-stretch px-4">
+        <button
+          type="button"
+          onClick={() => refreshFeed(true)}
+          title="Refresh live market feed"
+          className="group flex shrink-0 items-center gap-2 border-r border-border/70 py-2 pl-0 pr-4 transition-colors hover:text-[var(--gp-caramel)]"
+        >
+          <span
+            className={cn(
+              'inline-block h-1.5 w-1.5 rounded-full',
+              isLive
+                ? 'animate-pulse bg-[var(--gp-tradable-ink)]'
+                : 'bg-[var(--gp-meta-ink)]'
+            )}
+            aria-hidden="true"
+          />
+          <span className="whitespace-nowrap font-mono text-[10px] font-medium uppercase tracking-[0.13em] text-foreground">
+            {mcxEod
+              ? 'MCX daily close'
+              : mcxStale
+                ? 'MCX stale'
+              : isLive
+                ? `Live parity #${tickCount}`
+                : loading
+                  ? 'Connecting'
+                  : 'Feed offline'}
+>>>>>>> Stashed changes
           </span>
         </div>
         <div className="flex flex-1 items-center overflow-hidden">

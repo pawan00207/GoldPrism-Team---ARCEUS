@@ -8,7 +8,7 @@
  * 2. Exchange Charges: MCX fee schedule on turnover (both legs)
  * 3. CTT (Commodity Transaction Tax): 0.01% on SELL side only (Finance Act 2013)
  * 4. SEBI Turnover Charges: 0.0001% on turnover (both legs)
- * 5. GST: 18% on (Brokerage + Exchange fees)
+ * 5. GST: 18% on (Brokerage + SEBI charges + Exchange fees)
  * 6. Stamp Duty: 0.002% on BUY side only (State stamp duty rule)
  * 7. Slippage: Basis-point execution friction per leg
  *
@@ -22,7 +22,7 @@ export interface CostModelConfig {
   brokerageVerified: boolean;
   brokerageSource: string;
 
-  exchangeChargeRate: number;    // e.g. 0.000026 (0.0026%)
+  exchangeChargeRate: number;    // e.g. 0.000021 (0.0021%)
   exchangeChargeVerified: boolean;
   exchangeChargeSource: string;
 
@@ -49,12 +49,12 @@ export interface CostModelConfig {
 
 export const DEFAULT_COST_CONFIG: CostModelConfig = {
   brokeragePerLotInr: 30.0,
-  brokerageVerified: true,
-  brokerageSource: 'Typical discount broker flat fee per order/lot (e.g. Zerodha/Groww/Fyers)',
+  brokerageVerified: false,
+  brokerageSource: 'Scenario assumption of ₹30 per lot per side. Replace with the actual brokerage tariff.',
 
-  exchangeChargeRate: 0.000026,
+  exchangeChargeRate: 0.000021,
   exchangeChargeVerified: true,
-  exchangeChargeSource: 'MCX official commodity futures transaction charge schedule (₹260 per Cr)',
+  exchangeChargeSource: 'MCX commodity futures · https://support.zerodha.com/category/account-opening/resident-individual/ri-charges/articles/exchange-transaction-charges',
 
   cttRate: 0.0001,
   cttVerified: true,
@@ -66,15 +66,15 @@ export const DEFAULT_COST_CONFIG: CostModelConfig = {
 
   gstRate: 0.18,
   gstVerified: true,
-  gstSource: 'GST Act — 18% on financial brokerage and exchange service fees',
+  gstSource: 'Published brokerage, SEBI and transaction charge tax base · https://zerodha.com/charges',
 
   stampDutyRate: 0.00002,
   stampDutyVerified: true,
-  stampDutySource: 'Indian Stamp Act (Maharashtra schedule) — 0.002% on commodity futures buy-side',
+  stampDutySource: 'Commodity futures buy-side stamp duty · https://zerodha.com/charges',
 
   slippageBps: 2.0,
-  slippageVerified: true,
-  slippageSource: 'Empirical estimate of top-of-book half-spread impact during liquid MCX hours',
+  slippageVerified: false,
+  slippageSource: 'Scenario assumption per execution side',
 };
 
 export interface TransactionCostBreakdown {
@@ -125,8 +125,8 @@ export function calculateTransactionCosts(
   // SEBI turnover charge: both sides
   const sebiChargeInr = tradeValueOneSide * config.sebiChargeRate * 2;
 
-  // GST: 18% on (Brokerage + Exchange fees)
-  const gstBase = brokerageInr + exchangeChargeInr;
+  // GST: 18% on (Brokerage + SEBI charges + Exchange fees)
+  const gstBase = brokerageInr + exchangeChargeInr + sebiChargeInr;
   const gstInr = gstBase * config.gstRate;
 
   // Stamp duty: buy side only (0.002%)

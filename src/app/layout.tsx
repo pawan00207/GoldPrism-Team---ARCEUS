@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
+<<<<<<< Updated upstream
 import { IBM_Plex_Mono, IBM_Plex_Sans, IBM_Plex_Serif } from "next/font/google";
+=======
+import { Fraunces, Albert_Sans, IBM_Plex_Mono } from "next/font/google";
+import "@astryxdesign/core/reset.css";
+import "@astryxdesign/core/astryx.css";
+>>>>>>> Stashed changes
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";

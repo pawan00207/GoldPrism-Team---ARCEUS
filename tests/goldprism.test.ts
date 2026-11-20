@@ -98,9 +98,9 @@ it('GOLDPETAL specification matches: 1g unit, 1g quote, 999 purity', () => {
 it('Normalizes GOLDM price correctly to 999-fine equivalent', () => {
   // Quoted: 73,500 INR per 10g of 995 purity
   // Base price/g = 7350
-  // 999 equivalent = 7350 * (995 / 999) = 7320.5705...
+  // A gram of higher-fineness gold costs more at the same underlying fine-gold price.
   const { normalizedPrice, trace } = normalizePriceTo999(73500, 'GOLDM');
-  assert(Math.abs(normalizedPrice - 7320.5706) < 0.01);
+  assert(Math.abs(normalizedPrice - 7350 * 999 / 995) < 0.0001);
   assert.strictEqual(trace.quotedPrice, 73500);
   assert.strictEqual(trace.quoteUnitG, 10);
 });

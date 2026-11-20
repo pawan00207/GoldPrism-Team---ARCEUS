@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   parseAndValidateBhavcopyCsv,
@@ -144,23 +143,25 @@ export function DataHealthSection({
     })
   )
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const [requestedDate, setRequestedDate] = React.useState('')
+  const [fileError, setFileError] = React.useState('')
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
-
-    const reader = new FileReader()
-    reader.onload = (event) => {
-      const content = event.target?.result as string
-      if (content) {
-        const res = parseAndValidateBhavcopyCsv(content, {
-          fileName: file.name,
-          dataMode: 'USER_UPLOAD',
-        })
-        setIngestionResult(res)
-        onDatasetChange?.(res)
-      }
+    e.target.value = ''
+    if (!file || !requestedDate) return
+    if (file.size > 16 * 1024 * 1024) {
+      setFileError('Choose a CSV smaller than 16 MiB.')
+      return
     }
-    reader.readAsText(file)
+    try {
+      const fileBytes = new Uint8Array(await file.arrayBuffer())
+      const result = parseAndValidateBhavcopyCsv(new TextDecoder('utf-8', { fatal: true }).decode(fileBytes), {
+        requestedDate, fileBytes, fileName: file.name, dataMode: 'USER_UPLOAD',
+      })
+      setIngestionResult(result)
+      setFileError('')
+      onDatasetChange?.(result)
+    } catch { setFileError('Could not read the file as UTF-8 CSV.') }
   }
 
   const loadCleanData = () => {
@@ -240,20 +241,18 @@ export function DataHealthSection({
           aside={
             <div className="flex flex-wrap gap-2 lg:justify-end">
               <Button variant="outline" size="sm" onClick={loadCleanData}>
-                Load clean bhavcopy
+                Load clean sample
               </Button>
               <Button variant="outline" size="sm" onClick={loadSeededFault}>
                 Load seeded fault
               </Button>
-              <label className="cursor-pointer">
-                <input type="file" accept=".csv" className="hidden" onChange={handleFileUpload} />
-                <Button asChild size="sm" variant="default">
-                  <span>
-                    <Upload className="h-3.5 w-3.5" aria-hidden="true" />
-                    Upload CSV
-                  </span>
-                </Button>
+              <label className="text-sm">Expected session
+                <input className="gp-field" type="date" value={requestedDate} onChange={e => setRequestedDate(e.target.value)} />
               </label>
+              <label className="text-sm">Audit UTF-8 CSV
+                <input type="file" accept=".csv" disabled={!requestedDate} onChange={handleFileUpload} />
+              </label>
+              {fileError && <p role="alert">{fileError}</p>}
             </div>
           }
         />
@@ -278,8 +277,13 @@ export function DataHealthSection({
         <div className="mt-10 border border-border">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
             <p className="gp-label">MCX bhavcopy · integrity gates</p>
+<<<<<<< Updated upstream
             <p className="font-mono text-[11px] uppercase tracking-[0.12em] text-muted-foreground">
               DuckDB / Parquet store
+=======
+            <p className="font-mono text-[10px] uppercase tracking-[0.12em] text-muted-foreground">
+              Local file audit
+>>>>>>> Stashed changes
             </p>
           </div>
 

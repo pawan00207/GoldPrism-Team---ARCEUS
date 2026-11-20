@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import Link from 'next/link'
 import { ArrowRight, BookOpen, FlaskConical, Layers3, Wrench } from 'lucide-react'
 import { GoldPrismHeader } from '@/components/goldprism/GoldPrismHeader'
@@ -103,4 +104,11 @@ export default function Home() {
       </section>
     </SiteShell>
   )
+=======
+import { MarketDesk } from '@/components/goldprism/MarketDesk'
+import { SiteShell } from '@/components/goldprism/SiteShell'
+
+export default function Home() {
+  return <SiteShell><MarketDesk /></SiteShell>
+>>>>>>> Stashed changes
 }

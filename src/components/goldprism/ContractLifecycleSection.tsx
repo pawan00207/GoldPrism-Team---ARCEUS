@@ -35,14 +35,14 @@ const CONTRACTS: ContractLifecycle[] = [
     symbol: 'GOLDTEN',
     tradingUnit: '10g · quote 10g',
     purity: '999 · 0.999 fine',
-    listingCycle: 'Monthly · listed Jan 2025 onwards',
+    listingCycle: 'Monthly · listed Apr 2025 onwards',
     deliveryWindow: '25th to month-end',
     expiryDay: 'Month-end · 27th to 31st',
     tenderPeriod: 'Last 5 trading days of the month',
     liquidityPeak: 'T−30 to T−5 days',
     status: 'NEW_LISTING',
     warningMessage:
-      'Recent listing, Jan 2025 onwards. Flagged in all backtests for truncated pre-2025 history.',
+      'Recent listing, Apr 2025 onwards. Flagged in all backtests for truncated pre-2025 history.',
   },
   {
     symbol: 'GOLDGUINEA',
@@ -73,7 +73,7 @@ const STATUS: Record<
   { label: string; tone: string }
 > = {
   EARLY_EXPIRY_WARNING: { label: 'Early expiry · 3rd–5th', tone: 'gp-tag--watch' },
-  NEW_LISTING: { label: 'Listed Jan 2025', tone: 'gp-tag--neutral' },
+  NEW_LISTING: { label: 'Listed Apr 2025', tone: 'gp-tag--neutral' },
   ACTIVE: { label: 'Standard cycle', tone: 'gp-tag--neutral' },
 }
 

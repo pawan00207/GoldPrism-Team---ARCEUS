@@ -1,5 +1,6 @@
 'use client'
 
+<<<<<<< Updated upstream
 import * as React from 'react'
 import { curveMonotoneX } from 'd3-shape'
 import { ComposedChart } from '@/components/charts/composed-chart'
@@ -328,4 +329,55 @@ export function TermStructureSection() {
       </div>
     </section>
   )
+=======
+import { useState } from 'react'
+import { Heading } from '@astryxdesign/core'
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useLiveFeed } from './LiveFeedProvider'
+import { normalizePriceTo999, SUPPORTED_CONTRACTS, type SupportedContractCode } from '@/lib/goldprism/contract-master'
+import { exchangeDate } from '@/lib/goldprism/data-adapter'
+import { inrPerG } from '@/lib/goldprism/format'
+
+export function TermStructureSection() {
+  const { mcxSnapshot, mcxSnapshotError } = useLiveFeed()
+  const [family, setFamily] = useState<SupportedContractCode>('GOLDM')
+  const [rate, setRate] = useState('6.5')
+  const rows = (mcxSnapshot?.contracts[family] ?? []).flatMap(r => {
+    const expiry = exchangeDate(r.expiryDate)
+    return expiry && r.close ? [{
+      expiry, close: normalizePriceTo999(r.close, family).normalizedPrice,
+      previous: r.previousClose ? normalizePriceTo999(r.previousClose, family).normalizedPrice : null,
+      volume: r.volumeLots, oi: r.openInterestLots,
+    }] : []
+  })
+  const near = rows[0]
+  const validRate = rate.trim() && Number.isFinite(+rate) && +rate >= 0 && +rate <= 100
+  return <section id="term-structure" className="gp-container space-y-4 border-b border-border py-8">
+    <header><p className="gp-kicker">Market structure</p><Heading level={2}>Gold futures curve</Heading>
+      <p className="text-muted-foreground">Published prices for each listed expiry on {mcxSnapshot?.bhavcopyDate ?? 'the latest available session'}. Each point is one gram at 999 fineness.</p></header>
+    <fieldset className="flex flex-wrap gap-5"><legend className="sr-only">Curve assumptions</legend>
+      <label>Contract family<select className="gp-field" value={family} onChange={e => setFamily(e.target.value as SupportedContractCode)}>
+        {SUPPORTED_CONTRACTS.map(s=><option key={s}>{s}</option>)}</select></label>
+      <label>Annual carry (%)<input type="number" min="0" max="100" step="0.1" value={rate} className="gp-field" onChange={e=>setRate(e.target.value)}/></label></fieldset>
+    {near ? <>
+      <figure aria-label="Closing prices per gram by expiry"><section className="h-64">
+        <ResponsiveContainer width="100%" height="100%"><LineChart data={rows}>
+          <CartesianGrid stroke="var(--border)" /><XAxis dataKey="expiry"/><YAxis domain={['auto','auto']} width={65}/>
+          <Tooltip/><Line name="Session close (₹/g)" dataKey="close" stroke="var(--foreground)" strokeWidth={2}/>
+          <Line name="Previous close (₹/g)" dataKey="previous" stroke="var(--muted-foreground)" strokeDasharray="5 4"/>
+        </LineChart></ResponsiveContainer></section><figcaption className="text-sm">Solid line shows session closes. Dashed line shows previous closes for the same contracts.</figcaption></figure>
+      <section className="overflow-auto"><table className="gp-table w-full"><thead><tr>
+        {['Expiry','Close (₹/g)','Gap vs nearest','Expected carry','Gap less carry','Change in gap since prior close','Volume (lots)'].map(h=><th key={h}>{h}</th>)}
+      </tr></thead><tbody>{rows.map(r=>{
+        const gap = r.close - near.close
+        const days = (Date.parse(r.expiry) - Date.parse(near.expiry)) / 86400000
+        const carry = near.close * (+rate / 100) * days / 365
+        return <tr key={r.expiry}><th scope="row">{r.expiry}</th><td>{inrPerG(r.close)}</td><td>{inrPerG(gap)}</td>
+          <td>{validRate ? inrPerG(carry) : '—'}</td><td>{validRate ? inrPerG(gap - carry) : '—'}</td>
+          <td>{r.previous && near.previous ? inrPerG(gap - (r.previous - near.previous)) : '—'}</td><td>{r.volume ?? '—'}</td></tr>
+      })}</tbody></table></section>
+      <p className="text-sm text-muted-foreground">Expected carry uses the nearest close, annual funding assumption and calendar-day expiry gap. Thin or inactive expiries can move the curve without an executable trade.</p>
+    </> : <p role="status">{mcxSnapshotError ?? mcxSnapshot?.error ?? 'Waiting for published futures prices…'}</p>}
+  </section>
+>>>>>>> Stashed changes
 }

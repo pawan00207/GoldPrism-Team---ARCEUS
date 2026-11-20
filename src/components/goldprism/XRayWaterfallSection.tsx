@@ -74,7 +74,49 @@ export function XRayWaterfallSection() {
       annualCarryRate: carryRate,
       settlementArtifactInrPerG: settlementArtifact,
     })
+<<<<<<< Updated upstream
   }, [contractA, priceA, expiryA, contractB, priceB, expiryB, carryRate, settlementArtifact])
+=======
+  }, [contractA, priceA, expiryA, contractB, priceB, expiryB, tradeDate, carryRate, settlementArtifact])
+
+  const isLiveUnedited =
+    sourceMode === 'LIVE' && !userEdited && feed?.status === 'LIVE_PARITY'
+
+  const spreadDirection = 'SHORT_A_LONG_B'
+  const tradeIntent: TradeIntentInput = React.useMemo(
+    () => ({
+      kind: 'SPREAD',
+      side: spreadDirection,
+      contractA,
+      priceA,
+      lotsA: result.costBreakdownA.lots,
+      expiryA,
+      contractB,
+      priceB,
+      lotsB: result.costBreakdownB.lots,
+      expiryB,
+      verdict: result.verdict,
+      netEdgeBps: result.netEdgeBps,
+      netEdgeInrPerG: result.netEdgeInrPerG,
+      rationale: result.verdictMessage,
+      sourceLabel: isLiveUnedited ? 'Live Global-to-MCX Parity' : 'X-Ray Pair Simulation',
+      asOf: isLiveUnedited && feed?.asOf ? feed.asOf : tradeDate,
+    }),
+    [
+      spreadDirection,
+      contractA,
+      priceA,
+      expiryA,
+      contractB,
+      priceB,
+      expiryB,
+      result,
+      isLiveUnedited,
+      feed?.asOf,
+      tradeDate,
+    ]
+  )
+>>>>>>> Stashed changes
 
   /*
    * Deductions are shown as negative movements so the waterfall reconciles:
@@ -87,7 +129,7 @@ export function XRayWaterfallSection() {
       bps: result.rawSpreadBps,
       inr: result.rawSpreadInrPerG,
       kind: 'raw',
-      working: `normalized ${inrPerG(result.priceANormalized)} − ${inrPerG(result.priceBNormalized)}`,
+      working: 'Sell-leg quoted price per gram minus buy-leg quoted price per gram',
     },
     {
       label: 'Basis',

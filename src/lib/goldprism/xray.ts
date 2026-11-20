@@ -20,6 +20,7 @@
  */
 
 import { getContractSpec, normalizePriceTo999 } from './contract-master';
+import { sha256 } from 'js-sha256';
 import {
   calculateTransactionCosts,
   CostModelConfig,
@@ -102,16 +103,24 @@ export interface XRayWaterfallResult {
 export const RECON_TOLERANCE = 0.01; // max 0.01 INR/g error tolerance
 export const DEFAULT_COST_HURDLE_BPS = 5.0; // 5 bps required net edge for TRADABLE
 
+/** Smallest integer lot pair with equal nominal grams. Fineness is normalized separately. */
+export function matchedSpreadLots(a: XRayWaterfallParams['contractA'], b: XRayWaterfallParams['contractB']) {
+  const unitA = getContractSpec(a).tradingUnitG;
+  const unitB = getContractSpec(b).tradingUnitG;
+  let x = unitA;
+  let y = unitB;
+  while (y) [x, y] = [y, x % y];
+  return { lotsA: unitB / x, lotsB: unitA / x, grams: unitA * unitB / x };
+}
+
 export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfallResult {
   const {
     contractA,
     priceAQuoted,
     expiryA,
-    lotsA = 1,
     contractB,
     priceBQuoted,
     expiryB,
-    lotsB = 1,
     tradeDate,
     annualCarryRate = 0.065,
     settlementArtifactInrPerG = 0.0,
@@ -123,6 +132,17 @@ export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfall
 
   const reasonCodes: string[] = [];
   const localFlags = [...trustFlags];
+  const matched = matchedSpreadLots(contractA, contractB);
+  const lotsA = params.lotsA ?? matched.lotsA;
+  const lotsB = params.lotsB ?? matched.lotsB;
+  const sizesValid = Number.isSafeInteger(lotsA) && Number.isSafeInteger(lotsB)
+    && lotsA > 0 && lotsB > 0 && lotsA * matched.lotsB === lotsB * matched.lotsA;
+  const dateValid = (s: string) => /^\d{4}-\d{2}-\d{2}$/.test(s)
+    && Number.isFinite(Date.parse(s)) && new Date(s).toISOString().slice(0, 10) === s;
+  const datesValid = [tradeDate, expiryA, expiryB].every(dateValid)
+    && tradeDate <= expiryA && tradeDate <= expiryB;
+  if (!sizesValid) reasonCodes.push('ERR_UNMATCHED_EXPOSURE');
+  if (!datesValid) reasonCodes.push('ERR_CONTRACT_DATE');
 
   // 1. Data Quality Gate
   if (!dataQualityOk) {
@@ -137,8 +157,7 @@ export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfall
   const priceBNormalized = normB.normalizedPrice;
 
   // Raw Spread (₹/g)
-  const rawSpreadInrPerG = Number((priceANormalized - priceBNormalized).toFixed(4));
-  const rawSpreadBps = priceANormalized > 0 ? (rawSpreadInrPerG / priceANormalized) * 10000 : 0;
+  const normalizedSpread = priceANormalized - priceBNormalized;
 
   // 3. Structural Basis Component
   // If GOLDM (995) vs GOLDTEN (999), purity delta without normalization would be ~0.5%.
@@ -150,7 +169,9 @@ export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfall
   const rawUnadjustedSpread = unadjustedPricePerGA - unadjustedPricePerGB;
   
   // The basis difference accounted for by purity normalization:
-  const structuralBasisInrPerG = Number((rawUnadjustedSpread - rawSpreadInrPerG).toFixed(4));
+  const rawSpreadInrPerG = Number(rawUnadjustedSpread.toFixed(4));
+  const rawSpreadBps = rawSpreadInrPerG / priceANormalized * 10000;
+  const structuralBasisInrPerG = Number((rawUnadjustedSpread - normalizedSpread).toFixed(4));
 
   // 4. Expiry Carry Component
   // Days to expiry difference between Leg A and Leg B
@@ -217,7 +238,10 @@ export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfall
   let verdictTitle = '';
   let verdictMessage = '';
 
-  if (!dataQualityOk) {
+  if (!datesValid || !sizesValid) {
+    verdictTitle = 'Contract comparison blocked';
+    verdictMessage = !datesValid ? 'Check the trade date and listed expiries.' : 'Match the nominal gram exposure on both legs using whole lots.';
+  } else if (!dataQualityOk) {
     verdict = 'BLOCKED';
     verdictTitle = 'Run Blocked: Data Quality Gate';
     verdictMessage = 'Data failed integrity validation (schema, date mismatch, or stale prices). Execution blocked.';
@@ -243,19 +267,17 @@ export function computeXRayWaterfall(params: XRayWaterfallParams): XRayWaterfall
     verdictMessage = `Net edge (${netEdgeBps.toFixed(1)} bps) is positive but below the ${DEFAULT_COST_HURDLE_BPS} bps safety hurdle. Monitor closely.`;
   } else {
     verdict = 'TRADABLE';
-    reasonCodes.push('VERDICT_STATISTICALLY_TRADABLE');
+    reasonCodes.push('VERDICT_MODELED_HURDLE_CLEARED');
     verdictTitle = 'Tradable: Meaningful Residual Edge';
     verdictMessage = `Net edge (${netEdgeBps.toFixed(1)} bps) exceeds transaction hurdle with full data validation. Valid trading candidate.`;
   }
 
   // Config Hash for auditability
-  const configStr = `${contractA}-${priceAQuoted}-${expiryA}-${contractB}-${priceBQuoted}-${expiryB}-${tradeDate}-${annualCarryRate}`;
-  let hash = 0;
-  for (let i = 0; i < configStr.length; i++) {
-    hash = (hash << 5) - hash + configStr.charCodeAt(i);
-    hash |= 0;
-  }
-  const configHash = 'GP-' + Math.abs(hash).toString(16).padStart(8, '0').toUpperCase();
+  const configHash = 'GP-' + sha256(JSON.stringify([
+    'xray-v2', contractA, priceAQuoted, expiryA, lotsA, contractB, priceBQuoted,
+    expiryB, lotsB, tradeDate, annualCarryRate, settlementArtifact, dataQualityOk,
+    liquidityOk, [...trustFlags].sort(), Object.entries(costConfig).sort(), DEFAULT_COST_HURDLE_BPS,
+  ]));
 
   return {
     contractA,

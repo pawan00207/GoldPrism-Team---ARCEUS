@@ -1,0 +1,4 @@
+# Exchange publications are acquired locally by the archive builder.
+/raw/
+/*.json
+/*.tmp

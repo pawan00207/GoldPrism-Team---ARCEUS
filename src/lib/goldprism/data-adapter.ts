@@ -16,6 +16,8 @@
  */
 
 import { getContractSpec, normalizePriceTo999, SupportedContractCode } from './contract-master';
+import { sha256 } from 'js-sha256';
+import { parse } from 'csv-parse/browser/esm/sync';
 
 export interface BhavcopyRow {
   symbol: string;
@@ -76,20 +78,27 @@ export interface IngestionResult {
 /**
  * Calculates a SHA-256 hash string from text.
  */
-export function computeSha256(content: string): string {
-  let hash = 0;
-  for (let i = 0; i < content.length; i++) {
-    hash = (hash << 5) - hash + content.charCodeAt(i);
-    hash |= 0;
-  }
-  const hex = Math.abs(hash).toString(16).padStart(8, '0');
-  return `sha256_${hex}_${content.length}`;
+export function computeSha256(content: string | Uint8Array): string {
+  return 'sha256_' + sha256(content);
+}
+
+export function exchangeDate(value: string): string | null {
+  let iso = value;
+  const compact = /^(\d{1,2})([a-z]{3})(\d{4})$/i.exec(value);
+  const us = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(value);
+  if (compact) {
+    const month = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'].indexOf(compact[2].toUpperCase()) + 1;
+    iso = `${compact[3]}-${String(month).padStart(2,'0')}-${compact[1].padStart(2,'0')}`;
+  } else if (us) iso = `${us[3]}-${us[1].padStart(2,'0')}-${us[2].padStart(2,'0')}`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || !Number.isFinite(Date.parse(iso))) return null;
+  return new Date(iso).toISOString().slice(0,10) === iso ? iso : null;
 }
 
 export function parseAndValidateBhavcopyCsv(
   csvContent: string,
   options: {
     requestedDate?: string;
+    fileBytes?: Uint8Array;
     fileName?: string;
     dataMode?: IngestionResult['dataMode'];
   } = {}
@@ -100,8 +109,14 @@ export function parseAndValidateBhavcopyCsv(
     dataMode = 'USER_UPLOAD',
   } = options;
 
-  const lines = csvContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  const sha256Hash = computeSha256(csvContent);
+  let lines: string[][] = [];
+  let csvError = '';
+  try {
+    lines = parse(csvContent, { bom: true, trim: true, skip_empty_lines: true });
+  } catch {
+    csvError = 'Malformed CSV. Check quoted fields and the number of columns.';
+  }
+  const sha256Hash = computeSha256(options.fileBytes ?? csvContent);
   const rejectedRows: RejectedRow[] = [];
   const validatedRecords: NormalizedBhavcopyRecord[] = [];
   const keySet = new Set<string>();
@@ -117,7 +132,7 @@ export function parseAndValidateBhavcopyCsv(
       totalRowsValidated: 0,
       totalRowsRejected: 0,
       status: 'FAILED',
-      statusSummary: 'File is empty or missing headers.',
+      statusSummary: csvError || 'File is empty or missing headers.',
       rejectedRows: [],
       validatedRecords: [],
       availableContracts: [],
@@ -127,19 +142,21 @@ export function parseAndValidateBhavcopyCsv(
   }
 
   // Parse header
-  const headerCols = lines[0].split(',').map((c) => c.trim().toLowerCase());
+  const headerCols = lines[0].map((c) => c.trim().toLowerCase());
+  const index = (...names: string[]) => headerCols.findIndex(c => names.includes(c));
   const colIndex = {
-    symbol: headerCols.findIndex((c) => c.includes('symbol') || c.includes('scrip')),
-    date: headerCols.findIndex((c) => c === 'date' || c.includes('tradedate')),
-    expiry: headerCols.findIndex((c) => c.includes('expiry') || c.includes('exp_date')),
-    open: headerCols.findIndex((c) => c.includes('open')),
-    high: headerCols.findIndex((c) => c.includes('high')),
-    low: headerCols.findIndex((c) => c.includes('low')),
-    close: headerCols.findIndex((c) => c.includes('close')),
-    settle: headerCols.findIndex((c) => c.includes('settle')),
-    contracts: headerCols.findIndex((c) => c.includes('contract')),
-    volume: headerCols.findIndex((c) => c.includes('volume') || c.includes('vol')),
-    oi: headerCols.findIndex((c) => c.includes('oi') || c.includes('openinterest')),
+    symbol: index('symbol','tckrsymb','scrip'),
+    date: index('date','tradedate','trade_date','traddt'),
+    expiry: index('expirydate','expiry_date','exp_date','xprydt'),
+    open: index('open','openprice','opnpric'),
+    high: index('high','highprice','hghpric'),
+    low: index('low','lowprice','lwpric'),
+    close: index('close','closeprice','clspric'),
+    settle: index('settle','settleprice','settlementprice','sttlmpric'),
+    contracts: index('contracts','volume(lots)','ttltradgvol'),
+    volume: index('volume','vol','volume(lots)','ttltradgvol'),
+    oi: index('oi','openinterest','opnintrst'),
+    kind: index('fininstrmtp','instrumentname'),
   };
 
   const requiredCols = ['symbol', 'date', 'expiry', 'settle'];
@@ -164,7 +181,7 @@ export function parseAndValidateBhavcopyCsv(
             expiryDate: '',
             reasonCode: 'ERR_SCHEMA_MISSING_COLUMN',
             reasonDescription: `Column ${rc} could not be identified in CSV header`,
-            rawRow: lines[0],
+            rawRow: lines[0].join(','),
           },
         ],
         validatedRecords: [],
@@ -177,23 +194,24 @@ export function parseAndValidateBhavcopyCsv(
 
   // Process rows
   for (let i = 1; i < lines.length; i++) {
-    const rawLine = lines[i];
-    const cols = rawLine.split(',').map((c) => c.trim());
+    const cols = lines[i];
+    const rawLine = cols.join(',');
 
     const sym = (cols[colIndex.symbol] || '').toUpperCase();
-    const dt = cols[colIndex.date] || '';
-    const exp = cols[colIndex.expiry] || '';
+    const dt = exchangeDate(cols[colIndex.date] || '') ?? '';
+    const exp = exchangeDate(cols[colIndex.expiry] || '') ?? '';
     const openP = parseFloat(cols[colIndex.open] || '0');
     const highP = parseFloat(cols[colIndex.high] || '0');
     const lowP = parseFloat(cols[colIndex.low] || '0');
     const closeP = parseFloat(cols[colIndex.close] || '0');
-    const settleP = parseFloat(cols[colIndex.settle] || '0');
+    const settleP = Number(cols[colIndex.settle]);
     const contracts = parseInt(cols[colIndex.contracts] || '0', 10);
     const volume = parseFloat(cols[colIndex.volume] || '0');
     const oi = parseInt(cols[colIndex.oi] || '0', 10);
 
     // Rule 1: Symbol check
     const validSymbols = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'];
+    if (colIndex.kind >= 0 && !['FUTCOM','COMFUT','FUTURES','FUT','FUTCOMM'].includes(cols[colIndex.kind].toUpperCase())) continue;
     if (!validSymbols.includes(sym)) {
       rejectedRows.push({
         lineIndex: i,
@@ -208,7 +226,7 @@ export function parseAndValidateBhavcopyCsv(
     }
 
     // Rule 2: Date Match Gate
-    if (requestedDate && dt !== requestedDate) {
+    if (!dt || !exp || exp < dt || (requestedDate && dt !== requestedDate)) {
       rejectedRows.push({
         lineIndex: i,
         symbol: sym,
@@ -238,7 +256,7 @@ export function parseAndValidateBhavcopyCsv(
     keySet.add(key);
 
     // Rule 4: Missing or invalid numerical settle
-    if (isNaN(settleP) || settleP <= 0) {
+    if (!Number.isFinite(settleP) || settleP <= 0) {
       rejectedRows.push({
         lineIndex: i,
         symbol: sym,

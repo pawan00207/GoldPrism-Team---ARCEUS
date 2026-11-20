@@ -9,7 +9,11 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 <!-- END:nextjs-agent-rules -->
 
 <!-- ASTRYX:START -->
+<<<<<<< Updated upstream
 Astryx v0.7.14 · 174 components
+=======
+Astryx v0.7.16 · 174 components
+>>>>>>> Stashed changes
 CLI: run every command as `npx astryx <cmd>` (shown below as `astryx ...`).
 
 SETUP (once, in app entry e.g. main.tsx) — without these, components render unstyled:
@@ -28,7 +32,11 @@ RULES:
 - Read `astryx docs layout` before changing a template's frame.
 - Dense data = rows (Table, List/Item), not Card-wrapped lists. Badge = counts only.
 - Style with component props first, then Tailwind utilities backed by tokens. No raw hex/px.
+<<<<<<< Updated upstream
 - Palettes and custom colors go through the theme, never :root overrides. Run `astryx theme add <slug>` to import; `theme eject <slug>` only forks source. See `astryx docs theme`.
+=======
+- THEMES: palettes and custom colors go through the theme, never :root overrides. To make or change a theme (colors, fonts, corners, spacing, a look from a picture), prefer the experimental theme editor over hand-written theme files: `astryx experimental theme editor new <name> --like neutral`, then `editor set <name> <thing> <value>` or `editor how "<what you want>"`; wire it with `astryx theme add <name>`; after each change look at it with `astryx experimental theme editor show <name> --png` and open the PNGs it writes (changes nothing in the app); a theme change is not done until you have looked at the pictures. In code, extend an imported theme to customize it; `theme eject <slug>` only forks source. See `astryx docs theme`.
+>>>>>>> Stashed changes
 - SELF-CHECK: re-read the file; replace any style={{…}}, raw <div>/<span>, imported .css/@apply, or hardcoded/arbitrary value (bg-[#fff], p-[13px]) with the component or a token-backed utility.
 
 `astryx help` lists every command. Key ones beyond the workflow:
@@ -39,6 +47,7 @@ RULES:
   docs authoring     build an integration package, and every field it holds
   upgrade --from <old version> --apply   run after a dependency bump
 <!-- ASTRYX:END -->
+<<<<<<< Updated upstream
 
 <!-- KOKONUTUI:START -->
 # Kokonut UI
@@ -57,3 +66,5 @@ The registry is set in components.json as "@kokonutui".
 - Any docs page is available as Markdown, with the full source, by adding
   .md to its URL, e.g. https://kokonutui.com/docs/buttons/particle-button.md
 <!-- KOKONUTUI:END -->
+=======
+>>>>>>> Stashed changes
