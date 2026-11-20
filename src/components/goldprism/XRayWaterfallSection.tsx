@@ -1,9 +1,9 @@
 'use client'
 
 import * as React from 'react'
-import { History, Radio, RefreshCw } from 'lucide-react'
+import { Radio, RefreshCw } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
-import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
+import { useMcxMarketWatch } from '@/hooks/use-mcx-market-watch'
 import { OneClickTradeBar } from '@/components/goldprism/OneClickTradeBar'
 import {
   computeXRayWaterfall,
@@ -55,73 +55,66 @@ function workLine(
 }
 
 export function XRayWaterfallSection() {
-  const { feed, loading, refreshFeed, refreshing } = useLiveFeed()
-  const [sourceMode, setSourceMode] = React.useState<'LIVE' | 'FIXTURE'>('LIVE')
+  const market = useMcxMarketWatch()
+  const [sourceMode, setSourceMode] = React.useState<'LIVE' | 'WHAT_IF'>('LIVE')
   const [userEdited, setUserEdited] = React.useState<boolean>(false)
 
   const [contractA, setContractA] = React.useState<SupportedContractCode>('GOLDTEN')
-  const [priceA, setPriceA] = React.useState<number>(74080.0)
-  const [expiryA, setExpiryA] = React.useState<string>('2026-04-28')
+  const [priceA, setPriceA] = React.useState<number | null>(null)
+  const [expiryA, setExpiryA] = React.useState<string>('')
 
   const [contractB, setContractB] = React.useState<SupportedContractCode>('GOLDM')
-  const [priceB, setPriceB] = React.useState<number>(73510.0)
-  const [expiryB, setExpiryB] = React.useState<string>('2026-04-05')
+  const [priceB, setPriceB] = React.useState<number | null>(null)
+  const [expiryB, setExpiryB] = React.useState<string>('')
 
-  const [tradeDate, setTradeDate] = React.useState<string>('2026-03-20')
+  const [tradeDate, setTradeDate] = React.useState<string>('')
   const [carryRate, setCarryRate] = React.useState<number>(0.065)
   const [settlementArtifact, setSettlementArtifact] = React.useState<number>(0)
 
-  const syncFromLiveFeed = React.useCallback(
+  const syncFromMarketWatch = React.useCallback(
     (legACode: SupportedContractCode, legBCode: SupportedContractCode) => {
-      if (feed?.status !== 'LIVE_PARITY' || !feed.contracts) return
-      const qA = feed.contracts[legACode]
-      const qB = feed.contracts[legBCode]
-      if (qA) {
-        setPriceA(qA.quotedPrice)
-        setExpiryA(qA.expiryDate)
-      }
-      if (qB) {
-        setPriceB(qB.quotedPrice)
-        setExpiryB(qB.expiryDate)
-      }
-      setTradeDate(feed.asOf.slice(0, 10))
-      if (
-        typeof feed.benchmarks.comexBasisAnnualizedPct === 'number' &&
-        feed.benchmarks.comexBasisAnnualizedPct > 0 &&
-        feed.benchmarks.comexBasisAnnualizedPct < 20
-      ) {
-        setCarryRate(Number((feed.benchmarks.comexBasisAnnualizedPct / 100).toFixed(3)))
-      }
+      if (market.status !== 'available') return
+      const qA = market.data.quotes.find((quote) => quote.symbol === legACode)
+      const qB = market.data.quotes.find((quote) => quote.symbol === legBCode)
+      setPriceA(qA?.quotedPrice ?? null)
+      setExpiryA(qA?.expiryDate ?? '')
+      setPriceB(qB?.quotedPrice ?? null)
+      setExpiryB(qB?.expiryDate ?? '')
+      setTradeDate(market.data.fetchedAt?.slice(0, 10) ?? '')
       setSettlementArtifact(0)
       setUserEdited(false)
     },
-    [feed]
+    [market]
   )
 
   React.useEffect(() => {
-    if (sourceMode === 'LIVE' && !userEdited && feed?.status === 'LIVE_PARITY' && feed.contracts) {
-      syncFromLiveFeed(contractA, contractB)
+    if (sourceMode === 'LIVE' && !userEdited && market.status === 'available') {
+      syncFromMarketWatch(contractA, contractB)
     }
-  }, [sourceMode, userEdited, feed, contractA, contractB, syncFromLiveFeed])
+  }, [sourceMode, userEdited, market, contractA, contractB, syncFromMarketWatch])
 
-  const loadFixturePreset = () => {
-    setSourceMode('FIXTURE')
-    setUserEdited(false)
-    setContractA('GOLDTEN')
-    setPriceA(74080.0)
-    setExpiryA('2026-04-28')
-    setContractB('GOLDM')
-    setPriceB(73510.0)
-    setExpiryB('2026-04-05')
-    setTradeDate('2026-03-20')
-    setCarryRate(0.065)
-    setSettlementArtifact(14.8)
-  }
-
+  const liveQuoteA =
+    market.status === 'available'
+      ? market.data.quotes.find((quote) => quote.symbol === contractA)
+      : undefined
+  const liveQuoteB =
+    market.status === 'available'
+      ? market.data.quotes.find((quote) => quote.symbol === contractB)
+      : undefined
   const awaitingLiveSync =
-    sourceMode === 'LIVE' && !userEdited && (feed?.status !== 'LIVE_PARITY' || !feed?.contracts)
+    sourceMode === 'LIVE' &&
+    (market.status !== 'available' || !liveQuoteA || !liveQuoteB || !priceA || !priceB)
+  const hasValidInputs =
+    priceA !== null &&
+    priceA > 0 &&
+    priceB !== null &&
+    priceB > 0 &&
+    /^\d{4}-\d{2}-\d{2}$/.test(expiryA) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(expiryB) &&
+    /^\d{4}-\d{2}-\d{2}$/.test(tradeDate)
 
-  const result: XRayWaterfallResult = React.useMemo(() => {
+  const result: XRayWaterfallResult | null = React.useMemo(() => {
+    if (!hasValidInputs || priceA === null || priceB === null) return null
     return computeXRayWaterfall({
       contractA,
       priceAQuoted: priceA,
@@ -132,46 +125,188 @@ export function XRayWaterfallSection() {
       tradeDate,
       annualCarryRate: carryRate,
       settlementArtifactInrPerG: settlementArtifact,
+      dataQualityOk: false,
+      liquidityOk: false,
+      trustFlags: [
+        'MCX Market Watch response does not provide a verified quote timestamp.',
+        'MCX Market Watch response does not provide validated volume or open interest.',
+      ],
     })
-  }, [contractA, priceA, expiryA, contractB, priceB, expiryB, tradeDate, carryRate, settlementArtifact])
+  }, [
+    hasValidInputs,
+    contractA,
+    priceA,
+    expiryA,
+    contractB,
+    priceB,
+    expiryB,
+    tradeDate,
+    carryRate,
+    settlementArtifact,
+  ])
 
   const isLiveUnedited =
-    sourceMode === 'LIVE' && !userEdited && feed?.status === 'LIVE_PARITY'
-
-  const spreadDirection = result.netEdgeInrPerG >= 0 ? 'SHORT_A_LONG_B' : 'LONG_A_SHORT_B'
-  const tradeIntent: TradeIntentInput = React.useMemo(
-    () => ({
-      kind: 'SPREAD',
-      side: spreadDirection,
-      contractA,
-      priceA,
-      lotsA: 1,
-      expiryA,
-      contractB,
-      priceB,
-      lotsB: 1,
-      expiryB,
-      verdict: result.verdict,
-      netEdgeBps: result.netEdgeBps,
-      netEdgeInrPerG: result.netEdgeInrPerG,
-      rationale: result.verdictMessage,
-      sourceLabel: isLiveUnedited ? 'Live Global-to-MCX Parity' : 'X-Ray Pair Simulation',
-      asOf: isLiveUnedited && feed?.asOf ? feed.asOf : tradeDate,
-    }),
+    sourceMode === 'LIVE' && !userEdited && market.status === 'available'
+  const tradeIntent: TradeIntentInput | null = React.useMemo(
+    () => {
+      if (!result || priceA === null || priceB === null) return null
+      return {
+        kind: 'SPREAD',
+        side: result.netEdgeInrPerG >= 0 ? 'SHORT_A_LONG_B' : 'LONG_A_SHORT_B',
+        contractA,
+        priceA,
+        lotsA: 1,
+        expiryA,
+        contractB,
+        priceB,
+        lotsB: 1,
+        expiryB,
+        verdict: result.verdict,
+        netEdgeBps: result.netEdgeBps,
+        netEdgeInrPerG: result.netEdgeInrPerG,
+        rationale: result.verdictMessage,
+        sourceLabel: isLiveUnedited
+          ? 'MCX Market Watch · validation blocked'
+          : 'Manual what-if · validation blocked',
+        asOf: isLiveUnedited && market.status === 'available'
+          ? market.data.fetchedAt ?? tradeDate
+          : tradeDate,
+      }
+    },
     [
-      spreadDirection,
+      result,
       contractA,
       priceA,
       expiryA,
       contractB,
       priceB,
       expiryB,
-      result,
       isLiveUnedited,
-      feed?.asOf,
+      market,
       tradeDate,
     ]
   )
+
+  if (awaitingLiveSync || !result || !tradeIntent || priceA === null || priceB === null) {
+    return (
+      <section id="xray-waterfall" className="scroll-mt-16 border-b border-border bg-background">
+        <div className="mx-auto max-w-[1360px] px-4 py-8 md:py-10">
+          <SectionHead
+            index="01"
+            eyebrow="Decision surface · X-Ray"
+            title={<>Split the gap.<br />Judge only what is left.</>}
+            description="The X-Ray requires current MCX quotes. Missing, stale, or incomplete data stays unavailable instead of being replaced by a sample."
+          />
+          <div className="mt-5 space-y-4 rounded-[4px] border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)]">
+            <p role="status" className="font-mono text-xs leading-relaxed text-muted-foreground">
+              {market.status === 'loading'
+                ? 'Fetching MCX Market Watch through TinyFish…'
+                : `MCX Market Watch unavailable: ${market.error ?? 'a current quote for both selected contracts is required.'}`}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void market.refresh()}
+                disabled={market.refreshing}
+                className="gp-button px-3 py-1.5 text-[10px]"
+              >
+                <RefreshCw className={cn('h-3.5 w-3.5', market.refreshing && 'animate-spin')} />
+                Refresh MCX quotes
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSourceMode('WHAT_IF')
+                  setUserEdited(true)
+                  setTradeDate(new Date().toISOString().slice(0, 10))
+                }}
+                className="gp-button px-3 py-1.5 text-[10px]"
+              >
+                Enter manual what-if quotes
+              </button>
+            </div>
+            {sourceMode === 'WHAT_IF' ? (
+              <div className="grid gap-4 border-t border-border pt-4 md:grid-cols-2">
+                <div className="space-y-3">
+                  <label className="gp-label block">
+                    Leg A contract
+                    <select
+                      value={contractA}
+                      onChange={(event) => {
+                        setContractA(event.target.value as SupportedContractCode)
+                        setPriceA(null)
+                        setExpiryA('')
+                      }}
+                      className="gp-field gp-select mt-1 text-sm"
+                    >
+                      {CONTRACTS.map((contract) => (
+                        <option key={contract.code} value={contract.code}>{contract.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="gp-label block">
+                    Leg A quoted price
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={priceA ?? ''}
+                      onChange={(event) => setPriceA(event.target.value ? Number(event.target.value) : null)}
+                      className="gp-field mt-1 text-sm"
+                    />
+                  </label>
+                  <label className="gp-label block">
+                    Leg A expiry
+                    <input type="date" value={expiryA} onChange={(event) => setExpiryA(event.target.value)} className="gp-field mt-1 text-sm" />
+                  </label>
+                </div>
+                <div className="space-y-3">
+                  <label className="gp-label block">
+                    Leg B contract
+                    <select
+                      value={contractB}
+                      onChange={(event) => {
+                        setContractB(event.target.value as SupportedContractCode)
+                        setPriceB(null)
+                        setExpiryB('')
+                      }}
+                      className="gp-field gp-select mt-1 text-sm"
+                    >
+                      {CONTRACTS.map((contract) => (
+                        <option key={contract.code} value={contract.code}>{contract.label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="gp-label block">
+                    Leg B quoted price
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.1"
+                      value={priceB ?? ''}
+                      onChange={(event) => setPriceB(event.target.value ? Number(event.target.value) : null)}
+                      className="gp-field mt-1 text-sm"
+                    />
+                  </label>
+                  <label className="gp-label block">
+                    Leg B expiry
+                    <input type="date" value={expiryB} onChange={(event) => setExpiryB(event.target.value)} className="gp-field mt-1 text-sm" />
+                  </label>
+                </div>
+                <label className="gp-label block md:col-span-2">
+                  Trade date
+                  <input type="date" value={tradeDate} onChange={(event) => setTradeDate(event.target.value)} className="gp-field mt-1 text-sm" />
+                </label>
+                <p className="font-mono text-[10px] uppercase leading-relaxed tracking-[0.08em] text-[var(--gp-blocked-ink)] md:col-span-2">
+                  What-if only. No sample prices are prefilled. The live MCX page does not provide verified quote time, volume, or open interest, so this X-Ray remains BLOCKED and cannot establish a tradable signal.
+                </p>
+              </div>
+            ) : null}
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   /*
    * Deductions are shown as negative movements so the waterfall reconciles:
@@ -311,15 +446,9 @@ export function XRayWaterfallSection() {
                   live={isLiveUnedited}
                   synthetic={!isLiveUnedited}
                   detail={
-                    isLiveUnedited && feed?.asOf
-                      ? `${feed.asOf.slice(0, 16).replace('T', ' ')} UTC`
-                      : userEdited
-                        ? 'what-if edit'
-                        : awaitingLiveSync
-                          ? loading
-                            ? 'syncing live parity'
-                            : 'live offline · fixture fallback'
-                          : '20 Mar 2026 fixture'
+                    isLiveUnedited && market.status === 'available' && market.data.fetchedAt
+                      ? `MCX page retrieved ${market.data.fetchedAt.slice(0, 16).replace('T', ' ')} UTC`
+                      : 'manual what-if edit'
                   }
                 />
                 <span className="gp-tag gp-tag--neutral">
@@ -334,13 +463,9 @@ export function XRayWaterfallSection() {
           }
         />
 
-        {awaitingLiveSync ? (
-          <div className="mt-5 rounded-[4px] border border-[var(--gp-watch-ink)]/50 bg-card px-4 py-2.5 font-mono text-xs text-muted-foreground">
-            {loading
-              ? 'Connecting to live Global-to-MCX parity feed… currently showing baseline 20 Mar 2026 audit fixture until live prices arrive.'
-              : `Live parity feed offline (${feed?.error ?? 'upstream unavailable'}). Showing 20 Mar 2026 audit fixture explicitly until Sync Live Parity succeeds.`}
-          </div>
-        ) : null}
+        <div className="mt-5 rounded-[4px] border border-[var(--gp-blocked-ink)]/50 bg-card px-4 py-2.5 font-mono text-xs text-muted-foreground">
+          The MCX page supplies LTP and expiry only. Quote time, volume, open interest, and settlement-artifact verification are unavailable, so the X-Ray verdict is BLOCKED. This is not a trade signal.
+        </div>
 
         {/* ---------------- Pair controls ---------------- */}
         <div className="mt-6 overflow-hidden rounded-[4px] border border-border bg-card shadow-[var(--gp-hard-shadow)]">
@@ -352,8 +477,7 @@ export function XRayWaterfallSection() {
                 onClick={() => {
                   setSourceMode('LIVE')
                   setUserEdited(false)
-                  refreshFeed(true)
-                  syncFromLiveFeed(contractA, contractB)
+                  void market.refresh()
                 }}
                 aria-pressed={sourceMode === 'LIVE' && !userEdited}
                 className={cn(
@@ -361,24 +485,27 @@ export function XRayWaterfallSection() {
                   sourceMode === 'LIVE' && !userEdited && 'gp-button--selected'
                 )}
               >
-                {refreshing ? (
+                {market.refreshing ? (
                   <RefreshCw className="h-3.5 w-3.5 animate-spin" />
                 ) : (
                   <Radio className="h-3.5 w-3.5" />
                 )}
-                Sync Live Parity
+                Sync MCX Market Watch
               </button>
               <button
                 type="button"
-                onClick={loadFixturePreset}
-                aria-pressed={sourceMode === 'FIXTURE'}
+                onClick={() => {
+                  setSourceMode('WHAT_IF')
+                  setUserEdited(true)
+                  if (!tradeDate) setTradeDate(new Date().toISOString().slice(0, 10))
+                }}
+                aria-pressed={sourceMode === 'WHAT_IF'}
                 className={cn(
                   'gp-button px-3 py-1.5 text-[10px] whitespace-nowrap shrink-0',
-                  sourceMode === 'FIXTURE' && 'gp-button--selected'
+                  sourceMode === 'WHAT_IF' && 'gp-button--selected'
                 )}
               >
-                <History className="h-3.5 w-3.5" />
-                20 Mar 2026 Fixture
+                Manual what-if
               </button>
             </div>
           </div>
@@ -389,19 +516,25 @@ export function XRayWaterfallSection() {
               code={contractA}
               onCode={(code) => {
                 setContractA(code)
-                if (sourceMode === 'LIVE' && !userEdited && feed?.contracts?.[code]) {
-                  setPriceA(feed.contracts[code].quotedPrice)
-                  setExpiryA(feed.contracts[code].expiryDate)
+                if (sourceMode === 'LIVE' && market.status === 'available') {
+                  const quote = market.data.quotes.find((item) => item.symbol === code)
+                  setPriceA(quote?.quotedPrice ?? null)
+                  setExpiryA(quote?.expiryDate ?? '')
+                } else {
+                  setPriceA(null)
+                  setExpiryA('')
                 }
               }}
               price={priceA}
               onPrice={(p) => {
                 setUserEdited(true)
+                setSourceMode('WHAT_IF')
                 setPriceA(p)
               }}
               expiry={expiryA}
               onExpiry={(ex) => {
                 setUserEdited(true)
+                setSourceMode('WHAT_IF')
                 setExpiryA(ex)
               }}
               normalized={result.priceANormalized}
@@ -411,19 +544,25 @@ export function XRayWaterfallSection() {
               code={contractB}
               onCode={(code) => {
                 setContractB(code)
-                if (sourceMode === 'LIVE' && !userEdited && feed?.contracts?.[code]) {
-                  setPriceB(feed.contracts[code].quotedPrice)
-                  setExpiryB(feed.contracts[code].expiryDate)
+                if (sourceMode === 'LIVE' && market.status === 'available') {
+                  const quote = market.data.quotes.find((item) => item.symbol === code)
+                  setPriceB(quote?.quotedPrice ?? null)
+                  setExpiryB(quote?.expiryDate ?? '')
+                } else {
+                  setPriceB(null)
+                  setExpiryB('')
                 }
               }}
               price={priceB}
               onPrice={(p) => {
                 setUserEdited(true)
+                setSourceMode('WHAT_IF')
                 setPriceB(p)
               }}
               expiry={expiryB}
               onExpiry={(ex) => {
                 setUserEdited(true)
+                setSourceMode('WHAT_IF')
                 setExpiryB(ex)
               }}
               normalized={result.priceBNormalized}
@@ -446,6 +585,7 @@ export function XRayWaterfallSection() {
                 step={0.5}
                 onValueChange={(val) => {
                   setUserEdited(true)
+                  setSourceMode('WHAT_IF')
                   setCarryRate(val[0] / 100)
                 }}
                 className="mt-4"
@@ -471,6 +611,7 @@ export function XRayWaterfallSection() {
                 step={1}
                 onValueChange={(val) => {
                   setUserEdited(true)
+                  setSourceMode('WHAT_IF')
                   setSettlementArtifact(val[0])
                 }}
                 className="mt-4"
@@ -619,10 +760,8 @@ export function XRayWaterfallSection() {
 
               <p className="mt-4 font-mono text-[9px] uppercase leading-relaxed tracking-[0.12em] text-muted-foreground">
                 {isLiveUnedited
-                  ? `Live Global-to-MCX Parity · as_of ${feed?.asOf.slice(0, 19).replace('T', ' ')} UTC`
-                  : sourceMode === 'FIXTURE'
-                    ? 'Historical audit fixture (20 Mar 2026) · not a live market quote.'
-                    : 'Manual what-if simulation · modified from feed.'}
+                  ? `MCX Market Watch via TinyFish · page retrieved ${market.status === 'available' ? market.data.fetchedAtIst ?? market.data.fetchedAt ?? 'time unavailable' : 'time unavailable'}`
+                  : 'Manual what-if simulation · user-entered values.'}
               </p>
             </div>
           </aside>
@@ -768,8 +907,8 @@ function LegControl({
   title: string
   code: SupportedContractCode
   onCode: (code: SupportedContractCode) => void
-  price: number
-  onPrice: (price: number) => void
+  price: number | null
+  onPrice: (price: number | null) => void
   expiry: string
   onExpiry: (expiry: string) => void
   normalized: number
@@ -811,8 +950,8 @@ function LegControl({
             type="number"
             inputMode="decimal"
             step="0.1"
-            value={price}
-            onChange={(e) => onPrice(parseFloat(e.target.value) || 0)}
+            value={price ?? ''}
+            onChange={(e) => onPrice(e.target.value ? parseFloat(e.target.value) : null)}
             className="gp-field mt-1 text-sm"
           />
         </div>

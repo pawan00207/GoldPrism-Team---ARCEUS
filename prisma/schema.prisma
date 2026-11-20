@@ -43,3 +43,74 @@ model MarketSnapshot {
   @@index([asOf])
   @@map("market_snapshots")
 }
+
+model IngestionRun {
+  id         String   @id @default(cuid())
+  tradeDate  DateTime @map("trade_date") @db.Date
+  fetchedAt  DateTime? @map("fetched_at") @db.Timestamptz(3)
+  source     String
+  status     String
+  dataHealth Json     @map("data_health") @db.JsonB
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+
+  @@unique([tradeDate, source])
+  @@index([receivedAt])
+  @@map("ingestion_runs")
+}
+
+model CostModelReviewState {
+  id             String    @id
+  needsReview    Boolean   @default(false) @map("needs_review")
+  lastVerifiedAt DateTime? @map("last_verified_at") @db.Timestamptz(3)
+  lastChangedAt  DateTime? @map("last_changed_at") @db.Timestamptz(3)
+  lastSummary    String?   @map("last_summary")
+  lastMonitorId  String?   @map("last_monitor_id")
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("cost_model_review_state")
+}
+
+model CostModelReviewEvent {
+  id         String   @id
+  monitorId  String   @map("monitor_id")
+  outcome    String
+  isRelevant Boolean? @map("is_relevant")
+  summary    String?
+  receivedAt DateTime @default(now()) @map("received_at") @db.Timestamptz(3)
+  payload    Json     @db.JsonB
+
+  @@index([monitorId, receivedAt])
+  @@map("cost_model_review_events")
+}
+
+model SourceLog {
+  id           String   @id @default(cuid())
+  tsIst        DateTime @map("ts_ist") @db.Timestamptz(3)
+  sourceName   String   @map("source_name")
+  method       String
+  url          String
+  status       String
+  latencyMs    Int      @map("latency_ms")
+  rowsReturned Int      @default(0) @map("rows_returned")
+  note         String?
+
+  @@index([sourceName, tsIst])
+  @@map("source_log")
+}
+
+model CrossCheck {
+  id          String   @id @default(cuid())
+  tradeDate   DateTime @map("trade_date") @db.Date
+  symbol      String
+  expiry      DateTime @map("expiry") @db.Date
+  settleA     Float    @map("settle_a")
+  settleB     Float?   @map("settle_b")
+  diffBps     Float?   @map("diff_bps")
+  state       String
+  sourceBUrl  String?  @map("source_b_url")
+  checkedAtIst DateTime @map("checked_at_ist") @db.Timestamptz(3)
+
+  @@unique([tradeDate, symbol, expiry])
+  @@index([tradeDate, checkedAtIst])
+  @@map("cross_check")
+}

@@ -76,7 +76,17 @@ export function ReportsExportSection() {
   }
 
   const exportBestVehicle = () => {
-    const vehicles = rankBestVehicleForExposure(50)
+    setExportError(null)
+    if (feed?.status !== 'LIVE_PARITY' || !feed.contracts) {
+      setExportError('Live price inputs are unavailable; no vehicle ranking was exported.')
+      return
+    }
+    const vehicles = rankBestVehicleForExposure(50, {
+      GOLDM: feed.contracts.GOLDM.quotedPrice,
+      GOLDTEN: feed.contracts.GOLDTEN.quotedPrice,
+      GOLDGUINEA: feed.contracts.GOLDGUINEA.quotedPrice,
+      GOLDPETAL: feed.contracts.GOLDPETAL.quotedPrice,
+    })
     const header = 'Rank,Contract,RequiredLots,ActualExposureG,MismatchPct,CostPerGramInr,CostBps\n'
     const rows = vehicles
       .map(

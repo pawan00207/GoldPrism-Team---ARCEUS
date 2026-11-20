@@ -10,6 +10,8 @@ import {
 import { SiteShell } from '@/components/goldprism/SiteShell'
 import { VaultHero } from '@/components/goldprism/VaultHero'
 import { Reveal } from '@/components/goldprism/Reveal'
+import { TodayLiveIntelligence } from '@/components/goldprism/TodayLiveIntelligence'
+import { TokenizedGoldHome } from '@/components/goldprism/TokenizedGoldHome'
 
 const SEQUENCE = [
   {
@@ -45,7 +47,9 @@ const SEQUENCE = [
 export default function Home() {
   return (
     <SiteShell>
+      <TokenizedGoldHome />
       <VaultHero />
+      <TodayLiveIntelligence />
 
       {/* The audit sequence */}
       <section className="border-b border-border bg-background">

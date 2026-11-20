@@ -3,3 +3,5 @@ mcxlib==0.4
 pandas>=2.2
 pyarrow>=18
 pytest>=8
+requests>=2.32
+tinyfish>=0.11

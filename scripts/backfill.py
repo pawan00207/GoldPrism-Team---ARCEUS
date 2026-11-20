@@ -33,6 +33,8 @@ def _parse_date(value: str) -> date:
 def _empty_health(trade_date: date, *, missing_trading_days: int) -> dict[str, object]:
     return {
         "requested_date": trade_date.isoformat(),
+        "fetched_at": None,
+        "source": "unavailable",
         "raw_rows": 0,
         "validated_rows": 0,
         "rejected_rows": 0,

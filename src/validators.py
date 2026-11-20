@@ -98,6 +98,8 @@ def _canonicalize_columns(frame: pd.DataFrame) -> pd.DataFrame:
 def _health_template(requested_date: date, raw_rows: int) -> dict[str, Any]:
     return {
         "requested_date": requested_date.isoformat(),
+        "source": "mcxlib",
+        "fetched_at": None,
         "raw_rows": raw_rows,
         "validated_rows": 0,
         "rejected_rows": 0,
@@ -127,6 +129,10 @@ def validate_bhavcopy(
         raise ValueError(f"Invalid requested date: {requested_date!r}")
 
     normalized = _canonicalize_columns(source_frame)
+    if "source" not in normalized:
+        normalized["source"] = source_frame.attrs.get("source", "mcxlib")
+    if "fetched_at" not in normalized:
+        normalized["fetched_at"] = source_frame.attrs.get("fetched_at")
     normalized["symbol"] = normalized["symbol"].astype("string").str.strip().str.upper()
     gold_rows = normalized[normalized["symbol"].isin(CONTRACT_NORMALIZATION_CONFIG)].copy()
 
@@ -137,6 +143,10 @@ def validate_bhavcopy(
     missing_count = int(gold_rows.isna().sum().sum())
     value_count = int(gold_rows.shape[0] * gold_rows.shape[1])
     health = _health_template(expected_date, len(gold_rows))
+    sources = gold_rows["source"].dropna().astype(str).unique().tolist()
+    health["source"] = sources[0] if len(sources) == 1 else ",".join(sorted(sources))
+    fetched_at = gold_rows["fetched_at"].dropna().astype(str)
+    health["fetched_at"] = fetched_at.iloc[0] if not fetched_at.empty else None
     health["missing_values_count"] = missing_count
     health["missing_values_total"] = value_count
     health["missing_values_pct"] = round(100.0 * missing_count / value_count, 4) if value_count else 0.0
@@ -160,7 +170,10 @@ def validate_bhavcopy(
     for column in PRICE_COLUMNS + ("volume", "open_interest"):
         if column not in gold_rows:
             gold_rows[column] = float("nan")
-        gold_rows[column] = pd.to_numeric(gold_rows[column], errors="coerce")
+        numeric_values = gold_rows[column]
+        if numeric_values.dtype == object or pd.api.types.is_string_dtype(numeric_values.dtype):
+            numeric_values = numeric_values.astype("string").str.replace(",", "", regex=False)
+        gold_rows[column] = pd.to_numeric(numeric_values, errors="coerce")
 
     rejected: list[pd.DataFrame] = []
     invalid_expiry = gold_rows["expiry_date"].isna()
@@ -247,4 +260,16 @@ def aggregate_data_health(
         + sum(int(item.get("missing_trading_days", 0)) for item in summaries),
         "date_mismatches_rejected": sum(int(item.get("date_mismatches_rejected", 0)) for item in summaries),
         "untrusted_rows": sum(int(item.get("untrusted_rows", 0)) for item in summaries),
+        "source_counts": {
+            source: sum(1 for item in summaries if item.get("source") == source)
+            for source in sorted({str(item.get("source", "unknown")) for item in summaries})
+        },
+        "last_successful_fetch_at": max(
+            (
+                str(item["fetched_at"])
+                for item in summaries
+                if item.get("fetched_at") and int(item.get("validated_rows", 0)) > 0
+            ),
+            default=None,
+        ),
     }

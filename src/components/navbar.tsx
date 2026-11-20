@@ -19,16 +19,20 @@ import { Button } from '@/components/ui/button'
 import { FirebaseAuthNotice } from '@/components/goldprism/FirebaseAuthNotice'
 import { Mascot } from '@/components/goldprism/Mascot'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
+import { useGoldMarket } from '@/hooks/use-gold-market'
+import { pricePerGramInr } from '@/lib/goldprism/gold-market'
 import { inr } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
 
 export function TickerTape() {
   const { feed, mcxSnapshot, loading, refreshing, refreshFeed, tickCount } = useLiveFeed()
+  const goldMarket = useGoldMarket()
   const isLive = feed?.status === 'LIVE_PARITY'
   const mcxLive = mcxSnapshot?.status === 'MCX_LIVE'
   const mcxStale = mcxSnapshot?.status === 'MCX_STALE'
   const hasMcxSnapshot = mcxLive || mcxStale
   const b = feed?.benchmarks
+  const tokenQuotes = goldMarket.status === 'live' ? goldMarket.data : null
 
   const tapeItems = (
     <>
@@ -54,6 +58,34 @@ export function TickerTape() {
           <Dot />
         </>
       ) : null}
+      {tokenQuotes ? (
+        <>
+          <span>
+            PAXG / G{' '}
+            <strong className="font-semibold text-[var(--gp-caramel)]">
+              ₹{pricePerGramInr(tokenQuotes.paxg.inr).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </strong>
+          </span>
+          <Dot />
+          <span>
+            XAUT / G{' '}
+            <strong className="font-semibold text-[var(--gp-caramel)]">
+              ₹{pricePerGramInr(tokenQuotes.xaut.inr).toLocaleString('en-IN', { maximumFractionDigits: 2 })}
+            </strong>
+          </span>
+          <Dot />
+          <span>
+            USD/INR{' '}
+            <strong className="font-medium text-foreground">{tokenQuotes.usdInr.toFixed(2)}</strong>
+          </span>
+          <Dot />
+        </>
+      ) : (
+        <>
+          <span>{goldMarket.status === 'error' ? 'PAXG / XAUT fetching live · retrying' : 'Fetching live PAXG / XAUT quotes…'}</span>
+          <Dot />
+        </>
+      )}
       {isLive && b ? (
         <>
           <span>
@@ -156,6 +188,8 @@ const NAV_LINKS = [
   { href: '/replay', label: 'Replay' },
   { href: '/analyst', label: 'Analyst' },
   { href: '/trade', label: 'Trade' },
+  { href: '/market', label: 'Market' },
+  { href: '/wallet', label: 'Wallet' },
   { href: '/research', label: 'Research' },
 ]
 

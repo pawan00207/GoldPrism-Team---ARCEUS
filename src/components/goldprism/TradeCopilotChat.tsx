@@ -18,14 +18,68 @@ interface CopilotMessage {
   asOf?: string
   engineLabel?: string
   suggestedIntent?: TradeIntentInput | null
+  evidence?: Array<{ title: string; url: string; excerpt: string }>
+  runId?: string
+}
+
+interface TinyFishProgress {
+  runId: string | null
+  steps: string[]
+  viewerUrl: string | null
 }
 
 const QUICK_PROMPTS = [
   'GOLDTEN vs GOLDM spread abhi trade karna sahi hai?',
   '50g gold hedge karna hai — best contract aur cost batao',
   'Explain all 4 MCX contracts normalized to 10g pure gold',
+  'Find the current MCX gold contract quotes and cite the source',
   'Check my open positions & margin risk right now',
 ]
+
+function validTinyFishEvidence(value: unknown): CopilotMessage['evidence'] | null {
+  if (!Array.isArray(value) || value.length === 0 || value.length > 3) return null
+  const evidence: NonNullable<CopilotMessage['evidence']> = []
+  for (const item of value) {
+    if (!item || typeof item !== 'object') return null
+    const record = item as Record<string, unknown>
+    if (
+      typeof record.title !== 'string' ||
+      typeof record.url !== 'string' ||
+      typeof record.excerpt !== 'string'
+    ) {
+      return null
+    }
+    try {
+      const url = new URL(record.url)
+      if (
+        url.protocol !== 'https:' ||
+        (url.hostname !== 'mcxindia.com' && url.hostname !== 'www.mcxindia.com')
+      ) {
+        return null
+      }
+    } catch {
+      return null
+    }
+    evidence.push({
+      title: record.title,
+      url: record.url,
+      excerpt: record.excerpt,
+    })
+  }
+  return evidence
+}
+
+function validTinyFishViewerUrl(value: unknown): string | null {
+  if (typeof value !== 'string') return null
+  try {
+    const url = new URL(value)
+    return url.protocol === 'https:' && url.hostname.endsWith('.tinyfish.ai')
+      ? url.toString()
+      : null
+  } catch {
+    return null
+  }
+}
 
 export function TradeCopilotChat({
   embedded = false,
@@ -33,7 +87,9 @@ export function TradeCopilotChat({
   embedded?: boolean
 }) {
   const { user, feed, cashInr, equityInr, positions, unrealizedPnlInr } = useLiveFeed()
-  const [engineMode, setEngineMode] = React.useState<'gemini' | 'deterministic'>('gemini')
+  const [engineMode, setEngineMode] = React.useState<
+    'gemini' | 'deterministic' | 'tinyfish'
+  >('gemini')
   const [messages, setMessages] = React.useState<CopilotMessage[]>([
     {
       id: 'welcome',
@@ -45,6 +101,11 @@ export function TradeCopilotChat({
   const [input, setInput] = React.useState('')
   const [lastPrompt, setLastPrompt] = React.useState<string>('')
   const [busy, setBusy] = React.useState(false)
+  const [tinyFishProgress, setTinyFishProgress] = React.useState<TinyFishProgress>({
+    runId: null,
+    steps: [],
+    viewerUrl: null,
+  })
   const [error, setError] = React.useState<{
     message: string
     canFallback: boolean
@@ -57,7 +118,10 @@ export function TradeCopilotChat({
     }
   }, [messages, busy])
 
-  const sendMessage = async (text: string, overrideMode?: 'gemini' | 'deterministic') => {
+  const sendMessage = async (
+    text: string,
+    overrideMode?: 'gemini' | 'deterministic' | 'tinyfish'
+  ) => {
     const trimmed = text.trim()
     if (!trimmed || busy) return
     const activeMode = overrideMode ?? engineMode
@@ -77,6 +141,132 @@ export function TradeCopilotChat({
     setBusy(true)
 
     try {
+      if (activeMode === 'tinyfish') {
+        setTinyFishProgress({ runId: null, steps: [], viewerUrl: null })
+        const response = await fetch('/api/goldprism/tinyfish/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ question: trimmed }),
+        })
+        if (!response.ok) {
+          const data: unknown = await response.json().catch(() => null)
+          const message =
+            data &&
+            typeof data === 'object' &&
+            'error' in data &&
+            typeof data.error === 'string'
+              ? data.error
+              : `TinyFish request failed (HTTP ${response.status}).`
+          setError({ message, canFallback: false })
+          return
+        }
+        if (!response.body) {
+          setError({ message: 'TinyFish returned no progress stream.', canFallback: false })
+          return
+        }
+
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        let finalReceived = false
+        const processEvent = (line: string) => {
+          if (!line.startsWith('data:')) return
+          let event: unknown
+          try {
+            event = JSON.parse(line.slice(5).trimStart())
+          } catch {
+            setError({ message: 'TinyFish sent an invalid progress event.', canFallback: false })
+            finalReceived = true
+            return
+          }
+          if (!event || typeof event !== 'object' || !('type' in event)) return
+          const record = event as Record<string, unknown>
+          if (record.type === 'STARTED') {
+            setTinyFishProgress((current) => ({
+              ...current,
+              runId: typeof record.runId === 'string' ? record.runId : null,
+            }))
+          } else if (record.type === 'PROGRESS') {
+            setTinyFishProgress((current) => ({
+              ...current,
+              steps: [
+                ...current.steps,
+                typeof record.purpose === 'string' ? record.purpose : 'Agent is working.',
+              ].slice(-8),
+            }))
+          } else if (record.type === 'STREAMING_URL') {
+            const viewerUrl = validTinyFishViewerUrl(record.viewerUrl)
+            if (viewerUrl) {
+              setTinyFishProgress((current) => ({ ...current, viewerUrl }))
+            }
+          } else if (record.type === 'ERROR') {
+            setError({
+              message:
+                typeof record.message === 'string'
+                  ? record.message
+                  : 'TinyFish Agent failed.',
+              canFallback: false,
+            })
+            finalReceived = true
+          } else if (record.type === 'COMPLETE') {
+            const result = record.result
+            const evidence =
+              result && typeof result === 'object' && 'evidence' in result
+                ? validTinyFishEvidence(result.evidence)
+                : null
+            const answer =
+              result &&
+              typeof result === 'object' &&
+              'answer' in result &&
+              typeof result.answer === 'string'
+                ? result.answer
+                : null
+            if (!answer || !evidence) {
+              setError({
+                message: 'TinyFish answer or MCX citations failed validation.',
+                canFallback: false,
+              })
+            } else {
+              const replyMsg: CopilotMessage = {
+                id: `a-${Date.now()}`,
+                role: 'assistant',
+                content: answer,
+                asOf: typeof record.timestamp === 'string' ? record.timestamp : undefined,
+                engineLabel: 'TinyFish Agent · MCX public page',
+                evidence,
+                runId: typeof record.runId === 'string' ? record.runId : undefined,
+              }
+              setMessages((prev) => [...prev, replyMsg])
+              if (user) {
+                void saveCopilotLogToCloud(user.uid, trimmed, replyMsg.content).catch(() => {
+                  // Non-blocking audit log write
+                })
+              }
+            }
+            finalReceived = true
+          }
+        }
+
+        while (true) {
+          const { value, done } = await reader.read()
+          buffer += decoder.decode(value, { stream: !done })
+          let newline = buffer.indexOf('\n')
+          while (newline >= 0) {
+            processEvent(buffer.slice(0, newline).replace(/\r$/, ''))
+            buffer = buffer.slice(newline + 1)
+            newline = buffer.indexOf('\n')
+          }
+          if (done) break
+        }
+        if (!finalReceived) {
+          setError({
+            message: 'TinyFish progress stream ended before an answer arrived.',
+            canFallback: false,
+          })
+        }
+        return
+      }
+
       const res = await fetch('/api/goldprism/trade-copilot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -142,8 +332,14 @@ export function TradeCopilotChat({
           <div>
             <p className="gp-label text-foreground">GoldPrism Trade Copilot</p>
             <p className="font-mono text-[9px] uppercase tracking-[0.09em] text-muted-foreground">
-              {engineMode === 'gemini' ? 'Gemini + X-Ray' : 'Quant Rules Engine'} ·{' '}
-              {feed?.status === 'LIVE_PARITY' ? 'Live Connected' : 'Syncing'}
+              {engineMode === 'gemini'
+                ? 'Gemini + X-Ray'
+                : engineMode === 'tinyfish'
+                  ? 'TinyFish · MCX public page'
+                  : 'Quant Rules Engine'}
+              {engineMode === 'tinyfish'
+                ? ''
+                : ` · ${feed?.status === 'LIVE_PARITY' ? 'Live Connected' : 'Syncing'}`}
             </p>
           </div>
         </div>
@@ -174,6 +370,19 @@ export function TradeCopilotChat({
           >
             <Cpu className="h-3 w-3 text-[var(--gp-tradable-ink)]" />
             Quant Engine
+          </button>
+          <button
+            type="button"
+            onClick={() => setEngineMode('tinyfish')}
+            className={cn(
+              'inline-flex items-center gap-1 rounded-[3px] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.08em] transition-colors',
+              engineMode === 'tinyfish'
+                ? 'bg-card text-foreground font-semibold shadow-xs'
+                : 'text-muted-foreground hover:text-foreground'
+            )}
+          >
+            <Bot className="h-3 w-3 text-[var(--gp-gold-ink)]" />
+            MCX Agent
           </button>
         </div>
       </div>
@@ -218,7 +427,28 @@ export function TradeCopilotChat({
                   {m.engineLabel ?? 'Grounded'} · as_of {m.asOf.slice(0, 19).replace('T', ' ')} UTC
                 </p>
               ) : null}
+              {m.runId ? (
+                <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                  TinyFish run · {m.runId}
+                </p>
+              ) : null}
             </div>
+
+            {m.evidence?.map((item) => (
+              <a
+                key={`${m.id}-${item.url}`}
+                href={item.url}
+                target="_blank"
+                rel="noreferrer"
+                className="max-w-[92%] rounded-[4px] border border-border bg-background px-3 py-2 text-xs text-muted-foreground hover:text-foreground"
+              >
+                <span className="font-medium text-foreground">{item.title}</span>
+                <span className="mt-1 block">{item.excerpt}</span>
+                <span className="mt-1 block font-mono text-[9px] underline underline-offset-2">
+                  {item.url}
+                </span>
+              </a>
+            ))}
 
             {m.suggestedIntent ? (
               <div className="w-full max-w-[96%]">
@@ -233,9 +463,30 @@ export function TradeCopilotChat({
         ))}
 
         {busy ? (
-          <div className="inline-flex items-center gap-2 rounded-[4px] border border-border bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--gp-gold-ink)]" />
-            Checking live parity, X-Ray waterfall &amp; statutory fees…
+          <div className="space-y-2 rounded-[4px] border border-border bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
+            <p className="inline-flex items-center gap-2">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-[var(--gp-gold-ink)]" />
+              {engineMode === 'tinyfish'
+                ? `TinyFish Agent researching the official MCX page${tinyFishProgress.runId ? ` · ${tinyFishProgress.runId}` : '…'}`
+                : 'Checking live parity, X-Ray waterfall & statutory fees…'}
+            </p>
+            {tinyFishProgress.steps.length > 0 ? (
+              <ul className="space-y-1 text-[10px]">
+                {tinyFishProgress.steps.map((step, index) => (
+                  <li key={`${index}-${step}`}>{step}</li>
+                ))}
+              </ul>
+            ) : null}
+            {tinyFishProgress.viewerUrl ? (
+              <a
+                href={tinyFishProgress.viewerUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block text-[10px] underline underline-offset-2"
+              >
+                View live agent session
+              </a>
+            ) : null}
           </div>
         ) : null}
 

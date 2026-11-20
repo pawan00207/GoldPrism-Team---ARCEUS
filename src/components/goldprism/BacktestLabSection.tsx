@@ -18,6 +18,51 @@ import { bps, inr, signed } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
 
 export function BacktestLabSection() {
+  const [costReview, setCostReview] = React.useState<{
+    status: string
+    needsReview: boolean | null
+    lastVerifiedAt: string | null
+    lastChangedAt: string | null
+    lastSummary: string | null
+  } | null>(null)
+
+  React.useEffect(() => {
+    let active = true
+    const refresh = async () => {
+      try {
+        const response = await fetch('/api/goldprism/tinyfish/status', { cache: 'no-store' })
+        if (!response.ok) throw new Error('Cost rules status unavailable.')
+        const payload = await response.json()
+        if (active) setCostReview(payload?.sources?.costModelReview ?? null)
+      } catch {
+        if (active) {
+          setCostReview({
+            status: 'UNAVAILABLE',
+            needsReview: null,
+            lastVerifiedAt: null,
+            lastChangedAt: null,
+            lastSummary: null,
+          })
+        }
+      }
+    }
+
+    void refresh()
+    const timer = window.setInterval(() => void refresh(), 60_000)
+    return () => {
+      active = false
+      window.clearInterval(timer)
+    }
+  }, [])
+
+  const verifiedLabel = costReview?.lastVerifiedAt
+    ? `${new Date(costReview.lastVerifiedAt).toLocaleString('en-IN', {
+        dateStyle: 'medium',
+        timeStyle: 'short',
+        timeZone: 'Asia/Kolkata',
+      })} IST`
+    : 'Unavailable'
+
   // Real pipeline results from results/backtest.json, results/bootstrap.json, results/holdout.json
   const pipelineEquityCurve = [
     { date: '2024-01-01', gross_equity: 1000000.0, net_equity: 1000000.0, drawdown_pct: 0.0 },
@@ -75,6 +120,52 @@ export function BacktestLabSection() {
             </div>
           }
         />
+
+        <div
+          className={cn(
+            'mt-6 flex flex-col gap-3 rounded-[4px] border border-border bg-card p-4 shadow-[var(--gp-hard-shadow)] sm:flex-row sm:items-center sm:justify-between',
+            costReview?.needsReview && 'border-[var(--gp-blocked)]'
+          )}
+          role="status"
+          aria-live="polite"
+        >
+          <div>
+            <p className="gp-label">Rules watcher · cost assumptions</p>
+            <p className="mt-2 text-sm text-foreground">
+              {costReview?.needsReview
+                ? 'Cost model needs review'
+                : costReview?.status === 'AVAILABLE' && costReview.needsReview === false
+                  ? 'No relevant rules change is pending review.'
+                  : 'Cost model review status unavailable.'}
+            </p>
+            {costReview?.lastSummary ? (
+              <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                {costReview.lastSummary}
+              </p>
+            ) : null}
+          </div>
+          <div className="flex flex-col items-start gap-1 sm:items-end">
+            <span
+              className={cn(
+                'gp-tag',
+                costReview?.needsReview
+                  ? 'gp-tag--blocked'
+                  : costReview?.status === 'AVAILABLE'
+                    ? 'gp-tag--tradable'
+                    : 'gp-tag--neutral'
+              )}
+            >
+              {costReview?.needsReview
+                ? 'Review required'
+                : costReview?.status === 'AVAILABLE'
+                  ? 'Monitor active'
+                  : 'Unavailable'}
+            </span>
+            <span className="font-mono text-[9px] text-muted-foreground">
+              Last verified by rules monitor: {verifiedLabel}
+            </span>
+          </div>
+        </div>
 
         {/* ---------------- Headline metrics ---------------- */}
         <div className="mt-8 grid gap-px overflow-hidden rounded-[4px] border border-border bg-border shadow-[var(--gp-hard-shadow)] sm:grid-cols-2 xl:grid-cols-4">

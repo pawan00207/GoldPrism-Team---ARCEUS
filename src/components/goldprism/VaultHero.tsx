@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { ArrowRight, ArrowUpRight, ShieldCheck, Sparkles } from 'lucide-react'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { DataTag, Hallmark } from '@/components/goldprism/brand'
+import { useMcxMarketWatch } from '@/hooks/use-mcx-market-watch'
 import { SupportedContractCode } from '@/lib/goldprism/contract-master'
 import { inr } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
@@ -34,6 +35,7 @@ function fmtExpiry(v: string): string {
 
 export function VaultHero() {
   const { feed, mcxSnapshot, mcxSnapshotError, pricesSource } = useLiveFeed()
+  const mcxMarket = useMcxMarketWatch()
   const mcxLive = mcxSnapshot?.status === 'MCX_LIVE'
   const stale = mcxSnapshot?.status === 'MCX_STALE'
   const hasMcxSnapshot = mcxLive || stale
@@ -208,17 +210,22 @@ export function VaultHero() {
               <LedgerLine row={getLedgerQuote('GOLDPETAL')} name="GOLDPETAL" sub="1g · 999" />
             </dl>
 
-            {/* Example verdict — explicitly fixture */}
             <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-border/70 px-3 py-2.5">
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                  Verdict · 20 Mar 2026 (fixture)
+                  Live X-Ray eligibility
                 </p>
                 <p className="mt-1 text-sm leading-snug text-foreground">
-                  Residual <span className="font-mono">+1.8 bps</span> — costs ate every day of it.
+                  {mcxMarket.status === 'available'
+                    ? 'BLOCKED · quote time, volume, and open interest are unverified.'
+                    : mcxMarket.status === 'loading'
+                      ? 'Checking current MCX quote availability…'
+                      : 'UNAVAILABLE · no verified live MCX quote.'}
                 </p>
               </div>
-              <Hallmark verdict="NO EDGE" size={44} label={false} />
+              {mcxMarket.status === 'available' ? (
+                <Hallmark verdict="BLOCKED" size={44} label={false} />
+              ) : null}
             </div>
 
             <p className="mt-3 flex items-center justify-between font-mono text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground/80">

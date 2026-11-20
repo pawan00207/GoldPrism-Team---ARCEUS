@@ -17,4 +17,22 @@ jobs:
       - name: Install ingestion dependencies
         run: python -m pip install -r requirements.txt
       - name: Fetch and validate today's Bhavcopy
-        run: python scripts/fetch_today.py
+        env:
+          TINYFISH_API_KEY: ${{ secrets.TINYFISH_API_KEY }}
+        run: python scripts/fetch_today.py --health-output artifacts/ingestion-health.json
+      - name: Publish ingestion status to GoldPrism
+        if: always() && hashFiles('artifacts/ingestion-health.json') != ''
+        continue-on-error: true
+        env:
+          GOLDPRISM_APP_URL: ${{ vars.GOLDPRISM_APP_URL }}
+          INGESTION_STATUS_TOKEN: ${{ secrets.INGESTION_STATUS_TOKEN }}
+        run: |
+          if [ -z "$GOLDPRISM_APP_URL" ] || [ -z "$INGESTION_STATUS_TOKEN" ]; then
+            echo "Ingestion status bridge is not configured; skipping publish."
+            exit 0
+          fi
+          curl --fail-with-body --silent --show-error \
+            --request POST "$GOLDPRISM_APP_URL/api/goldprism/tinyfish/ingestion-status" \
+            --header "Authorization: Bearer $INGESTION_STATUS_TOKEN" \
+            --header "Content-Type: application/json" \
+            --data-binary @artifacts/ingestion-health.json

@@ -14,6 +14,7 @@ import {
 import { DataTag, SectionHead } from '@/components/goldprism/brand'
 import { inr, inrPerG } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
+import { TinyFishSourceStatus } from '@/components/goldprism/TinyFishSourceStatus'
 
 // Client-only timestamp to avoid SSR hydration mismatch
 function AuditTimestamp({ ts }: { ts: string }) {
@@ -250,6 +251,8 @@ export function DataHealthSection({
             </div>
           </div>
         </div>
+
+        <TinyFishSourceStatus />
 
         {/* ---------------- Records ---------------- */}
         <div className="mt-8 grid gap-6 lg:grid-cols-2">

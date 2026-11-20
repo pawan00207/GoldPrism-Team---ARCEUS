@@ -201,7 +201,13 @@ it('Catches seeded faults (date mismatch, outlier, missing value)', () => {
 
 console.log('\n5. Best Vehicle Ranking:');
 it('Ranks GOLDTEN as #1 for 50g exposure with 0% mismatch', () => {
-  const rankings = rankBestVehicleForExposure(50);
+  // Test fixture only: deterministic prices for the ranking unit test.
+  const rankings = rankBestVehicleForExposure(50, {
+    GOLDM: 73510.0,
+    GOLDTEN: 74080.0,
+    GOLDGUINEA: 59250.0,
+    GOLDPETAL: 7410.0,
+  });
   assert.strictEqual(rankings.length, 4);
   const winner = rankings[0];
   assert.strictEqual(winner.contractCode, 'GOLDTEN');

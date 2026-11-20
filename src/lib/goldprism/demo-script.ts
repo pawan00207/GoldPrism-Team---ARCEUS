@@ -75,7 +75,12 @@ export function initializeJudgeDemo(): JudgeDemoState {
   });
 
   // Step 4: Best vehicle for 50g exposure
-  const step4Data = rankBestVehicleForExposure(50);
+  const step4Data = rankBestVehicleForExposure(50, {
+    GOLDM: 73510.0,
+    GOLDTEN: 74080.0,
+    GOLDGUINEA: 59250.0,
+    GOLDPETAL: 7410.0,
+  });
 
   return {
     currentStep: 1,

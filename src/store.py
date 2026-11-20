@@ -18,6 +18,8 @@ DATA_DIR = PROJECT_ROOT / "data"
 
 _BHAVCOPY_COLUMNS = (
     "trade_date",
+    "fetched_at",
+    "source",
     "symbol",
     "expiry_date",
     "contract_key",
@@ -36,6 +38,8 @@ _BHAVCOPY_COLUMNS = (
 
 _HEALTH_COLUMNS = (
     "requested_date",
+    "fetched_at",
+    "source",
     "raw_rows",
     "validated_rows",
     "rejected_rows",
@@ -124,12 +128,15 @@ def load_into_duckdb(
     rows = frame.loc[:, _BHAVCOPY_COLUMNS].copy()
     for column in ("trade_date", "expiry_date"):
         rows[column] = pd.to_datetime(rows[column], errors="raise").dt.date
+    rows["fetched_at"] = pd.to_datetime(rows["fetched_at"], errors="coerce", utc=True)
 
     with duckdb.connect(str(db_path)) as connection:
         connection.execute(
             """
             CREATE TABLE IF NOT EXISTS bhavcopy (
                 trade_date DATE NOT NULL,
+                fetched_at TIMESTAMPTZ,
+                source VARCHAR NOT NULL DEFAULT 'mcxlib',
                 symbol VARCHAR NOT NULL,
                 expiry_date DATE NOT NULL,
                 contract_key VARCHAR NOT NULL,
@@ -148,12 +155,22 @@ def load_into_duckdb(
             )
             """
         )
+        existing_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info('bhavcopy')").fetchall()
+        }
+        if "fetched_at" not in existing_columns:
+            connection.execute("ALTER TABLE bhavcopy ADD COLUMN fetched_at TIMESTAMPTZ")
+        if "source" not in existing_columns:
+            connection.execute(
+                "ALTER TABLE bhavcopy ADD COLUMN source VARCHAR NOT NULL DEFAULT 'mcxlib'"
+            )
         connection.register("validated_rows", rows)
         try:
             connection.execute("BEGIN TRANSACTION")
             connection.execute("DELETE FROM bhavcopy WHERE trade_date = ?", [rows.iloc[0]["trade_date"]])
             connection.execute(
-                "INSERT INTO bhavcopy SELECT * FROM validated_rows"
+                f"INSERT INTO bhavcopy ({', '.join(_BHAVCOPY_COLUMNS)}) "
+                f"SELECT {', '.join(_BHAVCOPY_COLUMNS)} FROM validated_rows"
             )
             connection.execute("COMMIT")
         except Exception:
@@ -181,6 +198,8 @@ def save_data_health(
             """
             CREATE TABLE IF NOT EXISTS data_health (
                 requested_date DATE PRIMARY KEY,
+                fetched_at TIMESTAMPTZ,
+                source VARCHAR NOT NULL DEFAULT 'mcxlib',
                 raw_rows BIGINT NOT NULL,
                 validated_rows BIGINT NOT NULL,
                 rejected_rows BIGINT NOT NULL,
@@ -194,10 +213,26 @@ def save_data_health(
             )
             """
         )
+        existing_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info('data_health')").fetchall()
+        }
+        if "fetched_at" not in existing_columns:
+            connection.execute("ALTER TABLE data_health ADD COLUMN fetched_at TIMESTAMPTZ")
+        if "source" not in existing_columns:
+            connection.execute(
+                "ALTER TABLE data_health ADD COLUMN source VARCHAR NOT NULL DEFAULT 'mcxlib'"
+            )
         connection.execute(
             """
-            INSERT INTO data_health VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO data_health (
+                requested_date, fetched_at, source, raw_rows, validated_rows,
+                rejected_rows, missing_values_count, missing_values_total,
+                missing_values_pct, outlier_count, missing_trading_days,
+                date_mismatches_rejected, untrusted_rows
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT (requested_date) DO UPDATE SET
+                fetched_at = excluded.fetched_at,
+                source = excluded.source,
                 raw_rows = excluded.raw_rows,
                 validated_rows = excluded.validated_rows,
                 rejected_rows = excluded.rejected_rows,
@@ -209,7 +244,12 @@ def save_data_health(
                 date_mismatches_rejected = excluded.date_mismatches_rejected,
                 untrusted_rows = excluded.untrusted_rows
             """,
-            values,
+            [
+                values[0],
+                pd.to_datetime(values[1], errors="coerce", utc=True),
+                values[2],
+                *values[3:],
+            ],
         )
 
 
@@ -232,6 +272,8 @@ def get_data_health(
             "missing_trading_days": 0,
             "date_mismatches_rejected": 0,
             "untrusted_rows": 0,
+            "source_counts": {},
+            "last_successful_fetch_at": None,
         }
     with duckdb.connect(str(db_path), read_only=True) as connection:
         table_exists = connection.execute(
@@ -239,10 +281,21 @@ def get_data_health(
         ).fetchone()[0]
         if not table_exists:
             return get_data_health_empty()
+        table_columns = {
+            row[1] for row in connection.execute("PRAGMA table_info('data_health')").fetchall()
+        }
+        fetched_at_expression = (
+            "max(fetched_at) FILTER (WHERE validated_rows > 0)"
+            if "fetched_at" in table_columns
+            else "NULL"
+        )
+        source_expression = "source" if "source" in table_columns else "'mcxlib'"
         row = connection.execute(
-            """
+            f"""
             SELECT
+                {fetched_at_expression},
                 count(*) AS days_processed,
+                string_agg(DISTINCT {source_expression}, ','),
                 coalesce(sum(raw_rows), 0),
                 coalesce(sum(validated_rows), 0),
                 coalesce(sum(rejected_rows), 0),
@@ -255,24 +308,31 @@ def get_data_health(
             FROM data_health
             """
         ).fetchone()
-    missing_pct = round(100.0 * row[4] / row[5], 4) if row[5] else 0.0
-    return dict(
-        zip(
-            (
-                "days_processed",
-                "raw_rows",
-                "validated_rows",
-                "rejected_rows",
-                "missing_values_count",
-                "missing_values_total",
-                "outlier_count",
-                "missing_trading_days",
-                "date_mismatches_rejected",
-                "untrusted_rows",
-            ),
-            row[:6] + (missing_pct,) + row[6:],
-        )
-    )
+        if "source" in table_columns:
+            source_counts = dict(
+                connection.execute(
+                    "SELECT source, count(*) FROM data_health GROUP BY source"
+                ).fetchall()
+            )
+        else:
+            source_counts = {"mcxlib": row[1]} if row[1] else {}
+    missing_pct = round(100.0 * row[6] / row[7], 4) if row[7] else 0.0
+    return {
+        "last_successful_fetch_at": row[0],
+        "days_processed": row[1],
+        "sources": row[2],
+        "source_counts": source_counts,
+        "raw_rows": row[3],
+        "validated_rows": row[4],
+        "rejected_rows": row[5],
+        "missing_values_count": row[6],
+        "missing_values_total": row[7],
+        "missing_values_pct": missing_pct,
+        "outlier_count": row[8],
+        "missing_trading_days": row[9],
+        "date_mismatches_rejected": row[10],
+        "untrusted_rows": row[11],
+    }
 
 
 def get_data_health_empty() -> dict[str, Any]:
@@ -289,4 +349,6 @@ def get_data_health_empty() -> dict[str, Any]:
         "missing_trading_days": 0,
         "date_mismatches_rejected": 0,
         "untrusted_rows": 0,
+        "source_counts": {},
+        "last_successful_fetch_at": None,
     }

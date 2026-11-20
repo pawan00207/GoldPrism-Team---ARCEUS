@@ -1,0 +1,7 @@
+{
+  "source_b_url": "",
+  "tol_bps": 5.0,
+  "cross_check_enabled": false,
+  "active_since": "2026-11-20",
+  "tol_calibration_note": "TOL_BPS must be calibrated on training data only; never tune against the sealed holdout."
+}

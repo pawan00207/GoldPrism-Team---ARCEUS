@@ -651,7 +651,14 @@ export function TradeExecutionDesk() {
                             onClick={() => {
                               setTargetGrams(g)
                               const best = vehicleSuggestions.find((v) => v.targetExposureG === g) ??
-                                rankBestVehicleForExposure(g)[0]
+                                (contracts
+                                  ? rankBestVehicleForExposure(g, {
+                                      GOLDM: contracts.GOLDM.quotedPrice,
+                                      GOLDTEN: contracts.GOLDTEN.quotedPrice,
+                                      GOLDGUINEA: contracts.GOLDGUINEA.quotedPrice,
+                                      GOLDPETAL: contracts.GOLDPETAL.quotedPrice,
+                                    })[0]
+                                  : undefined)
                               if (best) {
                                 setSingleSymbol(best.contractCode)
                                 setSingleLots(best.lotsRequired)

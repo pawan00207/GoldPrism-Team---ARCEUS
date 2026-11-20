@@ -32,21 +32,23 @@ export interface VehicleRank {
 
 export function rankBestVehicleForExposure(
   targetExposureG: number,
-  quotedPrices: Record<SupportedContractCode, number> = {
-    GOLDM: 73510.0,
-    GOLDTEN: 74080.0,
-    GOLDGUINEA: 59250.0,
-    GOLDPETAL: 7410.0,
-  },
+  quotedPrices: Record<SupportedContractCode, number>,
   costConfig: CostModelConfig = DEFAULT_COST_CONFIG
 ): VehicleRank[] {
+  if (!Number.isFinite(targetExposureG) || targetExposureG <= 0) {
+    throw new Error('Target exposure must be a positive finite number of grams.')
+  }
+
   const contracts: SupportedContractCode[] = ['GOLDM', 'GOLDTEN', 'GOLDGUINEA', 'GOLDPETAL'];
   const candidates: Array<Omit<VehicleRank, 'rank' | 'compositeScore' | 'isWinner' | 'rationale'> & { rawCostScore: number; rawMismatchScore: number }> = [];
 
   for (const code of contracts) {
     const spec = getContractSpec(code);
     const lotGrams = spec.tradingUnitG * spec.lotSize;
-    const price = quotedPrices[code] || 74000;
+    const price = quotedPrices[code];
+    if (!Number.isFinite(price) || price <= 0) {
+      throw new Error(`A positive live or historical quote is required for ${code}.`)
+    }
 
     // Required lots
     const lots = Math.max(1, Math.round(targetExposureG / lotGrams));

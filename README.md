@@ -210,6 +210,121 @@ mismatch rejection gate using an explicitly labeled synthetic row (not saved as
 market data). Daily files live under `data/raw/` and `data/validated/`; the
 DuckDB database is `data/goldprism.duckdb`.
 
+### TinyFish integration (optional; display and operations only)
+
+TinyFish uses its documented REST APIs from server-side code only. Its data is
+never imported into official historical signals, backtests, or the sealed
+holdout. The MCX Market Watch page can supply an explicitly sourced live market
+comparison and an X-Ray preview; the X-Ray remains **BLOCKED** because the page
+does not provide verified quote timestamps, volume, open interest, or a
+settlement-artifact cross-check. If TinyFish is not configured or unavailable,
+the UI shows **Unavailable** and the Python pipeline continues with mcxlib and
+its cached Parquet fallback.
+
+The TinyFish API key must be stored only as `TINYFISH_API_KEY`; do not use a
+`NEXT_PUBLIC_` variable, commit it, or print it. The key previously pasted into
+chat should be revoked and replaced. Locally, copy `.env.example` to `.env.local` for Next.js, then enter credentials
+there. The example contains blank values only. Set the environment variable
+before running Python:
+
+```powershell
+$secret = Read-Host "TinyFish API key" -AsSecureString
+$env:TINYFISH_API_KEY = [System.Net.NetworkCredential]::new("", $secret).Password
+python scripts\fetch_today.py
+```
+
+For local Next.js development, put the same environment variable in the ignored
+`.env.local` file. Trade Copilot's **MCX Agent** mode uses TinyFish's documented
+SSE endpoint, displays run progress and the run ID, and validates that citations
+link to the official MCX domain. The market comparison and X-Ray query the
+public MCX Market Watch and show retrieval time; these are not broker WebSocket
+quotes or official settlements. Today intelligence continues to show its own
+source, retrieval time in IST, and freshness.
+
+#### GitHub Actions and Vercel setup
+
+In GitHub **Settings → Secrets and variables → Actions**, add:
+
+| Name | Type | Purpose |
+|---|---|---|
+| `TINYFISH_API_KEY` | Secret | Optional TinyFish Bhavcopy fallback |
+| `INGESTION_STATUS_TOKEN` | Secret | Authenticates the Python-to-web status report |
+| `GOLDPRISM_APP_URL` | Variable | Base HTTPS URL of the deployed GoldPrism app |
+| `SOURCE_B_URL` | Secret/Variable | Optional settlement cross-check source page |
+| `CROSS_CHECK_ACTIVE_SINCE` | Variable | First live cross-check date; default `2026-11-20` |
+
+Set `TINYFISH_API_KEY` and the same `INGESTION_STATUS_TOKEN` in the Vercel
+environment. Apply the new database migration with `npx prisma migrate deploy`
+where `DATABASE_URL` is configured. Without the status token, app URL, or
+database, the Python fetch still runs and the UI reports that pipeline status
+is unavailable.
+
+To watch official MCX fee/circular, CTT, and GST pages, set
+`GOLDPRISM_APP_URL`, `TINYFISH_API_KEY`, and `TINYFISH_MONITOR_WEBHOOK_TOKEN`
+in the environment, then create one Page Monitor per official public source:
+
+```powershell
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+python scripts\setup_tinyfish_monitors.py --url "<official MCX circular or fee page>" --url "<official CTT source>" --url "<official GST source>"
+```
+
+Use a newly generated value for `TINYFISH_MONITOR_WEBHOOK_TOKEN` in both the
+monitor setup environment and Vercel; keep it out of source control.
+
+Set the returned comma-separated monitor IDs as `TINYFISH_COST_MONITOR_IDS`
+in Vercel. TinyFish's Monitor webhook documentation does not specify signed
+webhook headers, so GoldPrism verifies a high-entropy callback token and an
+allowlisted monitor ID instead of inventing a signature scheme. Relevant changes
+or failed checks set **Cost model needs review**; the flag remains until an
+operator reviews the cost assumptions and clears the state in PostgreSQL.
+The last monitor callback time appears next to the Backtest Lab cost assumptions.
+
+Optional Telegram notifications for rules-monitor review events are off by
+default. Set both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` in the Vercel
+environment to enable them.
+
+### Source Radar and settlement cross-check
+
+The Python ingestion pipeline writes every mcxlib and TinyFish call to the
+append-only DuckDB `source_log` table. Each row contains an IST timestamp,
+source name, method, URL, status, latency, returned-row count, and a short
+non-secret note. The dashboard mirrors these rows into PostgreSQL through the
+authenticated Actions status bridge and shows the latest row per source with
+Live/Delayed/Stale freshness.
+
+Settlement source B is configured in [src/cross_check_config.json](src/cross_check_config.json).
+Set `SOURCE_B_URL` to the public source page and enable
+`cross_check_enabled` only after training calibration. `tol_bps` is a frozen
+placeholder of `5.0`; calibrate it only on training data, never against the
+sealed holdout. Cross-checking starts only on or after `active_since`.
+
+The Source Radar reports MATCH/MISMATCH/UNVERIFIED per `(symbol, expiry)`.
+A mismatch vetoes that row's current `settle_trusted` and `signal_eligible`
+flags. UNVERIFIED never changes primary volume/OI trust. Cross-check values
+are never read by signals, decomposition, backtests, or verdicts.
+
+Focused verification:
+
+```powershell
+python -m pytest tests\test_tinyfish_client.py tests\test_fetcher_store.py tests\test_validators.py -q
+npm run test:unit
+npx tsc --noEmit
+```
+
+### Wallet catalog and demo boundaries
+
+The wallet's margin top-up and GOLDM round-trip fee costs are calculated from
+the current MCX Market Watch retrieval and CoinGecko PAXG price per gram.
+Stale or unavailable market inputs disable those purchases instead of
+substituting sample prices. The X-Ray report access fee is configured in
+`src/lib/goldprism/wallet-config.ts` and its INR equivalent uses the current
+PAXG quote.
+
+Wallet balances persist in browser storage, but the current payment, mint,
+spend, swap, and transaction hashes are **local demo operations**. They do not
+charge a payment method, custody or redeem gold, issue USDT, or broadcast a
+blockchain transaction. Do not treat demo balances as backed assets.
+
 ### 1. Web Application (Next.js 16 + React 19)
 ```bash
 # Clean clone
@@ -219,7 +334,7 @@ cd GoldPrism-Team---ARCEUS
 # Install dependencies
 npm install
 
-# Run TypeScript acceptance tests (15/15 passed)
+# Run TypeScript acceptance tests
 npm test
 
 # Run additive module unit tests (normalization, anti-lookahead, cost sensitivity, grounding)
