@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ExternalLink, ShieldCheck } from 'lucide-react'
+import { ArrowDownLeft, ArrowLeftRight, ArrowUpRight, ShieldCheck } from 'lucide-react'
 import { useGoldMarket } from '@/hooks/use-gold-market'
 import { useMcxMarketWatch } from '@/hooks/use-mcx-market-watch'
 import { pricePerGramInr } from '@/lib/goldprism/gold-market'
@@ -16,11 +16,41 @@ interface WalletTransaction {
   type: WalletTransactionType
   amount: number
   detail: string
-  txHash: string
   time: string
+  txHash?: string
   paymentId?: string
+  paymentProvider?: 'RAZORPAY_TEST' | 'SIMULATED'
+  providerOrderId?: string
   orderId?: string
   usdtAmount?: number
+}
+
+interface RazorpayCheckoutResult {
+  razorpay_payment_id: string
+  razorpay_order_id: string
+  razorpay_signature: string
+}
+
+interface RazorpayCheckoutOptions {
+  key: string
+  amount: number
+  currency: 'INR'
+  name: string
+  description: string
+  order_id: string
+  handler: (response: RazorpayCheckoutResult) => void
+  modal: { ondismiss: () => void }
+}
+
+interface RazorpayCheckoutInstance {
+  open: () => void
+  on: (event: 'payment.failed', handler: (response: { error?: { description?: string } }) => void) => void
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayCheckoutOptions) => RazorpayCheckoutInstance
+  }
 }
 
 interface WalletData {
@@ -50,7 +80,7 @@ function isWalletData(value: unknown): value is WalletData {
         (item.type === 'MINT' || item.type === 'SPEND' || item.type === 'SWAP') &&
         typeof item.amount === 'number' &&
         typeof item.detail === 'string' &&
-        typeof item.txHash === 'string' &&
+        (item.txHash === undefined || typeof item.txHash === 'string') &&
         typeof item.time === 'string'
       )
     })
@@ -85,9 +115,31 @@ function makeTransaction(type: WalletTransactionType, amount: number, detail: st
     type,
     amount,
     detail,
-    txHash: `0x${secureHex(32)}`,
     time: new Date().toISOString(),
   }
+}
+
+function loadRazorpayCheckout(): Promise<void> {
+  if (window.Razorpay) return Promise.resolve()
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    script.async = true
+    script.onload = () => {
+      if (window.Razorpay) resolve()
+      else reject(new Error('Razorpay Checkout loaded without its payment SDK.'))
+    }
+    script.onerror = () => reject(new Error('Could not load Razorpay Checkout. Check your connection and retry.'))
+    document.body.appendChild(script)
+  })
+}
+
+async function readApiPayload(response: Response): Promise<Record<string, unknown>> {
+  const payload: unknown = await response.json().catch(() => null)
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('The payment service returned an invalid response.')
+  }
+  return payload as Record<string, unknown>
 }
 
 export function GoldTokenWallet() {
@@ -116,7 +168,7 @@ export function GoldTokenWallet() {
   const [storageReady, setStorageReady] = React.useState(false)
   const [storageError, setStorageError] = React.useState<string | null>(null)
   const [paymentAmount, setPaymentAmount] = React.useState<number | null>(null)
-  const [paymentMethod, setPaymentMethod] = React.useState<'UPI' | 'Card'>('UPI')
+  const [paymentBusy, setPaymentBusy] = React.useState(false)
   const [swapAmount, setSwapAmount] = React.useState('')
   const [error, setError] = React.useState<string | null>(null)
   const [success, setSuccess] = React.useState<{ orderId: string; message: string } | null>(null)
@@ -166,34 +218,143 @@ export function GoldTokenWallet() {
     }
   }
 
-  const finishPayment = () => {
+  const finishPayment = async () => {
     setError(null)
-    if (!paymentAmount) return
+    if (!paymentAmount || paymentBusy) return
     if (!live) {
-      setError('Live PAXG price is required before minting. Wait for the quote to load and retry.')
+      setError('A live PAXG quote is required before checkout.')
       return
     }
-    const minted = paymentAmount / pricePerGramInr(live.paxg.inr)
-    if (!Number.isFinite(minted) || minted <= 0) {
-      setError('The live PAXG quote cannot be used to calculate a mint amount.')
+    const quoteAsOf = Date.parse(live.fetchedAt)
+    const quoteAgeMs = Date.now() - quoteAsOf
+    if (!Number.isFinite(quoteAsOf) || quoteAgeMs < 0 || quoteAgeMs > 90_000) {
+      setError('The PAXG quote is stale; wait for a fresh live quote before checkout.')
       return
     }
-    const paymentId = `pay_${secureHex(4)}`
-    const entry = {
-      ...makeTransaction('MINT', minted, `Mint from simulated ₹${paymentAmount} payment`),
-      paymentId,
+    const pricePerGram = pricePerGramInr(live.paxg.inr)
+    if (!Number.isFinite(pricePerGram) || pricePerGram <= 0) {
+      setError('The live PAXG quote cannot be used to calculate a wallet credit.')
+      return
     }
-    const next = {
-      ...wallet,
-      gGOLD_balance: wallet.gGOLD_balance + minted,
-      transactions: [entry, ...wallet.transactions],
-    }
-    if (commitWallet(next)) {
-      setPaymentAmount(null)
-      setSuccess({
-        orderId: paymentId,
-        message: `Payment simulated successfully. Minted ${formatNumber(minted)} gGOLD at the live PAXG rate.`,
+
+    setPaymentBusy(true)
+    try {
+      const orderResponse = await fetch('/api/goldprism/wallet/razorpay/order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amountInr: paymentAmount }),
       })
+      const orderPayload = await readApiPayload(orderResponse)
+      if (!orderResponse.ok) {
+        throw new Error(typeof orderPayload.error === 'string' ? orderPayload.error : 'Could not create a Razorpay test order.')
+      }
+      await loadRazorpayCheckout()
+      if (
+        typeof orderPayload.keyId !== 'string' ||
+        typeof orderPayload.orderId !== 'string' ||
+        typeof orderPayload.amountPaise !== 'number' ||
+        orderPayload.currency !== 'INR'
+      ) {
+        throw new Error('Razorpay returned an invalid test order.')
+      }
+      if (!window.Razorpay) throw new Error('Razorpay Checkout is unavailable.')
+
+      const orderId = orderPayload.orderId
+      const expectedPaise = paymentAmount * 100
+      if (orderPayload.amountPaise !== expectedPaise) {
+        throw new Error('Razorpay order amount does not match the selected payment amount.')
+      }
+
+      const checkout = new window.Razorpay({
+        key: orderPayload.keyId,
+        amount: expectedPaise,
+        currency: 'INR',
+        name: 'GoldPrism',
+        description: `₹${paymentAmount} Razorpay test payment · local gGOLD demo`,
+        order_id: orderId,
+        handler: (result) => {
+          void (async () => {
+            setPaymentBusy(true)
+            try {
+              if (result.razorpay_order_id !== orderId) {
+                throw new Error('Payment response does not match the Razorpay order.')
+              }
+              const verifyResponse = await fetch('/api/goldprism/wallet/razorpay/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  orderId,
+                  paymentId: result.razorpay_payment_id,
+                  signature: result.razorpay_signature,
+                  expectedAmountInr: paymentAmount,
+                }),
+              })
+              const verification = await readApiPayload(verifyResponse)
+              if (!verifyResponse.ok || verification.verified !== true) {
+                throw new Error(typeof verification.error === 'string' ? verification.error : 'Razorpay payment could not be verified.')
+              }
+              if (
+                verification.orderId !== orderId ||
+                verification.paymentId !== result.razorpay_payment_id ||
+                verification.amountInr !== paymentAmount
+              ) {
+                throw new Error('Verified Razorpay payment details do not match the selected order.')
+              }
+
+              const saved = window.localStorage.getItem(STORAGE_KEY)
+              let currentWallet = wallet
+              if (saved) {
+                const parsed: unknown = JSON.parse(saved)
+                if (!isWalletData(parsed)) throw new Error('Saved wallet data is invalid; no wallet credit was applied.')
+                currentWallet = parsed
+              }
+              if (currentWallet.transactions.some((transaction) => transaction.paymentId === result.razorpay_payment_id)) {
+                throw new Error('This Razorpay payment was already recorded in this browser wallet.')
+              }
+
+              const minted = paymentAmount / pricePerGram
+              const localOrderId = makeOrderId()
+              const entry: WalletTransaction = {
+                ...makeTransaction('MINT', minted, `Verified Razorpay test payment ${inr(paymentAmount)} · PAXG quote ${live.fetchedAt}`),
+                paymentId: result.razorpay_payment_id,
+                paymentProvider: 'RAZORPAY_TEST',
+                providerOrderId: orderId,
+                orderId: localOrderId,
+              }
+              const next = {
+                ...currentWallet,
+                gGOLD_balance: currentWallet.gGOLD_balance + minted,
+                transactions: [entry, ...currentWallet.transactions],
+              }
+              if (!commitWallet(next)) {
+                throw new Error('Razorpay test payment was verified, but the browser wallet could not save the local demo credit.')
+              }
+              setPaymentAmount(null)
+              setSuccess({
+                orderId: localOrderId,
+                message: `Razorpay test payment verified. Credited ${formatNumber(minted)} gGOLD to this browser-only demo wallet; no blockchain mint occurred.`,
+              })
+            } catch (verificationError) {
+              setError(verificationError instanceof Error ? verificationError.message : 'Razorpay payment verification failed.')
+            } finally {
+              setPaymentBusy(false)
+            }
+          })()
+        },
+        modal: {
+          ondismiss: () => setPaymentBusy(false),
+        },
+      })
+      checkout.on('payment.failed', () => {
+        setError('Razorpay test payment failed or was cancelled; no gGOLD was credited.')
+        setPaymentBusy(false)
+      })
+      setPaymentAmount(null)
+      checkout.open()
+    } catch (checkoutError) {
+      setError(checkoutError instanceof Error ? checkoutError.message : 'Could not open Razorpay test checkout.')
+    } finally {
+      setPaymentBusy(false)
     }
   }
 
@@ -273,10 +434,10 @@ export function GoldTokenWallet() {
         <div className="flex items-start gap-2.5">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Demo only: payments, products, USDT, and Sepolia transaction references are simulated. No real money is charged, no gold is held, and no blockchain mint occurs.
+            Razorpay checkout is restricted to test keys. Verified test payments credit only this browser-local demo balance; spending, USDT conversion, and blockchain minting are not real.
           </p>
         </div>
-        <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">Razorpay-style test flow</span>
+        <span className="shrink-0 font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">Razorpay test mode</span>
       </div>
 
       {storageError || error ? (
@@ -303,9 +464,9 @@ export function GoldTokenWallet() {
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <div className="rounded-md border border-border bg-card p-4 sm:p-5">
           <div>
-            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">01 · Pay to mint</p>
+            <p className="font-mono text-[9px] uppercase tracking-[0.15em] text-muted-foreground">01 · Pay to credit demo wallet</p>
             <h2 className="mt-1 font-serif text-2xl text-foreground">Choose a test amount</h2>
-            <p className="mt-1 text-xs text-muted-foreground">gGOLD is calculated only after the simulated payment succeeds, using live PAXG INR / gram.</p>
+            <p className="mt-1 text-xs text-muted-foreground">A browser-local demo credit is calculated only after Razorpay verifies a captured test payment, using the current PAXG INR / gram quote.</p>
           </div>
           <div className="mt-4 grid grid-cols-3 gap-2">
             {[100, 500, 1000].map((amount) => (
@@ -390,16 +551,17 @@ export function GoldTokenWallet() {
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-xs text-foreground">{transaction.detail} · {formatNumber(transaction.amount)} gGOLD{transaction.usdtAmount ? ` → ${formatNumber(transaction.usdtAmount, 2)} USDT` : ''}</p>
-                  <a
-                    href={`https://sepolia.etherscan.io/tx/${transaction.txHash}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-1 inline-flex max-w-full items-center gap-1 truncate font-mono text-[9px] text-muted-foreground underline-offset-2 hover:underline"
-                    title="Simulated transaction hash; it is not broadcast to Sepolia"
-                  >
-                    {transaction.txHash} <ExternalLink className="h-2.5 w-2.5 shrink-0" />
-                  </a>
-                  {transaction.paymentId ? <p className="font-mono text-[9px] text-muted-foreground">Payment ref: {transaction.paymentId}</p> : null}
+                  {transaction.txHash ? (
+                    <p className="mt-1 break-all font-mono text-[9px] text-muted-foreground" title="Legacy simulated hash; it was not broadcast to Sepolia">
+                      Legacy simulated hash (not on-chain): {transaction.txHash}
+                    </p>
+                  ) : null}
+                  {transaction.paymentId ? (
+                    <p className="font-mono text-[9px] text-muted-foreground">
+                      {transaction.paymentProvider === 'RAZORPAY_TEST' ? 'Razorpay test payment' : 'Legacy simulated payment reference'}: {transaction.paymentId}
+                    </p>
+                  ) : null}
+                  {transaction.providerOrderId ? <p className="font-mono text-[9px] text-muted-foreground">Razorpay order: {transaction.providerOrderId}</p> : null}
                   {transaction.orderId ? <p className="font-mono text-[9px] text-muted-foreground">Order: {transaction.orderId}</p> : null}
                 </div>
                 <time dateTime={transaction.time} className="font-mono text-[9px] text-muted-foreground">{new Date(transaction.time).toLocaleString()}</time>
@@ -407,7 +569,7 @@ export function GoldTokenWallet() {
             ))}
           </ol>
         ) : (
-          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No transactions yet. Complete a simulated payment to mint gGOLD.</p>
+          <p className="px-4 py-8 text-center text-sm text-muted-foreground">No transactions yet. Complete a Razorpay test payment to credit this browser-local wallet.</p>
         )}
       </div>
 
@@ -420,40 +582,24 @@ export function GoldTokenWallet() {
           <div role="dialog" aria-modal="true" aria-labelledby="payment-title" className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Secure checkout · test mode</p>
+                <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-muted-foreground">Razorpay Checkout · test mode</p>
                 <h2 id="payment-title" className="mt-1 font-serif text-2xl text-foreground">Pay {inr(paymentAmount)}</h2>
               </div>
               <button type="button" onClick={() => setPaymentAmount(null)} className="font-mono text-[10px] text-muted-foreground hover:text-foreground">Close</button>
             </div>
-            <div className="mt-4 grid grid-cols-2 gap-2" role="tablist" aria-label="Payment method">
-              {(['UPI', 'Card'] as const).map((method) => (
-                <button key={method} type="button" role="tab" aria-selected={paymentMethod === method} onClick={() => setPaymentMethod(method)} className={`rounded-sm border px-3 py-2.5 text-xs ${paymentMethod === method ? 'border-[var(--gp-caramel)] bg-[var(--gp-caramel)]/10 text-foreground' : 'border-border text-muted-foreground'}`}>
-                  {method === 'UPI' ? 'UPI · test' : 'Card · test'}
-                </button>
-              ))}
+            <div className="mt-4 rounded-sm border border-border bg-background p-4">
+              <p className="text-sm text-foreground">Payment methods are provided by Razorpay Checkout.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Only server-configured Razorpay test keys are accepted. A successful test payment is verified server-side before a local demo credit is recorded.</p>
             </div>
-            {paymentMethod === 'UPI' ? (
-              <div className="mt-4 rounded-sm border border-border bg-background p-4">
-                <p className="text-sm text-foreground">Test UPI checkout</p>
-                <p className="mt-1 text-xs text-muted-foreground">Choose “Pay success” to simulate a Razorpay test payment. No UPI app will be contacted.</p>
-                <label className="mt-3 block text-[10px] text-muted-foreground" htmlFor="upi-id">UPI ID (demo display only)</label>
-                <input id="upi-id" defaultValue="demo@razorpay" className="mt-1 h-9 w-full rounded-sm border border-border bg-card px-3 font-mono text-xs text-foreground" />
-              </div>
-            ) : (
-              <div className="mt-4 space-y-3 rounded-sm border border-border bg-background p-4">
-                <p className="text-xs text-muted-foreground">Razorpay-style test card entry · never sent anywhere</p>
-                <label className="block text-[10px] text-muted-foreground" htmlFor="card-number">Card number (demo display only)</label>
-                <input id="card-number" inputMode="numeric" placeholder="4242 4242 4242 4242" className="h-9 w-full rounded-sm border border-border bg-card px-3 font-mono text-xs text-foreground" />
-                <div className="grid grid-cols-2 gap-2">
-                  <input aria-label="Expiry (demo)" placeholder="MM / YY" className="h-9 rounded-sm border border-border bg-card px-3 font-mono text-xs text-foreground" />
-                  <input aria-label="CVV (demo)" inputMode="numeric" placeholder="CVV" className="h-9 rounded-sm border border-border bg-card px-3 font-mono text-xs text-foreground" />
-                </div>
-              </div>
-            )}
-            <p className="mt-3 font-mono text-[9px] text-muted-foreground">Demo mint estimate: {live ? `${formatNumber(paymentAmount / pricePerGramInr(live.paxg.inr))} gGOLD` : 'waiting for live price'}</p>
+            {error ? <p role="alert" className="mt-3 text-xs text-destructive">{error}</p> : null}
+            <p className="mt-3 font-mono text-[9px] text-muted-foreground">
+              PAXG quote estimate: {live ? `${formatNumber(paymentAmount / pricePerGramInr(live.paxg.inr))} gGOLD · ${live.fetchedAt}` : 'waiting for live price'}
+            </p>
             <div className="mt-4 flex gap-2">
               <button type="button" onClick={() => setPaymentAmount(null)} className="h-11 flex-1 rounded-sm border border-border font-mono text-[9px] uppercase tracking-[0.1em] text-muted-foreground">Cancel</button>
-              <button type="button" disabled={!live || actionsDisabled} onClick={finishPayment} className="h-11 flex-1 rounded-sm bg-[var(--gp-tradable-ink)] px-3 font-mono text-[9px] uppercase tracking-[0.1em] text-white disabled:cursor-not-allowed disabled:opacity-50">Pay success · test</button>
+              <button type="button" disabled={!live || actionsDisabled || paymentBusy} onClick={() => void finishPayment()} className="h-11 flex-1 rounded-sm bg-[var(--gp-tradable-ink)] px-3 font-mono text-[9px] uppercase tracking-[0.1em] text-white disabled:cursor-not-allowed disabled:opacity-50">
+                {paymentBusy ? 'Connecting…' : 'Continue to Razorpay'}
+              </button>
             </div>
           </div>
         </div>
@@ -462,8 +608,8 @@ export function GoldTokenWallet() {
       {success ? (
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 p-4" onMouseDown={(event) => { if (event.target === event.currentTarget) setSuccess(null) }}>
           <div role="dialog" aria-modal="true" aria-labelledby="success-title" className="w-full max-w-md rounded-md border border-border bg-card p-5 shadow-2xl">
-            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">Demo transaction complete</p>
-            <h2 id="success-title" className="mt-2 font-serif text-2xl text-foreground">Success</h2>
+            <p className="font-mono text-[9px] uppercase tracking-[0.14em] text-emerald-600 dark:text-emerald-300">Verified test payment · local wallet only</p>
+            <h2 id="success-title" className="mt-2 font-serif text-2xl text-foreground">Payment verified</h2>
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{success.message}</p>
             <p className="mt-3 font-mono text-xs text-foreground">Reference: {success.orderId}</p>
             <button type="button" onClick={() => setSuccess(null)} className="mt-5 h-10 w-full rounded-sm bg-foreground font-mono text-[9px] uppercase tracking-[0.1em] text-background">Done</button>

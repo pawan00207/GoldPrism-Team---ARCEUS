@@ -5,9 +5,9 @@ export default function WalletPage() {
   return (
     <SiteShell>
       <PageIntro
-        eyebrow="GoldPrism wallet · demo settlement"
-        title="Pay. Mint. Spend."
-        description="A persistent, browser-local gGOLD demo wallet priced from live PAXG. Payments and blockchain references are simulated; no real money moves."
+        eyebrow="GoldPrism wallet · Razorpay test mode"
+        title="Pay. Credit. Spend."
+        description="Razorpay test payments are verified server-side before crediting this persistent browser-local demo wallet. gGOLD is not a real or on-chain token."
       />
       <GoldTokenWallet />
     </SiteShell>

@@ -320,10 +320,18 @@ substituting sample prices. The X-Ray report access fee is configured in
 `src/lib/goldprism/wallet-config.ts` and its INR equivalent uses the current
 PAXG quote.
 
-Wallet balances persist in browser storage, but the current payment, mint,
-spend, swap, and transaction hashes are **local demo operations**. They do not
-charge a payment method, custody or redeem gold, issue USDT, or broadcast a
-blockchain transaction. Do not treat demo balances as backed assets.
+To enable Razorpay Checkout in **test mode**, set `RAZORPAY_KEY_ID` (must start
+with `rzp_test_`) and `RAZORPAY_KEY_SECRET` in `.env.local` or the server
+environment. The secret never reaches the browser. The server creates the
+order, verifies the Checkout HMAC, and checks that the payment is captured
+before crediting the browser-local demo balance. If the keys are absent, order
+creation is explicitly unavailable. Never use live keys here.
+
+Only the payment itself goes through Razorpay's test API. The gGOLD credit,
+catalog spend, and USDT conversion remain browser-local demo operations; there
+is no physical-gold backing, on-chain mint, real spend settlement, or real
+USDT transfer. Legacy simulated transaction hashes are shown as not on-chain.
+Do not treat demo balances as backed assets.
 
 ### 1. Web Application (Next.js 16 + React 19)
 ```bash
