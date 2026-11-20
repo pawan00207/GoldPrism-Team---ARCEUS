@@ -1,7 +1,14 @@
 'use client'
 
 import * as React from 'react'
-import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth'
+import {
+  getRedirectResult,
+  onAuthStateChanged,
+  signInWithPopup,
+  signInWithRedirect,
+  signOut,
+  User,
+} from 'firebase/auth'
 import { collection, doc, onSnapshot, query, where } from 'firebase/firestore'
 import {
   auth,
@@ -158,7 +165,7 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
       (nextUser) => {
         setUser(nextUser)
         setAuthReady(true)
-        setAuthError(null)
+        if (nextUser) setAuthError(null)
         if (!nextUser) setCloudSynced(false)
       },
       (error) => {
@@ -168,7 +175,14 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
         setAuthError(describeFirebaseAuthError(error))
       }
     )
-    return () => unsub()
+    let active = true
+    void getRedirectResult(auth).catch((error: unknown) => {
+      if (active) setAuthError(describeFirebaseAuthError(error))
+    })
+    return () => {
+      active = false
+      unsub()
+    }
   }, [])
 
   // Sync authenticated trader's workspace + trades from Firestore
@@ -347,7 +361,17 @@ export function LiveFeedProvider({ children }: { children: React.ReactNode }) {
     try {
       await signInWithPopup(auth, googleProvider)
     } catch (err) {
-      setAuthError(describeFirebaseAuthError(err))
+      const code =
+        typeof err === 'object' && err !== null && 'code' in err ? err.code : null
+      if (code === 'auth/popup-blocked') {
+        try {
+          await signInWithRedirect(auth, googleProvider)
+        } catch (redirectError) {
+          setAuthError(describeFirebaseAuthError(redirectError))
+        }
+      } else {
+        setAuthError(describeFirebaseAuthError(err))
+      }
     } finally {
       setAuthBusy(false)
     }
