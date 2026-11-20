@@ -189,6 +189,27 @@ flowchart LR
 
 ## 🚀 5-Minute Quick Start
 
+### Daily MCX Gold Bhavcopy Ingestion (Unofficial)
+
+The additive Python ingestion layer fetches from `mcxlib`, validates gold contract
+dates/prices/liquidity, preserves the first raw Parquet for each date, and writes
+validated rows plus a `data_health` summary to DuckDB. `mcxlib` scrapes MCX's
+public site and is not an official or guaranteed feed; weekday dates without
+source or cached data are skipped by backfill (holidays and source outages may
+both result in no data). The fetcher logs the actual `mcxlib` frame columns.
+
+```bash
+python -m pip install -r requirements.txt
+python scripts\backfill.py --start 2026-05-20 --end 2026-11-20
+python scripts\fetch_today.py
+python -m pytest tests\test_validators.py -v
+```
+
+Use `python scripts\fetch_today.py --seed-error` to trigger and log the date
+mismatch rejection gate using an explicitly labeled synthetic row (not saved as
+market data). Daily files live under `data/raw/` and `data/validated/`; the
+DuckDB database is `data/goldprism.duckdb`.
+
 ### 1. Web Application (Next.js 16 + React 19)
 ```bash
 # Clean clone

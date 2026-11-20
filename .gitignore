@@ -58,6 +58,12 @@ server.log
 # internal skills/tooling (not part of the project)
 /skills/
 /scripts/
+!/scripts/
+!/scripts/*.py
+/data/
+*.duckdb
+__pycache__/
+*.py[cod]
 /examples/
 /mini-services/
 /Caddyfile

@@ -1,0 +1,20 @@
+name: Daily MCX Bhavcopy
+
+on:
+  schedule:
+    - cron: "30 13 * * 1-5"
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install ingestion dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Fetch and validate today's Bhavcopy
+        run: python scripts/fetch_today.py
