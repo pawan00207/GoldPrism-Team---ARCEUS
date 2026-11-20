@@ -5,8 +5,15 @@ import Link from 'next/link'
 import { ArrowRight, ArrowUpRight, ShieldCheck, Sparkles } from 'lucide-react'
 import { useLiveFeed } from '@/components/goldprism/LiveFeedProvider'
 import { DataTag, Hallmark } from '@/components/goldprism/brand'
+import { SupportedContractCode } from '@/lib/goldprism/contract-master'
 import { inr } from '@/lib/goldprism/format'
 import { cn } from '@/lib/utils'
+
+interface LedgerQuote {
+  expiryDate: string
+  price: number | null
+  detail: string
+}
 
 const MONTHS: Record<string, string> = {
   JAN: 'Jan', FEB: 'Feb', MAR: 'Mar', APR: 'Apr', MAY: 'May', JUN: 'Jun',
@@ -16,20 +23,63 @@ const MONTHS: Record<string, string> = {
 /** '04DEC2026' → '04 Dec 26' */
 function fmtExpiry(v: string): string {
   const m = /^(\d{1,2})([A-Za-z]{3})(\d{4})$/.exec(v)
-  if (!m) return v
-  return `${m[1].padStart(2, '0')} ${MONTHS[m[2].toUpperCase()] ?? m[2]} ${m[3].slice(2)}`
+  if (m) {
+    return `${m[1].padStart(2, '0')} ${MONTHS[m[2].toUpperCase()] ?? m[2]} ${m[3].slice(2)}`
+  }
+  const iso = /^(\d{4})-(\d{2})-(\d{2})$/.exec(v)
+  if (!iso) return v
+  const month = Object.values(MONTHS)[Number(iso[2]) - 1]
+  return month ? `${iso[3]} ${month} ${iso[1].slice(2)}` : v
 }
 
 export function VaultHero() {
-  const { mcxSnapshot, mcxSnapshotError, pricesSource } = useLiveFeed()
-  const live = mcxSnapshot?.status === 'MCX_LIVE'
+  const { feed, mcxSnapshot, mcxSnapshotError, pricesSource } = useLiveFeed()
+  const mcxLive = mcxSnapshot?.status === 'MCX_LIVE'
   const stale = mcxSnapshot?.status === 'MCX_STALE'
-  const usable = live || stale
-  const spot = usable ? mcxSnapshot?.spot : null
-  const goldm = usable ? mcxSnapshot?.contracts?.GOLDM?.[0] ?? null : null
-  const goldten = usable ? mcxSnapshot?.contracts?.GOLDTEN?.[0] ?? null : null
-  const guinea = usable ? mcxSnapshot?.contracts?.GOLDGUINEA?.[0] ?? null : null
-  const petal = usable ? mcxSnapshot?.contracts?.GOLDPETAL?.[0] ?? null : null
+  const hasMcxSnapshot = mcxLive || stale
+  const parityQuotes =
+    feed?.status === 'LIVE_PARITY' && feed.contracts ? feed.contracts : null
+  const useParity = !mcxLive && parityQuotes !== null
+
+  const getLedgerQuote = (symbol: SupportedContractCode): LedgerQuote | null => {
+    const parityQuote = useParity ? parityQuotes?.[symbol] : null
+    if (parityQuote) {
+      return {
+        expiryDate: parityQuote.expiryDate,
+        price: parityQuote.quotedPrice,
+        detail: 'indicative parity',
+      }
+    }
+
+    const row = hasMcxSnapshot ? mcxSnapshot?.contracts?.[symbol]?.[0] : null
+    if (!row) return null
+    return {
+      expiryDate: row.expiryDate,
+      price: row.close,
+      detail: `${stale ? 'stale · ' : ''}OI ${row.openInterestLots?.toLocaleString('en-IN') ?? '—'} lots`,
+    }
+  }
+
+  const spotPrice = mcxLive
+    ? mcxSnapshot?.spot?.price ?? null
+    : useParity
+      ? feed?.benchmarks.landedSpotParity10gInr ?? null
+      : hasMcxSnapshot
+        ? mcxSnapshot?.spot?.price ?? null
+        : null
+  const spotLabel = useParity ? 'LANDED PARITY · INDIA' : 'GOLD SPOT · Ahmedabad'
+  const ledgerSource = mcxLive
+    ? 'MCX bhavcopy'
+    : useParity
+      ? 'XAU/USD + COMEX + USD/INR parity'
+      : stale
+        ? 'stale MCX bhavcopy reference'
+        : 'MCX bhavcopy unavailable'
+  const statusDetail = useParity
+    ? `indicative · ${feed?.asOf.slice(0, 19).replace('T', ' ')} UTC`
+    : hasMcxSnapshot
+      ? `${stale ? 'stale · ' : ''}as of ${mcxSnapshot?.bhavcopyDate ?? ''}`
+      : 'offline'
 
   return (
     <section id="home-hero" className="relative overflow-hidden border-b border-border">
@@ -116,12 +166,9 @@ export function VaultHero() {
                 <p className="mt-1 font-serif text-lg text-foreground">MCX · gold family</p>
               </div>
               <DataTag
-                detail={
-                  usable
-                    ? `${stale ? 'stale · ' : ''}as of ${mcxSnapshot?.bhavcopyDate ?? ''}`
-                    : 'offline'
-                }
-                className={cn(!usable && 'gp-hatch')}
+                live={useParity}
+                detail={statusDetail}
+                className={cn(!hasMcxSnapshot && !useParity && 'gp-hatch')}
               />
             </div>
             {mcxSnapshotError ? (
@@ -129,15 +176,22 @@ export function VaultHero() {
                 MCX snapshot unavailable: {mcxSnapshotError}
               </p>
             ) : null}
+            {useParity && stale ? (
+              <p role="status" className="mt-3 text-xs leading-relaxed text-[var(--gp-meta-ink)]">
+                The MCX snapshot is stale; current contract estimates below use indicative global parity.
+              </p>
+            ) : null}
 
             {/* Spot */}
             <div className="mt-3 flex items-end justify-between gap-3 rounded-md border border-border/70 bg-background/60 px-3 py-2.5 sm:px-4">
               <div>
                 <p className="font-mono text-[9px] uppercase tracking-[0.18em] text-muted-foreground">
-                  GOLD spot · Ahmedabad
+                  {spotLabel}
                 </p>
                 <p className="mt-1 font-serif text-3xl leading-none text-foreground" style={{ fontVariationSettings: '"SOFT" 30, "opsz" 60' }}>
-                  {spot ? `₹${Number(spot.price).toLocaleString('en-IN', { maximumFractionDigits: 0 })}` : '—'}
+                  {spotPrice !== null
+                    ? inr(spotPrice, 0)
+                    : '—'}
                 </p>
               </div>
               <div className="text-right">
@@ -148,10 +202,10 @@ export function VaultHero() {
 
             {/* Contract settles */}
             <dl className="mt-3 divide-y divide-border/70">
-              <LedgerLine row={goldm} name="GOLDM" sub="100g · 995" />
-              <LedgerLine row={goldten} name="GOLDTEN" sub="10g · 999" />
-              <LedgerLine row={guinea} name="GOLDGUINEA" sub="8g · 999" />
-              <LedgerLine row={petal} name="GOLDPETAL" sub="1g · 999" />
+              <LedgerLine row={getLedgerQuote('GOLDM')} name="GOLDM" sub="100g · 995" />
+              <LedgerLine row={getLedgerQuote('GOLDTEN')} name="GOLDTEN" sub="10g · 999" />
+              <LedgerLine row={getLedgerQuote('GOLDGUINEA')} name="GOLDGUINEA" sub="8g · 999" />
+              <LedgerLine row={getLedgerQuote('GOLDPETAL')} name="GOLDPETAL" sub="1g · 999" />
             </dl>
 
             {/* Example verdict — explicitly fixture */}
@@ -168,7 +222,7 @@ export function VaultHero() {
             </div>
 
             <p className="mt-3 flex items-center justify-between font-mono text-[8.5px] uppercase tracking-[0.16em] text-muted-foreground/80">
-              <span>Source · MCX bhavcopy via mcx_data</span>
+              <span>Source · {ledgerSource}</span>
               <span>paper mark · {pricesSource === 'parity' ? 'indicative parity' : 'offline'}</span>
             </p>
           </div>
@@ -183,7 +237,7 @@ function LedgerLine({
   name,
   sub,
 }: {
-  row: { expiryDate: string; close: number | null; openInterestLots: number | null; volumeLots: number | null } | null
+  row: LedgerQuote | null
   name: string
   sub: string
 }) {
@@ -195,11 +249,11 @@ function LedgerLine({
           <span className="ml-2 font-normal text-[9px] text-muted-foreground">{sub}</span>
         </p>
         <p className="mt-0.5 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
-          {row ? `expiry ${fmtExpiry(row.expiryDate)} · OI ${row.openInterestLots?.toLocaleString('en-IN') ?? '—'} lots` : 'not in today’s file'}
+          {row ? `expiry ${fmtExpiry(row.expiryDate)} · ${row.detail}` : 'not in the current feed'}
         </p>
       </div>
       <p className="shrink-0 font-mono text-sm font-medium text-foreground">
-        {row?.close != null ? inr(row.close, 0) : '—'}
+        {row?.price != null ? inr(row.price, 0) : '—'}
       </p>
     </div>
   )
