@@ -10,6 +10,7 @@ import {
   isValidWalletPaymentAmount,
   WALLET_PAYMENT_CONFIG,
 } from '@/lib/goldprism/wallet-config'
+import { walletSnapshotsMatch } from '@/lib/goldprism/wallet-ledger'
 
 const STORAGE_KEY = 'goldprism-token-wallet-v1'
 
@@ -211,14 +212,28 @@ export function GoldTokenWallet() {
     return () => window.removeEventListener('storage', syncWallet)
   }, [])
 
-  const commitWallet = (next: WalletData) => {
+  const commitWallet = (next: WalletData, expected: WalletData = wallet) => {
     try {
+      const saved = window.localStorage.getItem(STORAGE_KEY)
+      const current: unknown = saved ? JSON.parse(saved) : EMPTY_WALLET
+      if (!isWalletData(current)) {
+        throw new Error('Saved wallet data is invalid and was not changed.')
+      }
+      if (!walletSnapshotsMatch(current, expected)) {
+        setWallet(current)
+        setError('Wallet changed since this action started. No balance was changed; review it and retry.')
+        return false
+      }
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
       setWallet(next)
       setStorageError(null)
       return true
-    } catch {
-      setStorageError('Wallet could not be saved to browser storage. Check available storage and try again.')
+    } catch (saveError) {
+      setStorageError(
+        saveError instanceof Error
+          ? saveError.message
+          : 'Wallet could not be saved to browser storage. Check available storage and try again.'
+      )
       return false
     }
   }
@@ -331,7 +346,7 @@ export function GoldTokenWallet() {
                 gGOLD_balance: currentWallet.gGOLD_balance + minted,
                 transactions: [entry, ...currentWallet.transactions],
               }
-              if (!commitWallet(next)) {
+              if (!commitWallet(next, currentWallet)) {
                 throw new Error('Razorpay test payment was verified, but the browser wallet could not save the local demo credit.')
               }
               setPaymentAmount(null)
@@ -354,7 +369,6 @@ export function GoldTokenWallet() {
         setError('Razorpay test payment failed or was cancelled; no gGOLD was credited.')
         setPaymentBusy(false)
       })
-      setPaymentAmount(null)
       checkout.open()
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : 'Could not open Razorpay test checkout.')
@@ -383,7 +397,7 @@ export function GoldTokenWallet() {
       gGOLD_balance: wallet.gGOLD_balance - item.gGoldCost,
       transactions: [entry, ...wallet.transactions],
     }
-    if (commitWallet(next)) {
+    if (commitWallet(next, wallet)) {
       setSuccess({
         orderId,
         message: `${item.name} purchased for ${formatNumber(item.gGoldCost)} gGOLD (${inr(item.inrValue)} equivalent). Source: ${item.source}. As of ${item.asOf ?? 'unavailable'}. Demo wallet only.`,
@@ -419,7 +433,7 @@ export function GoldTokenWallet() {
       usdt_balance: wallet.usdt_balance + usdtAmount,
       transactions: [entry, ...wallet.transactions],
     }
-    if (commitWallet(next)) {
+    if (commitWallet(next, wallet)) {
       setSwapAmount('')
       setSuccess({ orderId, message: `Swapped ${formatNumber(amount)} gGOLD for ${formatNumber(usdtAmount, 2)} simulated USDT at the live PAXG USD price.` })
     }
