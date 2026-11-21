@@ -33,3 +33,17 @@ streamlit run app.py
 ```
 
 The Next.js web application in `../` includes an auditable TypeScript port of this exact engine, enabling zero-configuration deployment to Vercel with no Python runtime requirement in serverless production.
+
+## Supplied daily Bhavcopy snapshot
+
+`data/incoming/BhavCopyDateWise_20112026.csv` is the supplied 20 November 2026
+daily snapshot. It is preserved separately from the calibrated historical dataset
+and sealed holdout. The Next.js `/research` page reads it through
+`/api/goldprism/bhavcopy`, validates the CSV structure and gold-futures OHLC rows,
+and shows its trading date, row counts, source-file hash, and contract table.
+
+This file is a daily snapshot, not a streaming or intraday real-time feed. Its
+format matches the MCX Bhavcopy layout, but the supplied file is not independently
+verified against MCX. Refreshing the page endpoint re-reads the bundled CSV; a newer
+market day requires adding a new dated file and explicitly updating the snapshot
+path rather than overwriting the historical research data.
