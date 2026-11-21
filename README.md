@@ -240,6 +240,8 @@ link to the official MCX domain. The market comparison and X-Ray query the
 public MCX Market Watch and show retrieval time; these are not broker WebSocket
 quotes or official settlements. Today intelligence continues to show its own
 source, retrieval time in IST, and freshness.
+Agent requests may take up to 175 seconds; deployed hosting must permit a
+180-second route duration for the chat stream to complete.
 
 #### GitHub Actions and Vercel setup
 

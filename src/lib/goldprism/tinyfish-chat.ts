@@ -12,7 +12,7 @@ export const TINYFISH_CHAT_OUTPUT_SCHEMA = {
         type: 'object',
         properties: {
           title: { type: 'string' },
-          url: { type: 'string', format: 'uri' },
+          url: { type: 'string' },
           excerpt: { type: 'string' },
         },
         required: ['title', 'url', 'excerpt'],

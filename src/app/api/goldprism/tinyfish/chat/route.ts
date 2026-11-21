@@ -10,10 +10,11 @@ import {
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-export const maxDuration = 60
+export const maxDuration = 180
 
 const REQUEST_LIMIT = 5
 const RATE_WINDOW_MS = 5 * 60_000
+const AGENT_TIMEOUT_MS = 175_000
 const requestTimes = new Map<string, number[]>()
 const RequestSchema = z.object({
   question: z.string().trim().min(1).max(600),
@@ -33,6 +34,19 @@ function consumeRateLimit(key: string): boolean {
 
 function sse(data: Record<string, unknown>): Uint8Array {
   return new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)
+}
+
+async function providerErrorMessage(response: Response): Promise<string | null> {
+  const payload: unknown = await response.json().catch(() => null)
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+
+  const error = 'error' in payload ? payload.error : null
+  if (!error || typeof error !== 'object' || Array.isArray(error)) return null
+
+  const message = 'message' in error ? error.message : null
+  return typeof message === 'string'
+    ? message.replace(/[\r\n]/g, ' ').slice(0, 240)
+    : null
 }
 
 function allowedStreamingUrl(value: unknown): string | null {
@@ -70,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), 55_000)
+  const timeout = setTimeout(() => controller.abort(), AGENT_TIMEOUT_MS)
   const abortRequest = () => controller.abort()
   request.signal.addEventListener('abort', abortRequest, { once: true })
 
@@ -104,9 +118,14 @@ export async function POST(request: NextRequest) {
   if (!upstream.ok || !upstream.body) {
     clearTimeout(timeout)
     request.signal.removeEventListener('abort', abortRequest)
+    const detail = await providerErrorMessage(upstream)
     return NextResponse.json(
-      { error: `TinyFish Agent rejected the run (HTTP ${upstream.status}).` },
-      { status: 502 }
+      {
+        error: detail
+          ? `TinyFish Agent rejected the run: ${detail}`
+          : `TinyFish Agent rejected the run (HTTP ${upstream.status}).`,
+      },
+      { status: upstream.status === 429 ? 429 : 502 }
     )
   }
 
@@ -197,8 +216,13 @@ export async function POST(request: NextRequest) {
           output.enqueue(sse({ type: 'ERROR', message: 'TinyFish stream ended before a result arrived.' }))
         }
       } catch {
-        if (!controller.signal.aborted) {
-          output.enqueue(sse({ type: 'ERROR', message: 'TinyFish stream failed before a result arrived.' }))
+        if (!request.signal.aborted) {
+          output.enqueue(sse({
+            type: 'ERROR',
+            message: controller.signal.aborted
+              ? 'TinyFish Agent timed out before returning a result.'
+              : 'TinyFish stream failed before a result arrived.',
+          }))
         }
       } finally {
         await reader.cancel().catch(() => undefined)

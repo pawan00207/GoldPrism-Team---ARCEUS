@@ -17,6 +17,10 @@ test('TinyFish chat is fixed to the public MCX Market Watch page', () => {
   assert.match(goal, /What GOLDM price is shown/)
   assert.doesNotMatch(goal, /https?:\/\/attacker\.example/)
   assert.equal(TINYFISH_CHAT_OUTPUT_SCHEMA.type, 'object')
+  assert.equal(
+    'format' in TINYFISH_CHAT_OUTPUT_SCHEMA.properties.evidence.items.properties.url,
+    false
+  )
 })
 
 test('TinyFish answers require citations on the official MCX domain', () => {
