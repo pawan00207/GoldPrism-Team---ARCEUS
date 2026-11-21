@@ -101,6 +101,12 @@ export function XRayWaterfallSection() {
     market.status === 'available'
       ? market.data.quotes.find((quote) => quote.symbol === contractB)
       : undefined
+  const dailyReferenceA = market.dailyCloseReference?.quotes.find(
+    (quote) => quote.symbol === contractA
+  )
+  const dailyReferenceB = market.dailyCloseReference?.quotes.find(
+    (quote) => quote.symbol === contractB
+  )
   const awaitingLiveSync =
     sourceMode === 'LIVE' &&
     (market.status !== 'available' || !liveQuoteA || !liveQuoteB || !priceA || !priceB)
@@ -203,6 +209,25 @@ export function XRayWaterfallSection() {
                 ? 'Fetching MCX Market Watch through TinyFish…'
                 : `MCX Market Watch unavailable: ${market.error ?? 'a current quote for both selected contracts is required.'}`}
             </p>
+            {market.dailyCloseReference ? (
+              <div className="rounded-sm border border-border bg-background/60 p-3 text-xs text-muted-foreground">
+                <p className="font-mono uppercase tracking-[0.1em]">
+                  Supplied Bhavcopy close · {market.dailyCloseReference.tradingDate}
+                </p>
+                <p className="mt-2">
+                  {contractA}: {dailyReferenceA
+                    ? `${inrPerG(dailyReferenceA.pricePerGramFineGold)} · expiry ${dailyReferenceA.expiryDate}`
+                    : 'not available in this snapshot'}
+                  {' · '}
+                  {contractB}: {dailyReferenceB
+                    ? `${inrPerG(dailyReferenceB.pricePerGramFineGold)} · expiry ${dailyReferenceB.expiryDate}`
+                    : 'not available in this snapshot'}
+                </p>
+                <p className="mt-2">
+                  {market.dailyCloseReference.sourceNote} This dated close is not an LTP and is never used to calculate the X-Ray verdict.
+                </p>
+              </div>
+            ) : null}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"

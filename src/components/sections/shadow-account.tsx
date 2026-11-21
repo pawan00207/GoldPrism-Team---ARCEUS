@@ -16,7 +16,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
-import { SAMPLE_TRADES } from '@/lib/mock-data'
 import { cn } from '@/lib/utils'
 
 interface BiasRow {
@@ -44,17 +43,7 @@ interface AnalysisResult {
   recommendation: string
 }
 
-const SAMPLE_CSV = `date,symbol,side,qty,price,pnl,holdingDays
-2024-11-12,NVDA,BUY,20,145.20,0,0
-2024-11-15,NVDA,SELL,20,141.80,-68.00,3
-2024-11-18,TSLA,BUY,15,348.50,0,0
-2024-11-22,TSLA,SELL,15,352.10,54.00,4
-2024-11-25,AAPL,BUY,30,228.40,0,0
-2024-11-28,AAPL,SELL,30,231.85,103.50,3
-2024-12-02,META,BUY,10,588.30,0,0
-2024-12-05,META,SELL,10,575.20,-131.00,3
-2024-12-09,AMD,BUY,25,138.50,0,0
-2024-12-12,AMD,SELL,25,144.80,157.50,3`
+const CSV_TEMPLATE = 'date,symbol,side,qty,price,pnl,holdingDays'
 
 function parseCsv(text: string) {
   const lines = text.trim().split('\n')
@@ -92,11 +81,12 @@ const TYPE_COLORS = {
 }
 
 export function ShadowAccount() {
-  const [csv, setCsv] = React.useState(SAMPLE_CSV)
+  const [csv, setCsv] = React.useState(CSV_TEMPLATE)
   const [loading, setLoading] = React.useState(false)
   const [result, setResult] = React.useState<AnalysisResult | null>(null)
   const [error, setError] = React.useState<string | null>(null)
   const fileRef = React.useRef<HTMLInputElement>(null)
+  const previewRows = React.useMemo(() => parseCsv(csv), [csv])
 
   async function analyze() {
     setLoading(true)
@@ -105,7 +95,7 @@ export function ShadowAccount() {
     try {
       const trades = parseCsv(csv)
       if (trades.length === 0) {
-        setError('CSV appears empty or malformed. Use the sample format.')
+        setError('CSV appears empty or malformed. Add trade rows using the required columns.')
         setLoading(false)
         return
       }
@@ -184,11 +174,15 @@ export function ShadowAccount() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setCsv(SAMPLE_CSV)}
+                  onClick={() => {
+                    setCsv(CSV_TEMPLATE)
+                    setError(null)
+                    setResult(null)
+                  }}
                   className="gap-1.5"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
-                  Load Sample
+                  Reset CSV Template
                 </Button>
               </div>
 
@@ -349,11 +343,11 @@ export function ShadowAccount() {
           </motion.div>
         )}
 
-        {/* Sample trades table */}
+        {/* Current user-provided CSV preview */}
         {!result && (
           <Card className="mt-4">
             <CardHeader className="pb-3">
-              <CardTitle className="text-base">Sample Trade History</CardTitle>
+              <CardTitle className="text-base">Current CSV Preview</CardTitle>
             </CardHeader>
             <CardContent>
               <ScrollArea className="h-64">
@@ -370,23 +364,39 @@ export function ShadowAccount() {
                     </tr>
                   </thead>
                   <tbody>
-                    {SAMPLE_TRADES.map((t, i) => (
+                    {previewRows.map((trade, i) => {
+                      const date = String(trade.date ?? '')
+                      const symbol = String(trade.symbol ?? '')
+                      const side = String(trade.side ?? '').toUpperCase()
+                      const quantity = Number(trade.qty)
+                      const price = Number(trade.price)
+                      const pnl = Number(trade.pnl)
+                      const holdingDays = Number(trade.holdingDays)
+                      return (
                       <tr key={i} className="border-t border-border">
-                        <td className="py-2 text-xs tabular-nums">{t.date}</td>
-                        <td className="py-2 font-semibold">{t.symbol}</td>
+                        <td className="py-2 text-xs tabular-nums">{date}</td>
+                        <td className="py-2 font-semibold">{symbol}</td>
                         <td className="py-2">
-                          <span className={cn('text-xs font-medium', t.side === 'BUY' ? 'gp-pos' : 'gp-neg')}>
-                            {t.side}
+                          <span className={cn('text-xs font-medium', side === 'BUY' ? 'gp-pos' : side === 'SELL' ? 'gp-neg' : 'text-muted-foreground')}>
+                            {side}
                           </span>
                         </td>
-                        <td className="py-2 text-right tabular-nums">{t.qty}</td>
-                        <td className="py-2 text-right tabular-nums">${t.price.toFixed(2)}</td>
-                        <td className={cn('py-2 text-right tabular-nums', t.pnl > 0 ? 'gp-pos' : t.pnl < 0 ? 'gp-neg' : 'text-muted-foreground')}>
-                          {t.pnl === 0 ? '—' : `${t.pnl >= 0 ? '+' : ''}$${t.pnl.toFixed(2)}`}
+                        <td className="py-2 text-right tabular-nums">{Number.isFinite(quantity) ? quantity : '—'}</td>
+                        <td className="py-2 text-right tabular-nums">{Number.isFinite(price) ? price.toFixed(2) : '—'}</td>
+                        <td className={cn('py-2 text-right tabular-nums', pnl > 0 ? 'gp-pos' : pnl < 0 ? 'gp-neg' : 'text-muted-foreground')}>
+                          {!Number.isFinite(pnl) || pnl === 0 ? '—' : `${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}`}
                         </td>
-                        <td className="py-2 text-right tabular-nums text-muted-foreground">{t.holdingDays || '—'}</td>
+                        <td className="py-2 text-right tabular-nums text-muted-foreground">{Number.isFinite(holdingDays) && holdingDays !== 0 ? holdingDays : '—'}</td>
                       </tr>
-                    ))}
+                      )
+                    })}
+                    {previewRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-8 text-center text-sm text-muted-foreground">
+                          No trade data is preloaded. Upload or paste your own CSV to preview it here.
+                        </td>
+                      </tr>
+                    ) : null}
                   </tbody>
                 </table>
               </ScrollArea>

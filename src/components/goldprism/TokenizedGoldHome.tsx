@@ -23,10 +23,18 @@ export function TokenizedGoldHome() {
     mcxMarket.status === 'available'
       ? mcxMarket.data.quotes.find((quote) => quote.symbol === 'GOLDM')
       : undefined
+  const dailyGoldm = mcxMarket.dailyCloseReference?.quotes.find(
+    (quote) => quote.symbol === 'GOLDM'
+  )
+  const dailyCloseDate = mcxMarket.dailyCloseReference?.tradingDate
   const crossSourceSpreadBps =
     mcxGoldm && paxgPerGram !== null
       ? premiumBps(mcxGoldm.pricePerGramFineGold, paxgPerGram)
       : null
+  const livePriceStatus =
+    market.status === 'error'
+      ? 'CoinGecko unavailable; retrying every 30 seconds'
+      : 'Fetching live prices · retries every 30 seconds'
 
   return (
     <section className="border-b border-border bg-card/40">
@@ -44,7 +52,7 @@ export function TokenizedGoldHome() {
           <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
             {live
               ? `CoinGecko · refreshed ${new Date(live.fetchedAt).toLocaleTimeString()}`
-              : 'Fetching live prices · retries every 30 seconds'}
+              : livePriceStatus}
           </span>
         </div>
 
@@ -52,12 +60,20 @@ export function TokenizedGoldHome() {
           <TickerPrice
             name="PAXG"
             price={live ? money(live.paxg.inr) : null}
-            sub={paxgPerGram !== null ? `${money(paxgPerGram)} / g · ${live?.paxg.usd_24h_change.toFixed(2)}% 24h` : 'Fetching live…'}
+            sub={paxgPerGram !== null
+              ? `${money(paxgPerGram)} / g · ${live?.paxg.usd_24h_change.toFixed(2)}% 24h`
+              : market.status === 'error'
+                ? 'Unavailable; retrying live feed'
+                : 'Fetching live…'}
           />
           <TickerPrice
             name="XAUT"
             price={live ? money(live.xaut.inr) : null}
-            sub={live ? `${money(pricePerGramInr(live.xaut.inr))} / g · ${live.xaut.usd_24h_change.toFixed(2)}% 24h` : 'Fetching live…'}
+            sub={live
+              ? `${money(pricePerGramInr(live.xaut.inr))} / g · ${live.xaut.usd_24h_change.toFixed(2)}% 24h`
+              : market.status === 'error'
+                ? 'Unavailable; retrying live feed'
+                : 'Fetching live…'}
           />
           <TickerPrice
             name="USD / INR"
@@ -81,8 +97,16 @@ export function TokenizedGoldHome() {
             <div className="mt-4 grid gap-px overflow-hidden rounded-sm border border-border bg-border sm:grid-cols-3">
               <TickerPrice
                 name="MCX GOLDM · 999 normalized"
-                price={mcxGoldm ? money(mcxGoldm.pricePerGramFineGold) : null}
-                sub={mcxGoldm ? `Page retrieved ${mcxGoldm.fetchedAtIst}; quote time unverified` : 'No verified MCX quote'}
+                price={mcxGoldm
+                  ? money(mcxGoldm.pricePerGramFineGold)
+                  : dailyGoldm
+                    ? money(dailyGoldm.pricePerGramFineGold)
+                    : null}
+                sub={mcxGoldm
+                  ? `Page retrieved ${mcxGoldm.fetchedAtIst}; quote time unverified`
+                  : dailyGoldm && dailyCloseDate
+                    ? `Supplied daily close · ${dailyCloseDate} · not LTP`
+                    : 'No verified MCX quote'}
               />
               <TickerPrice
                 name="PAXG"
@@ -97,9 +121,11 @@ export function TokenizedGoldHome() {
             </div>
             {!mcxGoldm ? (
               <p role="status" className="mt-3 rounded-sm border border-border px-3 py-3 font-mono text-xs text-muted-foreground">
-                {mcxMarket.status === 'unavailable'
-                  ? `MCX quote unavailable: ${mcxMarket.error}`
-                  : 'Fetching a verified MCX Market Watch quote…'}
+                {dailyGoldm && dailyCloseDate
+                  ? `Live MCX quote unavailable: ${mcxMarket.error ?? 'No current quote.'} Displaying the supplied ${dailyCloseDate} daily close for reference only; it is not used in the spread or verdict.`
+                  : mcxMarket.status === 'unavailable'
+                    ? `MCX quote unavailable: ${mcxMarket.error}`
+                    : 'Fetching a verified MCX Market Watch quote…'}
               </p>
             ) : null}
           </div>

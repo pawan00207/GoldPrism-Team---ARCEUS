@@ -21,28 +21,36 @@ export function MarketCompetition() {
     mcxMarket.status === 'available'
       ? mcxMarket.data.quotes.find((quote) => quote.symbol === 'GOLDM')
       : undefined
-  const rows = live && paxgPerGram !== null
-    ? [
-        {
-          name: 'MCX GOLDM',
-          source: mcxGoldm?.source ?? 'No verified quote available',
-          price: mcxGoldm?.pricePerGramFineGold ?? null,
-          sourceUrl: mcxGoldm?.sourceUrl ?? null,
-        },
-        {
-          name: 'PAXG',
-          source: 'CoinGecko · Paxos Gold',
-          price: pricePerGramInr(live.paxg.inr),
-          sourceUrl: null,
-        },
-        {
-          name: 'XAUT',
-          source: 'CoinGecko · Tether Gold',
-          price: pricePerGramInr(live.xaut.inr),
-          sourceUrl: null,
-        },
-      ]
-    : []
+  const dailyGoldm = mcxMarket.dailyCloseReference?.quotes.find(
+    (quote) => quote.symbol === 'GOLDM'
+  )
+  const dailySource = mcxMarket.dailyCloseReference
+  const rows = [
+    {
+      name: 'MCX GOLDM',
+      source: mcxGoldm?.source ??
+        (dailyGoldm && dailySource
+          ? `Supplied Bhavcopy close · ${dailySource.tradingDate} · not intraday`
+          : 'No verified quote available'),
+      price: mcxGoldm?.pricePerGramFineGold ?? dailyGoldm?.pricePerGramFineGold ?? null,
+      sourceUrl: mcxGoldm?.sourceUrl ?? dailySource?.sourceUrl ?? null,
+      comparable: Boolean(mcxGoldm && paxgPerGram !== null),
+    },
+    {
+      name: 'PAXG',
+      source: 'CoinGecko · Paxos Gold',
+      price: paxgPerGram,
+      sourceUrl: null,
+      comparable: false,
+    },
+    {
+      name: 'XAUT',
+      source: 'CoinGecko · Tether Gold',
+      price: live ? pricePerGramInr(live.xaut.inr) : null,
+      sourceUrl: null,
+      comparable: paxgPerGram !== null,
+    },
+  ]
   const change = live?.paxg.usd_24h_change ?? null
   const barWidth = change === null ? 0 : Math.min(Math.abs(change) / 5, 1) * 50
 
@@ -65,11 +73,11 @@ export function MarketCompetition() {
             <tbody className="divide-y divide-border">
               {rows.map((row) => {
                 const premium =
-                  row.price === null || paxgPerGram === null
+                  !row.comparable || row.price === null || paxgPerGram === null
                     ? null
                     : row.price - paxgPerGram
                 const spread =
-                  row.price === null || paxgPerGram === null
+                  !row.comparable || row.price === null || paxgPerGram === null
                     ? null
                     : premiumBps(row.price, paxgPerGram)
                 return (
@@ -99,17 +107,17 @@ export function MarketCompetition() {
             </tbody>
           </table>
         </div>
-        {rows.length === 0 ? (
+        {market.status !== 'live' ? (
           <p role="status" className="px-4 py-8 text-sm text-muted-foreground">
             {market.status === 'error'
-              ? `Fetching live prices… retrying every 30 seconds. ${market.error}`
+              ? `CoinGecko live prices unavailable; retrying every 30 seconds. ${market.error}`
               : 'Fetching live PAXG and XAUT prices…'}
           </p>
         ) : null}
         <p className="border-t border-border px-4 py-2 font-mono text-[9px] text-muted-foreground">
           {live
-            ? `CoinGecko fetched ${new Date(live.fetchedAt).toLocaleString()} · MCX ${mcxGoldm ? `page retrieved ${new Date(mcxGoldm.fetchedAt).toLocaleString()}` : 'quote unavailable'}`
-            : 'No cached or hardcoded market prices are shown.'}
+            ? `CoinGecko fetched ${new Date(live.fetchedAt).toLocaleString()} · MCX ${mcxGoldm ? `page retrieved ${new Date(mcxGoldm.fetchedAt).toLocaleString()}` : dailySource ? `daily close for ${dailySource.tradingDate} (reference only)` : 'quote unavailable'}`
+            : `No cached PAXG/XAUT prices are shown.${dailySource ? ` MCX daily close is dated ${dailySource.tradingDate}.` : ''}`}
         </p>
       </div>
 
@@ -131,7 +139,11 @@ export function MarketCompetition() {
               <p className="mt-2 font-mono text-[9px] text-muted-foreground">One live 24h change metric · bar scale capped at ±5%</p>
             </>
           ) : (
-            <p role="status" className="mt-3 text-sm text-muted-foreground">Fetching live PAXG 24h change…</p>
+            <p role="status" className="mt-3 text-sm text-muted-foreground">
+              {market.status === 'error'
+                ? `PAXG 24h change unavailable; retrying. ${market.error}`
+                : 'Fetching live PAXG 24h change…'}
+            </p>
           )}
         </div>
         <div className="rounded-md border border-border bg-card p-5">
@@ -139,7 +151,7 @@ export function MarketCompetition() {
           <dl className="mt-3 space-y-2 text-xs">
             <div className="flex justify-between gap-3"><dt className="text-muted-foreground">PAXG / XAUT</dt><dd className="text-right text-foreground">CoinGecko public API</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-muted-foreground">USD/INR</dt><dd className="text-right text-foreground">Implied from PAXG INR ÷ USD</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">MCX GOLDM</dt><dd className="text-right text-foreground">{mcxGoldm ? 'MCX Market Watch via TinyFish' : 'Unavailable; not simulated'}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-muted-foreground">MCX GOLDM</dt><dd className="text-right text-foreground">{mcxGoldm ? 'Live Market Watch via TinyFish' : dailySource ? `Supplied daily close · ${dailySource.tradingDate} · not LTP` : 'Unavailable; not simulated'}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-muted-foreground">Refresh</dt><dd className="text-right text-foreground">{live ? 'Every 30 seconds' : 'Retrying every 30 seconds'}</dd></div>
           </dl>
         </div>

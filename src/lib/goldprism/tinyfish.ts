@@ -5,10 +5,11 @@ import {
   ContractSymbol,
   normalizeContractBySymbol,
 } from '@/lib/goldprism/contract-specs';
+import { readTinyFishAgentStream } from '@/lib/goldprism/tinyfish-agent';
 
 const SEARCH_URL = 'https://api.search.tinyfish.ai';
 const FETCH_URL = 'https://api.fetch.tinyfish.ai';
-const AGENT_URL = 'https://agent.tinyfish.ai/v1/automation/run';
+const AGENT_URL = 'https://agent.tinyfish.ai/v1/automation/run-sse';
 const WALLET_URL = 'https://agent.tinyfish.ai/v1/wallet';
 const MARKET_WATCH_URL = 'https://www.mcxindia.com/market-data/market-watch';
 const CACHE_TTL_MS = 60_000;
@@ -223,20 +224,47 @@ export async function tinyFishRunAgent(
   goal: string,
   outputSchema: JsonRecord
 ): Promise<JsonRecord> {
-  const response = await requestJson(
-    'agent',
-    AGENT_URL,
-    {
+  const key = apiKey();
+  const keyForCache = cacheKey('agent', { url, goal, outputSchema });
+  const cached = readCache(keyForCache);
+  if (cached) return cached;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 55_000);
+  try {
+    const response = await fetch(AGENT_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url, goal, output_schema: outputSchema }),
-    },
-    { cacheValue: { url, goal, outputSchema }, timeoutMs: 35_000, retries: 0 }
-  );
-  if (response.status !== 'COMPLETED' || !isRecord(response.result)) {
-    throw new Error('TinyAgent did not return a completed structured result.');
+      cache: 'no-store',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        'X-API-Key': key,
+      },
+      body: JSON.stringify({
+        url,
+        goal,
+        output_schema: outputSchema,
+        agent_config: { max_duration_seconds: 45 },
+      }),
+      signal: controller.signal,
+    });
+    if (!response.ok) {
+      throw new Error(`TinyFish Agent returned HTTP ${response.status}.`);
+    }
+    if (!response.body) throw new Error('TinyFish Agent did not return an event stream.');
+
+    const result = await readTinyFishAgentStream(response.body);
+    writeCache(keyForCache, result);
+    return result;
+  } catch (error) {
+    if (controller.signal.aborted) {
+      throw new Error('TinyFish Agent request timed out.');
+    }
+    if (error instanceof Error) throw error;
+    throw new Error('TinyFish Agent request failed.');
+  } finally {
+    clearTimeout(timeout);
   }
-  return response.result;
 }
 
 export async function checkTinyFishHealth(): Promise<TinyFishHealth> {
@@ -297,7 +325,7 @@ const AGENT_MARKET_SCHEMA: JsonRecord = {
         type: 'object',
         properties: {
           symbol: { type: 'string', enum: Object.keys(contractSpecs) },
-          expiry_date: { type: 'string', format: 'date' },
+          expiry_date: { type: 'string' },
           ltp: { type: 'number', minimum: 0 },
         },
         required: ['symbol', 'expiry_date', 'ltp'],
@@ -312,21 +340,46 @@ let contextCache: { expiresAt: number; value: TinyFishContextResult } | null = n
 
 export async function getTinyFishMarketWatch(): Promise<TinyFishMarketResult> {
   if (marketCache && marketCache.expiresAt > Date.now()) return marketCache.value;
+  if (!process.env.TINYFISH_API_KEY?.trim()) {
+    const value = unavailableMarket(
+      'TINYFISH_API_KEY is not configured; live MCX Market Watch is disabled.'
+    );
+    marketCache = { expiresAt: Date.now() + CACHE_TTL_MS, value };
+    return value;
+  }
 
   try {
-    const fetched = await tinyFishFetch(
-      [MARKET_WATCH_URL],
-      'Read indicative live quotes for the MCX gold contract family.'
-    );
-    const extracted = parseMarketTable(fetched);
-    let rows = extracted;
-    if (rows.length < Object.keys(contractSpecs).length) {
-      const result = await tinyFishRunAgent(
-        MARKET_WATCH_URL,
-        'Read the live MCX Market Watch page. If the quotes are loaded interactively, use the page controls. Return only actual current LTP values and expiry dates shown for GOLDM, GOLDTEN, GOLDGUINEA, and GOLDPETAL. Do not use previous close, settlement, estimates, or inferred prices. Omit a contract if no current LTP is available.',
-        AGENT_MARKET_SCHEMA
+    let rows: ParsedQuote[] = [];
+    let fetchFailure: string | null = null;
+    try {
+      const fetched = await tinyFishFetch(
+        [MARKET_WATCH_URL],
+        'Read indicative live quotes for the MCX gold contract family.'
       );
-      rows = [...rows, ...parseAgentQuotes(result)];
+      rows = parseMarketTable(fetched);
+    } catch (error) {
+      fetchFailure = error instanceof Error ? error.message : 'TinyFish Fetch failed.';
+    }
+
+    if (rows.length < Object.keys(contractSpecs).length) {
+      try {
+        const result = await tinyFishRunAgent(
+          MARKET_WATCH_URL,
+          'Read the live MCX Market Watch page. If the quotes are loaded interactively, use the page controls. Return only actual current LTP values and expiry dates shown for GOLDM, GOLDTEN, GOLDGUINEA, and GOLDPETAL. Do not use previous close, settlement, estimates, or inferred prices. Omit a contract if no current LTP is available.',
+          AGENT_MARKET_SCHEMA
+        );
+        rows = [...parseAgentQuotes(result), ...rows];
+      } catch (agentError) {
+        if (rows.length === 0) {
+          const agentMessage =
+            agentError instanceof Error ? agentError.message : 'TinyFish Agent failed.';
+          throw new Error(
+            fetchFailure
+              ? `${fetchFailure} Agent fallback failed: ${agentMessage}`
+              : agentMessage
+          );
+        }
+      }
     }
 
     const fetchedAt = new Date().toISOString();

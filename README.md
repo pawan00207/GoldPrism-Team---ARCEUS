@@ -219,7 +219,11 @@ comparison and an X-Ray preview; the X-Ray remains **BLOCKED** because the page
 does not provide verified quote timestamps, volume, open interest, or a
 settlement-artifact cross-check. If TinyFish is not configured or unavailable,
 the UI shows **Unavailable** and the Python pipeline continues with mcxlib and
-its cached Parquet fallback.
+its cached Parquet fallback. Market Watch tries TinyFish Fetch first and the
+Agent SSE endpoint second. The supplied Bhavcopy can appear separately as a
+dated close reference; it is never treated as an LTP or used for a live spread
+or X-Ray verdict. CoinGecko failures likewise remain unavailable and retry
+without substituting a cached or hardcoded price.
 
 The TinyFish API key must be stored only as `TINYFISH_API_KEY`; do not use a
 `NEXT_PUBLIC_` variable, commit it, or print it. The key previously pasted into
@@ -256,10 +260,11 @@ In GitHub **Settings → Secrets and variables → Actions**, add:
 | `CROSS_CHECK_ACTIVE_SINCE` | Variable | First live cross-check date; default `2026-11-20` |
 
 Set `TINYFISH_API_KEY` and the same `INGESTION_STATUS_TOKEN` in the Vercel
-environment. Apply the new database migration with `npx prisma migrate deploy`
-where `DATABASE_URL` is configured. Without the status token, app URL, or
-database, the Python fetch still runs and the UI reports that pipeline status
-is unavailable.
+environment. A rotated TinyFish key is required there for live MCX Market Watch;
+without it, only the clearly dated supplied snapshot is shown. Apply the new
+database migration with `npx prisma migrate deploy` where `DATABASE_URL` is
+configured. Without the status token, app URL, or database, the Python fetch
+still runs and the UI reports that pipeline status is unavailable.
 
 To watch official MCX fee/circular, CTT, and GST pages, set
 `GOLDPRISM_APP_URL`, `TINYFISH_API_KEY`, and `TINYFISH_MONITOR_WEBHOOK_TOKEN`
